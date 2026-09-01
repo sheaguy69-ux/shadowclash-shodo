@@ -1,0 +1,25 @@
+[
+  {"wait": 2.0},
+  {"key": "Space"},
+  {"wait": 0.8},
+  {"eval": "gameMode='2p'; cpuMode=false; attractMode=false; p1Pick=8; p2Pick=0; stagePick='bamboo'; startNewGame(); roundIntroTimer=0; matchActive=true; player1.x=520; player2.x=610; player1.facing=1; player2.facing=-1; return {v:SHEET_V};", "label": "START"},
+  {"wait": 0.6},
+  {"eval": "window.__rec={}; const rec=()=>{ if(player1&&player1.drawCell!==undefined){ const k='P1/'+player1.state; (window.__rec[k]=window.__rec[k]||[]); if(!window.__rec[k].includes(player1.drawCell)) window.__rec[k].push(player1.drawCell);} if(player2&&player2.drawCell!==undefined){ const k2='P2/'+player2.state; (window.__rec[k2]=window.__rec[k2]||[]); if(!window.__rec[k2].includes(player2.drawCell)) window.__rec[k2].push(player2.drawCell);} requestAnimationFrame(rec);}; requestAnimationFrame(rec); return 'armed';", "label": "ARM"},
+
+  {"record": 1.2, "fps": 24, "key": "KeyI", "at": 0.1},
+  {"eval": "player1.hp=100; return 'h1';", "label": "H1"},
+  {"record": 1.4, "fps": 24, "key": "KeyO", "at": 0.1},
+  {"eval": "player1.hp=100; player1.stunTimer=0; player1.state=STATE.IDLE; return 'h2';", "label": "H2"},
+
+  {"key": "KeyF"}, {"key": "KeyG"}, {"record": 2.2, "fps": 24}, {"wait": 0.8},
+  {"eval": "player1.hp=100; player2.hp=100; player1.x=520; player2.x=610; player1.state=STATE.IDLE; player2.state=STATE.IDLE; player2.stunTimer=0; player2.flooredT=0; return 'r';", "label": "R"},
+
+  {"down": "KeyW"}, {"record": 1.4, "fps": 24, "key": "KeyG", "at": 0.02}, {"up": "KeyW"}, {"wait": 0.6},
+  {"eval": "player1.state=STATE.IDLE; player1.vy=0; player1.y=0; player1.isGrounded=true; return 'g';", "label": "G"},
+
+  {"key": "KeyW"}, {"wait": 0.42}, {"down": "KeyS"}, {"record": 1.6, "fps": 24, "key": "KeyG", "at": 0.02}, {"up": "KeyS"}, {"wait": 0.6},
+
+  {"eval": "player1.wireBind=0.5; player1.wireTarget=player2; return 'bind';", "label": "BIND"},
+  {"record": 1.2, "fps": 24, "key": "KeyF", "at": 0.05},
+  {"eval": "return {rec:window.__rec};", "label": "RESULT"}
+]
