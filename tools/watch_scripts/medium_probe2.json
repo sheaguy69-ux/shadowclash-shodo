@@ -1,0 +1,9 @@
+[
+  {"wait": 2.0},
+  {"key": "Space"},
+  {"wait": 0.8},
+  {"eval": "gameMode='2p'; cpuMode=false; attractMode=false; p1Pick=7; p2Pick=6; stagePick='bamboo'; startNewGame(); roundIntroTimer=0; matchActive=true; player1.x=500; player2.x=620; return {st0:player1.state, grounded:player1.isGrounded, vy:player1.vy};", "label": "PRE"},
+  {"eval": "let err=null; try { player1._executeAttack(STATE.ATTACK_MEDIUM); } catch(e){ err=e.message; } return {st:player1.state, err, anim:!!player1.attackAnim, hb:player1.hitboxes.length, rec:player1.recoveryTimer};", "label": "DIRECT"},
+  {"wait": 0.8},
+  {"eval": "let err=null; try { fireCombatKey('KeyJ'); } catch(e){ err=e.message; } return {st:player1.state, err, anim:!!player1.attackAnim};", "label": "FUNNEL"}
+]

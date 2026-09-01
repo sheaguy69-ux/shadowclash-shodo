@@ -1,0 +1,15 @@
+[
+  {"wait": 2.0},
+  {"key": "Space"},
+  {"wait": 0.8},
+  {"eval": "gameMode='2p'; cpuMode=false; attractMode=false; p1Pick=7; p2Pick=6; stagePick='bamboo'; startNewGame(); roundIntroTimer=0; matchActive=true; player1.x=500; player2.x=620; return {v:SHEET_V, hasMed: typeof STATE!=='undefined' && !!STATE.ATTACK_MEDIUM};", "label": "SETUP"},
+  {"eval": "fireCombatKey('KeyJ'); return {st:player1.state, anim:!!player1.attackAnim, boxes:player1.kageActs? player1.kageActs.length : 'n/a', hb:player1.hitboxes.length};", "label": "J_DIRECT"},
+  {"wait": 0.4},
+  {"eval": "const F=SPRITES.exile.frames; const cell=(typeof spriteFrameIndex==='function')? spriteFrameIndex(player1,F) : -1; return {st:player1.state, cell, med1:F.medium1};", "label": "MIDSWING"},
+  {"wait": 1.0},
+  {"eval": "fireCombatKey('KeyU'); return {p2st:player2.state, p2anim:!!player2.attackAnim};", "label": "U_DIRECT"},
+  {"wait": 1.4},
+  {"eval": "player1.x=560; player2.x=608; fireCombatKey('KeyJ'); return {st:player1.state, hb:player1.hitboxes.length};", "label": "J_CLOSE"},
+  {"wait": 0.6},
+  {"eval": "return {p2hp:player2.hp};", "label": "DMG"}
+]

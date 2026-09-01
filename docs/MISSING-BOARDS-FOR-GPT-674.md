@@ -1,9 +1,6 @@
-# Boards still owed — hand this to the generator (SHEET_V 674)
+# Boards still owed — hand this to the generator (current at SHEET_V 676)
 
-Every row below has a LIVE engine route that currently falls back to another row's art.
-Everything else in the game draws a production board. Boards marked **approve** already
-exist in `art/production/<fighter>/` as a `-review` take — they need Anthony's approval
-(rename/copy to `-approved-review`) or a regeneration, not a new design.
+The original 29-item list landed in full at SHEET_V 675 (see the changelog). What remains:
 
 ## Format for every new board (the house spec)
 
@@ -16,75 +13,22 @@ exist in `art/production/<fighter>/` as a `-review` take — they need Anthony's
 - Cel beats, not a cross-fade: each frame is a distinct pose in reading order
   (anticipation → action → contact → follow-through → recover).
 
-## Oni — Spectral Founder
+## The MEDIUM tier is live (J for P1, U for P2) — five fighters need a medium board
 
-1. **Air light attack** (neutral air, staff or spear-hand swipe mid-air) — air Lights
-   currently draw his grounded iai-fang row.
-2. **Wall-cling + needle-throw REDRAW with NO drawn wall** — the current approved board
-   bakes the wall stroke into every card; it had to be machine-erased and edges remain.
-   Same beats: cling hold → reach → three-needle toss → settle. Transparent behind him.
+Exile, Tsubasa, Ember, and Mokurai play their approved standing-medium boards on it.
+These five draw their LIGHT row on Medium until a board lands:
 
-## Executioner
+1. **Oni — standing medium** (staff mid strike). His `black-pillar-break-standing-medium`
+   is already spent on the wire-katana conversion — owner call: reuse it here too, or new board.
+2. **Executioner — standing medium**. His `gallows-crescent-standing-medium` is his
+   neutral HEAVY since 663 — owner call: reassign it to Medium and give the heavy
+   `iaijutsu-heavy-power-cut` exclusively, or new board.
+3. **Kael — standing medium** (twin-blade mid cross).
+4. **Shin — standing medium** — approve `silent-reed-elbow-standing-medium-8f-v1-review`.
+5. **Mizu — standing medium** (bo mid thrust).
 
-3. **Crouch** (8f: sink → held low guard breathing) — he has NO crouch art at all; he
-   currently "ducks" in his idle pose.
-4. **Air heavy** (falling overhead katana strike) — air Heavies draw the grounded
-   gallows-crescent.
+## Parked (art exists, engine has no route yet)
 
-## Exile
-
-5. **Crouch** — approve `exile-shodo-kusarigama-crouch-8f-v1-review` or regen.
-6. **Airborne hit reaction / thrown tumble** (8f loose tumble, chain flailing).
-7. **Air light** (aerial sickle slash).
-8. **Launcher** — approve `exile-shodo-gallows-hook-rising-reap-launcher-8f-v1-review`.
-9. **Back-special** — approve `grave-chain-reversal-parry-counter` or
-   `gravehound-chain-pursuit` (pick which is her back+Special; both are -review).
-
-## Kael
-
-10. **Down-air cleave** — approve `kael-shodo-falling-star-cleave-down-air-8f-v1-review`.
-11. **Neutral air special** — approve `kael-shodo-sky-fang-cross-neutral-air-8f-v2-arm-corrected-review`.
-
-## Tsubasa
-
-12. **Fwd heavy rush** (the `rgrush` route: dashing twin-knife pierce, 8f).
-13. **Down+Light low sweep** (fast ankle cut).
-14. **Dive cut** (down air special — her canon plunging cut; engine route exists).
-15. **Air throw** (up special route reads it; grab-and-drop mid-air, 8f).
-
-## Ember
-
-16. **Blade-trap parry** (the `eparry` route: hunch guard → catch flash → X-shred →
-    recover; engine has a dedicated 5-beat read).
-
-## Mizu
-
-17. **Neutral HEAVY bo swing** — her biggest gap: every Heavy currently draws the light
-    thrust row. One committed two-handed bo strike, 8f.
-18. **Rising staff anti-air** (`ristaff`, up+Heavy route).
-19. **Low staff drive** (`bolow`, down+Heavy route).
-20. **Vaulting staff slam** (`gsup` row, up+Special — pole-vault over, drive down).
-21. **Airborne hit reaction / thrown tumble.**
-
-## Mokurai
-
-22. **Bell-ringer** (`mbell`, up+Heavy: both fists swing skyward).
-23. **Palm blast** (`mblast`, back+Heavy: braced rear palm shove).
-24. **Airborne hit reaction / thrown tumble.**
-25. **Wall cling** (`mwall`: catch + slide, bare-handed).
-
-## Shin (all four exist as -review takes — approve or regen)
-
-26. **Neutral heavy** — `shin-shodo-stone-splitting-palm-heavy-8f-v1-review`.
-27. **Launcher** — `shin-shodo-bamboo-splitter-rising-knee-launcher-8f-v2-one-eye-corrected-review`.
-28. **Parry stance** — `shin-shodo-shadow-thread-reversal-parry-counter-8f-v2-frame4-restored-review`.
-29. **Super** — `shin-shodo-silent-canopy-falling-star-burial-super-8f-v1-review`.
-
-## Parked for a routing decision (art exists, engine has no slot)
-
-- Ember `war-wraith-rake-standing-medium`, Mokurai `golden-temple-bell-elbow-standing-medium`,
-  Exile `grave-chain-knuckle-standing-medium`, Tsubasa `scarlet-shear-standing-medium` —
-  the engine has no "standing medium" tier; say where these should land.
 - Guard-break boards (exec/kael/tsubasa/ember/shin/oni) — no guard-break reaction route.
 - Mokurai boss specials + boss super, everyone's defeat-KO / intro / taunt / victory —
   no engine routes yet.

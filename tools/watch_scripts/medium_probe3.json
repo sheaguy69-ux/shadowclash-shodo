@@ -1,0 +1,15 @@
+[
+  {"wait": 2.0},
+  {"key": "Space"},
+  {"wait": 0.8},
+  {"eval": "gameMode='2p'; cpuMode=false; attractMode=false; p1Pick=7; p2Pick=6; stagePick='bamboo'; startNewGame(); roundIntroTimer=0; matchActive=true; return 1;", "label": "SETUP"},
+  {"wait": 1.5},
+  {"eval": "player1.x=500; player2.x=620; return {st:player1.state, gr:player1.isGrounded};", "label": "PRE"},
+  {"eval": "let err=null; try { player1._executeAttack(STATE.ATTACK_MEDIUM); } catch(e){ err=e.message; } return {st:player1.state, err, anim:!!player1.attackAnim, hb:player1.hitboxes.length, rec:player1.recoveryTimer, buf:player1.bufferedAttack};", "label": "GROUNDED_DIRECT"},
+  {"wait": 0.9},
+  {"eval": "const F=SPRITES.exile.frames; return {cell: spriteFrameIndex(player1,F), st:player1.state, med:[F.medium1,F.medium8]};", "label": "DRAW"},
+  {"wait": 0.9},
+  {"eval": "player1.x=560; player2.x=608; let e2=null; try{ fireCombatKey('KeyJ'); }catch(e){e2=e.message;} return {st:player1.state, e2};", "label": "FUNNEL_CLOSE"},
+  {"wait": 0.7},
+  {"eval": "return {p2hp:player2.hp, p2st:player2.state};", "label": "DMG"}
+]

@@ -1,0 +1,81 @@
+[
+ {
+  "wait": 2.0
+ },
+ {
+  "key": "Space"
+ },
+ {
+  "wait": 0.8
+ },
+ {
+  "eval": "window.__c={}; window.__t='x'; const rec=()=>{ for(const [t,p] of [['P1',player1],['P2',player2]]){ if(p&&p.drawCell!==undefined){ const k=window.__t+'/'+t+'/'+p.state; (window.__c[k]=window.__c[k]||[]); if(!window.__c[k].includes(p.drawCell)) window.__c[k].push(p.drawCell);}} requestAnimationFrame(rec);}; requestAnimationFrame(rec); return 'armed';",
+  "label": "ARM"
+ },
+ {
+  "eval": "gameMode='2p'; cpuMode=false; attractMode=false; p1Pick=7; p2Pick=6; stagePick='bamboo'; startNewGame(); roundIntroTimer=0; matchActive=true; player1.x=500; player2.x=620; window.__t='exile_mok'; return 1;",
+  "label": "S1"
+ },
+ {
+  "record": 1.2,
+  "fps": 24,
+  "tag": "exile_medium",
+  "key": "KeyJ",
+  "at": 0.05
+ },
+ {
+  "eval": "return {p1hp:player1.hp, p2hp:player2.hp, st:player1.state};",
+  "label": "DMG1"
+ },
+ {
+  "record": 1.2,
+  "fps": 24,
+  "tag": "mok_medium",
+  "key": "KeyU",
+  "at": 0.05
+ },
+ {
+  "eval": "return {p1hp:player1.hp, p2hp:player2.hp};",
+  "label": "DMG2"
+ },
+ {
+  "eval": "p1Pick=3; p2Pick=4; startNewGame(); roundIntroTimer=0; matchActive=true; player1.x=500; player2.x=620; window.__t='tsu_emb'; return 1;",
+  "label": "S2"
+ },
+ {
+  "record": 1.2,
+  "fps": 24,
+  "tag": "tsu_medium",
+  "key": "KeyJ",
+  "at": 0.05
+ },
+ {
+  "record": 1.2,
+  "fps": 24,
+  "tag": "emb_medium",
+  "key": "KeyU",
+  "at": 0.05
+ },
+ {
+  "eval": "p1Pick=2; startNewGame(); roundIntroTimer=0; matchActive=true; player1.x=500; player2.x=620; window.__t='shin_fb'; return 1;",
+  "label": "S3"
+ },
+ {
+  "record": 1.0,
+  "fps": 24,
+  "tag": "shin_medium",
+  "key": "KeyJ",
+  "at": 0.05
+ },
+ {
+  "eval": "gameMode='vscpu'; cpuMode=true; p1Pick=0; p2Pick=5; startNewGame(); roundIntroTimer=0; matchActive=true; player1.x=520; player2.x=600; window.__t='cpu'; window.__medcount=0; const old=player2.executeAttack.bind(player2); player2.executeAttack=(t,d)=>{ if(t===STATE.ATTACK_MEDIUM) window.__medcount++; return old(t,d); }; return 1;",
+  "label": "S4"
+ },
+ {
+  "wait": 20
+ },
+ {
+  "eval": "return {cpuMediums:window.__medcount, cells:window.__c};",
+  "label": "RESULT"
+ }
+]
