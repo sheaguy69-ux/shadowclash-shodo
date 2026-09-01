@@ -13,19 +13,66 @@ The original 29-item list landed in full at SHEET_V 675 (see the changelog). Wha
 - Cel beats, not a cross-fade: each frame is a distinct pose in reading order
   (anticipation → action → contact → follow-through → recover).
 
-## The MEDIUM tier is live (J for P1, U for P2) — five fighters need a medium board
+## The MEDIUM tier is live (J for P1, U for P2) — five medium boards, designed per style
 
-Exile, Tsubasa, Ember, and Mokurai play their approved standing-medium boards on it.
-These five draw their LIGHT row on Medium until a board lands:
+Exile, Tsubasa, Ember, and Mokurai already play their approved standing-medium boards.
+The five below are designed from each fighter's own fighting style so the Medium is the
+BRIDGE of a real combo: in the engine, a connected Light cancels into Medium, and a
+Special chains off the Medium. Every design starts fast enough to follow the fighter's
+light and ends in a body position that flows into his signature special.
 
-1. **Oni — standing medium** (staff mid strike). His `black-pillar-break-standing-medium`
-   is already spent on the wire-katana conversion — owner call: reuse it here too, or new board.
-2. **Executioner — standing medium**. His `gallows-crescent-standing-medium` is his
-   neutral HEAVY since 663 — owner call: reassign it to Medium and give the heavy
-   `iaijutsu-heavy-power-cut` exclusively, or new board.
-3. **Kael — standing medium** (twin-blade mid cross).
-4. **Shin — standing medium** — approve `silent-reed-elbow-standing-medium-8f-v1-review`.
-5. **Mizu — standing medium** (bo mid thrust).
+1. **Oni — "Hollow Gate Pommel Break"** (iaijutsu + staff, the Founder). His katana stays
+   SHEATHED: a half-step in and the saya's iron pommel drives a brutal mid-line butt-strike,
+   backed by the staff hand bracing the scabbard — the strike a sword-saint throws without
+   ever showing the blade. Crimson smoke snaps off the impact.
+   Beats: sheathed stance → grip shift down the saya → half-step, pommel chambers at the
+   ribs → THRUST, contact flash at chest height → twist-through, smoke burst → shoulders
+   wheel → saya slides home → stance.
+   The combo it makes: iai-fang Light (draw cut) → Pommel Break (staggers at arm's length —
+   exactly wire-bind range) → landed Special arms the WIRE, any button converts (katana /
+   knives / slice / claw). The Medium is what walks the opponent into his wire game.
+
+2. **Executioner — "Kesa Verdict"** (one-katana iaijutsu, the gallows judge). The classic
+   kesa-giri: a single diagonal cut from left shoulder to right hip — the cut that sits
+   between his fast nukitsuke draw and the full overhead gallows-crescent. Weight drops
+   through the front leg; the blade stops dead at the hip (kime), orange arc trailing.
+   Beats: sheathed jodan-ready → draw begins, blade at the ear → the DIAGONAL PASS,
+   arc FX shoulder-to-hip → kime hold, blade low and still → follow step → resheath begins →
+   click home → stance.
+   The combo: nukitsuke Light → Kesa Verdict (knocks their guard open downward) →
+   gallows-crescent Heavy on the exposed high line, or severing-step Special charge.
+
+3. **Kael — "Twin Fang Scissor Shear"** (nitoryū, short & long blade). Both blades shear
+   through each other in a horizontal X at chest height — long blade leads, short blade
+   snaps behind it a half-beat later, the two arcs crossing exactly on the contact frame.
+   It is his cross pattern thrown at mid commitment: faster than the cyclone, heavier
+   than the dual chain.
+   Beats: twin guard → both blades cock outward (long high, short low) → LONG BLADE
+   crosses, first arc → SHORT BLADE crosses opposite, X-flash on contact → blades locked
+   crossed, held one beat → uncross with a hop-back half-step → blades settle → stance.
+   The combo: kdual Light string → Scissor Shear (the X pops them slightly off footing) →
+   rising twin-fang launcher or shadow-cyclone Special.
+
+4. **Shin — "Silent Reed Elbow"** (taijutsu + razor wire) — approve
+   `shin-shodo-silent-reed-elbow-standing-medium-8f-v1-review` if it matches this read,
+   else regenerate: a gliding step INSIDE the opponent's guard and a rising elbow through
+   the chin line, rear hand already trailing a glinting wire loop behind his back — the
+   strike is silent, the wire is the threat you didn't see.
+   Beats: loose stance → slide-step in, shoulders coiling → elbow CHAMBERS tight →
+   RISING ELBOW, contact spark at jaw height → head-turn follow-through, wire glint
+   behind → rear hand flares the wire loop open → step back out → stance.
+   The combo: straight-punch Light → Reed Elbow (stuns point-blank) → silent-star wire
+   recall Special or the bamboo-splitter rising knee.
+
+5. **Mizu — "Moon-Arc Waist Cut"** (bō/hanbō water-flow, the spacing fighter). A stepping
+   horizontal bō arc at waist height, both hands sliding along the staff mid-swing the way
+   water changes grip — a wide crescent water-trail FX follows the tip. It is her
+   push-them-back-to-staff-range tool.
+   Beats: bō low guard → rear hand slides to the tip, step begins → the ARC starts off the
+   hip → full horizontal extension, crescent water FX, contact → tip decelerates past the
+   lead shoulder → hands re-center on the staff → settle step → guard.
+   The combo: bō-thrust Light → Moon-Arc (pushes them out to HER range) → moonlit-reed
+   ripple ranged Special, or vault slam over the top if they rush back in.
 
 ## Parked (art exists, engine has no route yet)
 
