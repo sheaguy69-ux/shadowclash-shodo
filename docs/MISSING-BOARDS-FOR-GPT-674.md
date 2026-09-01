@@ -1,6 +1,23 @@
-# Boards still owed — hand this to the generator (current at SHEET_V 676)
+# Boards still owed — hand this to the generator (current at SHEET_V 678)
 
-The original 29-item list landed in full at SHEET_V 675 (see the changelog). What remains:
+The original 29-item list landed in full at SHEET_V 675; the five medium boards landed at
+677. What remains:
+
+## KAEL — two special boards (routes are LIVE and fire hitboxes but draw idle)
+
+Both follow the house spec below. Kael: nitoryū — SHORT blade lead hand, LONG blade rear,
+GOLD accents, youngest of the cast, sharp fast silhouettes.
+
+1. **Kael — neutral Special ("Shadow Cyclone", engine key kspin, 8f)**: a spinning
+   double-blade cyclone on the spot — both blades extended, one full body rotation across
+   the row, gold arc trails wrapping him. Beats: twin guard → blades flare out → spin
+   START (back to viewer) → spin blur, arcs wrap → spin continues (front), arcs cross →
+   deceleration, blades trail → skid settle, arcs fade → guard.
+2. **Kael — forward Special ("Twin Fang Traverse", engine key ktrav, 8f)**: a darting
+   forward traverse — he vanishes into a low gold-streak dash and reappears blades-crossed.
+   Beats: guard → coil low → LAUNCH, body a horizontal streak → mid-dash, gold twin
+   streaks lead → burst-through, blades crossed at contact → carve-past follow-through →
+   skid stop, blades open → guard.
 
 ## Format for every new board (the house spec)
 
@@ -73,6 +90,19 @@ light and ends in a body position that flows into his signature special.
    lead shoulder → hands re-center on the staff → settle step → guard.
    The combo: bō-thrust Light → Moon-Arc (pushes them out to HER range) → moonlit-reed
    ripple ranged Special, or vault slam over the top if they rush back in.
+
+## SHIN + EXILE — no-wall wall-cling redraws (like the ones already delivered for oni/mokurai)
+
+Their current wallslide/walljump cells were drawn pressed against a painted wall stroke:
+with the stroke removed, the figure ends at a flat vertical edge (half the body was never
+drawn). Redraw each as a COMPLETE figure clinging to an invisible wall on the LEFT — full
+body drawn, gripping hand open against empty space, NO wall, floor, or props. One row of
+2-4 frames each: cling/slide pose + kick-off pose.
+
+3. **Shin — wall cling + wall kick (2f)**: hooded green taijutsu build, full body, left
+   hand braced flat, knees coiled; then the push-off with legs extending.
+4. **Exile — wall cling + wall kick (2f)**: black-and-purple, chain gathered in the free
+   hand, sickle stowed; then the push-off.
 
 ## Parked (art exists, engine has no route yet)
 

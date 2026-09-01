@@ -154,7 +154,7 @@ const testExpression = String.raw`(async () => {
   player1.hitboxes = [{ ox: 10, oy: 0, w: 40, h: 30, canClash: true }];
   player2.hitboxes = [{ ox: -10, oy: 0, w: 40, h: 30, canClash: true }];
   assert(processWeaponClash(player1, player2), 'eligible weapon clash did not resolve');
-  assert(player1.hitboxes.length === 0 && player2.hitboxes.length === 0 && hitstopRemaining >= 115, 'weapon clash side effects failed');
+  assert(player1.hitboxes.length === 0 && player2.hitboxes.length === 0 && hitstopRemaining >= 115, 'weapon clash side effects failed h1=' + player1.hitboxes.length + ' h2=' + player2.hitboxes.length + ' hitstop=' + hitstopRemaining);
 
   const shin = new Player(1, 150, GROUND_Y - 48, NINJA_ROSTER[2], true);
   shin.isGrounded = true; shin.stamina = 100; shin.executeAttack(STATE.ATTACK_SPECIAL);

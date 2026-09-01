@@ -58,3 +58,21 @@
   alpha cut at x~212 mid-cell (ready-cell crop boundary), 209 also carries a stray box
   fragment. Wall cells clean, facing clean, scale 68.9 vs 69.6 canon (minor — drops her
   below ember, breaking canon order). Orphan cell 106 unreferenced caption. AUDIT COMPLETE 9/9.
+
+## FIX PASS (Sep 1, owner-approved "Yes, continue") — lands as SHEET_V 678
+- shin: idle row repacked from idle-owner-model v6 board (198-205; old cells shipped a
+  solid black card SLAB, not a thin bar); wall 206-207 stroke-erased.
+- tsubasa: light 213-220 mound-stripped; medium REBUILT whole-board 221-228 (artist drew
+  lunges CROSSING card borders — any card-sliced take clips; extract connected components
+  off the keyed full board instead); scale 0.3625->0.3663 (canon order restored).
+- exile: wall 225-226; medium4-6 227-229 (welded 3-side card frame + beige dust).
+- ember: LIGHT ROW LIVE 174-179 (ghost-pounce-slash v2 frames 3-8, flipped to house LEFT,
+  scale 0.61 ruler-median); medium 1+8 rebuilt from war-wraith v1-approved (180-181);
+  medium 4-6 cleaned (171-173). OPEN: medium7 (169) ~35% over row scale (pre-existing);
+  idle grey rock between boots left (inseparable from boots, possibly authored).
+- mokurai: mpalm REBUILT 202-206 from bridge-hammer v1-approved (old row carried card
+  frame + parchment mound and FLOATED ~60px — pack had anchored on the card corner).
+- kael kspin/ktrav briefs -> docs/MISSING-BOARDS-FOR-GPT-674.md (GPT owed).
+- Lesson: pack_shodo_row white-composites + re-keys — NEVER feed it pre-keyed RGBA
+  (holes + resurrection of sub-205 bg); direct premult append instead (scratchpad
+  append_rgba_row.py pattern).
