@@ -1,0 +1,7 @@
+[
+  {"wait": 2.0},
+  {"key": "Space"},
+  {"wait": 0.5},
+  {"eval": "setGameMode('2p'); p1Pick=0; p2Pick=1; beginFight(); roundIntroTimer=0; hitstopRemaining=0; paused=false; player1.isGrounded=player2.isGrounded=true; window.dispatchEvent(new KeyboardEvent('keydown',{code:'KeyF',bubbles:true})); return {st:player1.state, active:matchActive, paused, intro:roundIntroTimer, buf:player1.bufferedAttack, rec:player1.recoveryTimer, tier:player1.chainComboTier};", "label": "KEYPATH"},
+  {"eval": "document.dispatchEvent(new KeyboardEvent('keydown',{code:'KeyF',bubbles:true})); return {st:player1.state};", "label": "DOC_TARGET"}
+]

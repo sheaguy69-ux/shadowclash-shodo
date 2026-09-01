@@ -1,0 +1,6 @@
+[
+  {"wait": 2.0},
+  {"key": "Space"},
+  {"wait": 0.5},
+  {"eval": "setGameMode('arcade'); p1Pick=0; p2Pick=null; beginFight(); roundIntroTimer=0; for(let t=0;t<240;t++){updateGame(1/60); } return {timer:roundTimer, active:matchActive, paused, intro:roundIntroTimer, p2:!!player2, mode:gameMode, over: (typeof matchOver!=='undefined')?matchOver:null, arcadeState: (typeof arcadeStage!=='undefined')?arcadeStage:null};", "label": "ARCADE"}
+]
