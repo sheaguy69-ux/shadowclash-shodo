@@ -1,0 +1,19 @@
+[
+  {"wait": 2.0},
+  {"key": "Space"},
+  {"wait": 0.8},
+  {"eval": "window.__c={}; window.__t='x'; const rec=()=>{ for(const [t,p] of [['P1',player1],['P2',player2]]){ if(p&&p.drawCell!==undefined){ const k=window.__t+'/'+t+'/'+p.state; (window.__c[k]=window.__c[k]||[]); if(!window.__c[k].includes(p.drawCell)) window.__c[k].push(p.drawCell);}} requestAnimationFrame(rec);}; requestAnimationFrame(rec); return 'armed';", "label": "ARM"},
+  {"eval": "gameMode='2p'; cpuMode=false; attractMode=false; p1Pick=8; p2Pick=0; stagePick='bamboo'; startNewGame(); roundIntroTimer=0; matchActive=true; player1.x=500; player2.x=620; window.__t='oni_exec'; return 1;", "label": "S1"},
+  {"wait": 0.8},
+  {"record": 1.2, "fps": 24, "tag": "oni_medium", "key": "KeyJ", "at": 0.05},
+  {"record": 1.2, "fps": 24, "tag": "exec_medium", "key": "KeyU", "at": 0.05},
+  {"eval": "p1Pick=5; p2Pick=2; startNewGame(); roundIntroTimer=0; matchActive=true; player1.x=500; player2.x=620; window.__t='kael_shin'; return 1;", "label": "S2"},
+  {"wait": 0.8},
+  {"record": 1.2, "fps": 24, "tag": "kael_medium", "key": "KeyJ", "at": 0.05},
+  {"record": 1.2, "fps": 24, "tag": "shin_medium", "key": "KeyU", "at": 0.05},
+  {"eval": "p1Pick=1; p2Pick=6; startNewGame(); roundIntroTimer=0; matchActive=true; player1.x=560; player2.x=608; window.__t='mizu'; return 1;", "label": "S3"},
+  {"wait": 0.8},
+  {"record": 1.2, "fps": 24, "tag": "mizu_medium", "key": "KeyJ", "at": 0.05},
+  {"eval": "return {p2hp:player2.hp};", "label": "DMG"},
+  {"eval": "return {cells:window.__c};", "label": "RESULT"}
+]
