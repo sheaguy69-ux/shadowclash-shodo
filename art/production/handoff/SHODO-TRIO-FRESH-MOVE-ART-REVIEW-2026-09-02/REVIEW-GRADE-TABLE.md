@@ -32,7 +32,7 @@ Dimension numbers are Doc 17's. N/T = not testable at this stage (RGB review fil
 | 2 | Weapon discipline | PASS — two hanbō on all 6 beats (GUARD's second reads only on a tight crop) | **CONCERN** — two kunai, but DRIVE's second is detached from the hand (see 11) | PASS — two tanto, reverse grip, blades pinky-side |
 | 3 | Palette match | PASS | PASS | PASS |
 | 4 | Pose readability | PASS — six distinct beats | PASS | PASS |
-| 5 | Silhouette clarity @48x64 | **FAIL 3/6** — VEIL, CATCH, GUARD read as one blob; sticks merge into the torso | PASS 6/6 | **PASS 6/6 — best of the three** |
+| 5 | Silhouette clarity @48x64 | **PASS 6/6 at game size** — the binary silhouette IS blobbier than her shipped cells (bbox fill 0.65 on VEIL/GUARD vs her live max 0.53), and in a pure silhouette VEIL loses the stick entirely. But that channel is not what carries her weapon: rendered at her true on-screen height of 62px, the tan hanbō sits at luminance ~105 against a robe at ~30, Weber contrast 1.37-3.48 on every beat where 0.25 is the reading threshold. The action reads. | PASS 6/6 | **PASS 6/6** |
 | 6 | Size registration | **UNRESOLVED** — no ruler passes a known-answer check on her; foot line holds to 6px | **UNRESOLVED** — eye reads 4.1% spread but the ruler over-reads (x1.05 measures x1.167), so 4.1% is an upper bound, not a gate; foot line 3px | **UNRESOLVED**; foot line 4px |
 | 7 | Motion path | PASS | PASS | PASS |
 | 8 | Smear legibility | N/A — no smear cells | N/A | N/A |
@@ -48,10 +48,10 @@ captions below the row; one row per image.
 
 | Board | Grade | Why |
 |---|---|---|
-| **Tsubasa — Sakate Backhand Rake** | **KEEP** (art-wise) | Clean on every testable dimension. Only the gate stops it. |
-| **Shin — Kage-Nui Poke** | **KEEP-CROP** | The 2 fragments are strippable at extraction — but DRIVE loses its second kunai when the floating blade goes, so that beat needs the kunai re-attached to a hand. |
-| **Mizu — Hanbo Kaeshi** | **KEEP-CROP** | Debris strips locally. The 3 muddy silhouettes are a real read problem at game size and are the only thing here that might warrant a redraw. |
+| **Tsubasa — Sakate Backhand Rake** | **KEEP** | Clean on every testable dimension. Only the gate stops it. |
+| **Shin — Kage-Nui Poke** | **KEEP** | Its "2 fragments" were never real — my own beat cut was slicing a neighbour's thrust kunai. Measured whole-board, shin has zero detached components. |
+| **Mizu — Hanbo Kaeshi** | **KEEP** | The one speck is gone. The silhouette worry did not survive measurement — see dimension 5. |
 
-**The debris is a free local fix, not a regeneration** — every fragment is a disconnected
-component with no bridge to the figure, so it comes off deterministically at alpha-extraction
-time. That work is not worth doing until the gate question is answered.
+**Nothing on these three boards needs a redraw.** Every finding was either fixed locally or
+withdrawn on measurement — the extraction is in `extracted/`, and the only thing still
+outstanding is the `FIRST_FORM_ONLY` decision, which is an engine question, not an art one.

@@ -87,4 +87,5 @@ shin 4px, tsubasa 5px.
 | art removed by the key | 6 px across all 18, every one pure page-white (254-255) in the source |
 | inner-rim halo | 587 px total, from 18,186 |
 | `soft_rim --selftest` | passes: 0.0006 alpha error and zero halo on dark ink, bright paint kept |
+| silhouette at game size | the hanbō reads on all six of mizu's beats — Weber contrast 1.37-3.48 against the robe at her true 62px on-screen height, threshold 0.25. A pure binary silhouette says otherwise, but that channel is not what carries a light wooden stick on a dark robe. |
 | ink-area size spread | mizu 6.0%, shin 4.0%, tsubasa 13.2% — tsubasa's orders exactly by pose (extend 1.042 > neutral 1.000 > tuck 0.961), the signature of a pose confound, not size drift |
