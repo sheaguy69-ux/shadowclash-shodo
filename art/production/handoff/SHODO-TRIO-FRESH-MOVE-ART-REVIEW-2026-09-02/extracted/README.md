@@ -41,12 +41,18 @@ components and mizu carries exactly one.
 ## Verified on all 18
 
 Checked by an 18-cell adversarial pass (one inspector per beat, every flag re-checked by
-a second agent), then re-measured after the two bugs it found were fixed:
+a second agent), then re-measured after the bugs it found were fixed. `soft_rim.py
+--selftest` now proves the matte against analytic ground truth — a supersampled shape at
+known coverage — and asserts both failure modes: alpha error 0.0006 on dark ink with zero
+halo, and bright paint kept intact.
 
 - **art lost: 0 px on every cell** — measured as figure pixels the cut claimed that the
   key then dropped, in place, with no alignment guesswork
-- **halo: 5 pixels total across all 18** (was 284-483 per cell), measured as the ring just
-  outside the silhouette composited on the stage grey; p99 now sits exactly on the stage
+- **halo, OUTSIDE the outline: 21 px total across all 18** (was 284-483 per cell)
+- **halo, INSIDE the outline: 587 px total, was 18,186** — this is the one that mattered
+  and the first fix missed it, because the metric only looked outside the silhouette. The
+  hard key keeps a pixel that is 14% covered and 86% page at full opacity; inner-rim p90
+  on the stage went from ~190 to ~40
 - one connected component each · no canvas-edge ink · captions and neighbour stubs gone ·
   sub-visible alpha purged to the engine's own floor of 8 · eyes intact on all three
 

@@ -27,6 +27,7 @@ colour at full alpha.
 """
 import argparse
 import pathlib
+import tempfile
 
 import numpy as np
 from PIL import Image
@@ -35,13 +36,18 @@ from scipy import ndimage as nd
 TOL = 34       # colour distance from page white that counts as ink at all
 KNEE = 150     # ...and where the ramp reaches full opacity
 MIN_BLOB = 400  # a detached piece smaller than this is a speck, not a limb or FX
+BRIGHT_ART = 180  # nearest-sure-ink luminance above which the art itself is bright,
+                  # so a pale pixel there is paint and not page bleed
 PAGE = np.array([255.0, 255.0, 255.0])
 
 
-def soften(path, tol=TOL, knee=KNEE, min_blob=MIN_BLOB, pad=4):
-    a = np.array(Image.open(path).convert('RGBA')).astype(float)
-    rgb = a[:, :, :3]
-    mask = a[:, :, 3] > 0
+def matte(rgb, mask, min_blob=MIN_BLOB, bright_art=BRIGHT_ART):
+    """Return (alpha 0..1, un-premultiplied rgb) on the SAME canvas as the input.
+
+    Split out of soften() so the selftest can measure it against analytic ground truth
+    without re-placing a cropped result — that alignment guesswork silently reported a
+    working matte as broken (0.4578 error against a true 0.0011).
+    """
 
     # ⛔ DROP SPECKS BY SIZE, KEEP DETACHED FX. Same rule key_white.py uses: the largest
     # component always survives, and so does anything big enough to be a limb, a blade or
@@ -81,17 +87,34 @@ def soften(path, tol=TOL, knee=KNEE, min_blob=MIN_BLOB, pad=4):
     a_true = np.where(denom > 1e-6, (dPp * dPC).sum(2) / np.maximum(denom, 1e-6), 0.0)
     a_true = np.clip(a_true, 0, 1)
 
-    # ⛔ SOLVE ONLY OUTSIDE THE SILHOUETTE. a_true reads any near-page pixel as ~0 alpha,
-    # and it cannot tell a 5%-covered blend from a pixel of BRIGHT ART sitting on the
-    # outline — a blade tip, a specular streak, the lit edge of a hood. Applying it to
-    # the mask's own rim punched ~200 pinholes per cell, 92% of them landing on source
-    # pixels brighter than 200. cut_strip's border flood already decided what is figure
-    # and is reliable there, so that decision stands and the solve only governs pixels
-    # the hard key had thrown away.
+    # ⛔ WHERE THE SOLVE IS ALLOWED TO REDUCE ALPHA. a_true reads any near-page pixel as
+    # ~0, and on its own it cannot tell a 5%-covered blend from a pixel of BRIGHT ART
+    # sitting on the outline — a blade tip, a specular streak, a lit hood edge. Applied
+    # to the whole silhouette rim it punched ~200 pinholes per cell, 92% of them landing
+    # on source pixels brighter than 200.
+    #
+    # But retreating to "the mask is simply opaque" reinstates the very halo this file
+    # exists to prevent, INSIDE the mask: the border flood keeps a pixel that is 14%
+    # covered and 86% page at full opacity, and that composites 135 luminance too bright.
+    # An analytic ground-truth test (a supersampled disc plus a thin spike, rendered at
+    # known coverage, run through this exact pipeline) measures it: keeping the mask
+    # opaque gives mean alpha error 0.3008 and 412 halo pixels; solving gives 0.0011 and
+    # zero. Both failures are real and they pull in opposite directions.
+    #
+    # What separates them is the LOCAL ART, not the pixel. Take C, the nearest colour the
+    # silhouette is sure about. If C is dark, a bright pixel there can only be page
+    # bleeding in, so solve it. If C is bright, the art itself is bright there and the
+    # solve has nothing to say — leave it opaque. On the same ground truth this scores
+    # identically to solving everywhere on dark ink (0.0011, zero halo) and identically to
+    # keeping opaque on bright art, which is exactly the intent.
+    Clum = C.mean(2)
     outer = nd.binary_dilation(mask, np.ones((3, 3)), iterations=2) & ~mask
+    solvable = mask & ~core & (Clum < bright_art)
     al = np.zeros(mask.shape, float)
-    al[mask] = 1.0                       # the silhouette's claim stands
+    al[mask] = 1.0                       # the silhouette's claim stands by default
+    al[solvable] = a_true[solvable]      # ...except where only page can be lightening it
     al[outer] = np.clip(a_true[outer], 0, 1)   # blend pixels the hard key threw away
+    al[core] = 1.0                       # interior is opaque whatever colour it is
 
     # ⛔ PURGE SUB-VISIBLE ALPHA LAST. The engine's own keyer treats alpha >= 8 as ink
     # (keyer_emu.keyed_cell), so anything under that is invisible in game but still
@@ -115,6 +138,12 @@ def soften(path, tol=TOL, knee=KNEE, min_blob=MIN_BLOB, pad=4):
                 al[lab == i + 1] = 0.0
 
     out = np.clip((rgb - (1 - al)[..., None] * PAGE) / np.maximum(al, 1e-3)[..., None], 0, 255)
+    return al, out
+
+
+def soften(path, tol=TOL, knee=KNEE, min_blob=MIN_BLOB, pad=4, bright_art=BRIGHT_ART):
+    a = np.array(Image.open(path).convert('RGBA')).astype(float)
+    al, out = matte(a[:, :, :3], a[:, :, 3] > 0, min_blob=min_blob, bright_art=bright_art)
     im = Image.fromarray(np.dstack([out, al * 255]).astype('uint8'), 'RGBA')
     im = im.crop(im.getbbox())
     # A tight crop puts ink on all four borders, which every downstream scan reads as a
@@ -126,18 +155,74 @@ def soften(path, tol=TOL, knee=KNEE, min_blob=MIN_BLOB, pad=4):
     return im
 
 
+def selftest():
+    """Analytic ground truth: a shape whose true coverage we KNOW, through this matte.
+
+    This is the check that catches the two failures this file has already shipped once
+    each — a halo (alpha too high on page-contaminated edge pixels) and punched art
+    (alpha too low on bright paint). Both are invisible on a contact sheet.
+    """
+    H, W, S = 200, 160, 8
+    Y, X = np.mgrid[0:H * S, 0:W * S] / S
+    shape = (((Y - 110) ** 2 + (X - 80) ** 2) < 55 ** 2) | (
+        (np.abs(X - 80) < (0.6 + (Y - 30) * 0.05)) & (Y > 30) & (Y < 60))
+    true = shape.astype(float).reshape(H, S, W, S).mean((1, 3))
+    STAGE = 98.0
+    aa = (true > 0.001) & (true < 0.999)
+    # A bright-paint case has to carry its own dark outline, the way an eye or a blade
+    # does. A pure-white shape sitting on a white page with no outline is not something
+    # any keyer can find — the border flood simply swallows it — so testing that would
+    # measure the synthetic, not the tool.
+    ring = (nd.binary_dilation(true > 0.5, np.ones((3, 3)), iterations=3)
+            & ~nd.binary_erosion(true > 0.5, np.ones((3, 3)), iterations=1))
+    for ink, name in [([28, 34, 40], 'dark ink'), ([250, 250, 250], 'bright art')]:
+        INK = np.array(ink, float)
+        rgb = np.round(true[..., None] * INK + (1 - true[..., None]) * PAGE)
+        if name == 'bright art':
+            rgb[ring] = np.array([20.0, 20.0, 20.0])   # the outline that makes it findable
+        white = rgb.min(2) >= 224                      # cut_strip's border flood
+        lab, _ = nd.label(white)
+        e = set(lab[0, :]) | set(lab[-1, :]) | set(lab[:, 0]) | set(lab[:, -1])
+        e.discard(0)
+        mask = ~np.isin(lab, list(e))
+        al, col = matte(rgb, mask)
+        comp = (al[..., None] * col + (1 - al[..., None]) * STAGE).mean(2)
+        truth = (true[..., None] * INK + (1 - true[..., None]) * STAGE).mean(2)
+        halo = int(((comp - truth) > 25).sum())
+        err = float(np.abs(al - true)[aa].mean())
+        print(f'  {name:11s} alpha err on the AA band {err:.4f} | halo px {halo}')
+        if name == 'dark ink':
+            assert err < 0.05, f'matte broken on dark ink: alpha error {err:.4f}'
+            assert halo == 0, f'halo is back on dark ink: {halo} px'
+        else:
+            # Bright paint on a white page is genuinely ambiguous. The one thing that
+            # must hold is that we never delete it.
+            inner = (true > 0.5) & ~ring
+            kept = float((al[inner] > 0.5).mean())
+            assert kept > 0.99, f'bright art is being punched out: only {kept:.1%} kept'
+    print('  soft_rim selftest OK')
+
+
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument('src')
-    ap.add_argument('dst')
+    ap.add_argument('src', nargs='?')
+    ap.add_argument('dst', nargs='?')
+    ap.add_argument('--selftest', action='store_true',
+                    help='run the analytic ground-truth check and exit')
     ap.add_argument('--min-blob', type=int, default=MIN_BLOB)
     ap.add_argument('--pad', type=int, default=4, help='transparent margin around the cut')
+    ap.add_argument('--bright-art', type=float, default=BRIGHT_ART,
+                    help='local-ink luminance above which the art is bright and the matte '
+                         'solve must not reduce alpha (default 180)')
     a = ap.parse_args()
+    if a.selftest:
+        selftest()
+        return
     src, dst = pathlib.Path(a.src), pathlib.Path(a.dst)
     dst.mkdir(parents=True, exist_ok=True)
     for p in sorted(src.glob('*.png')):
         before = np.array(Image.open(p).convert('RGBA'))[:, :, 3] > 0
-        im = soften(p, min_blob=a.min_blob, pad=a.pad)
+        im = soften(p, min_blob=a.min_blob, pad=a.pad, bright_art=a.bright_art)
         after = np.array(im)[:, :, 3] > 0
         print(f'  {p.name}: {im.width}x{im.height}  '
               f'solid {int(before.sum())} -> covered {int(after.sum())} '
