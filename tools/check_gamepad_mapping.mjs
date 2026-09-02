@@ -25,10 +25,13 @@ const src = html.slice(start, end + endMark.length);
 
 let p2Human = true;
 const events = [];
+const statusEl = { textContent: '' };
 const sandbox = {
   navigator: { getGamepads: () => [null, null] },
   window: { dispatchEvent: e => events.push(e) },
   isP2Human: () => p2Human,
+  // pollGamepads also writes the #pad-status line; give it somewhere to write.
+  document: { getElementById: id => (statusEl.id = id, statusEl) },
   KeyboardEvent: class { constructor(type, init) { this.type = type; this.code = init.code; } },
 };
 vm.createContext(sandbox);
@@ -112,6 +115,14 @@ check('pad 2 CANNOT puppet a CPU opponent', poll(pad([]), pad([2])).down, []);
 check('...not even a direction', poll(pad([]), pad([], [0.9, 0])).down, []);
 p2Human = true;
 release(); poll(pad([]), pad([]));
+
+console.log('pad-status line (select screen only, never over the canvas)');
+release(); poll(pad([]), null);
+check('one pad connected reads P1 only', [statusEl.textContent], ['P1 PAD \u2713   P2 PAD \u2014']);
+poll(pad([]), pad([]));
+check('two pads connected read both', [statusEl.textContent], ['P1 PAD \u2713   P2 PAD \u2713']);
+poll(null, null);
+check('no pad clears the line', [statusEl.textContent], ['']);
 
 console.log('non-standard mapping is ignored, never guessed');
 const weird = { ...pad([0, 2, 3]), mapping: '' };

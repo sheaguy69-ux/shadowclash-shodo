@@ -479,22 +479,27 @@
                         <div class="grid grid-cols-2 gap-y-1.5 text-xs text-gray-300">
                             <div><kbd class="px-1.5 py-0.5 bg-gray-800 rounded text-emerald-300 font-mono">Stick / D-Pad</kbd></div>
                             <div class="text-gray-400">Move / Jump (double-tap = Shunshin)</div>
-                            <div><kbd class="px-1.5 py-0.5 bg-gray-800 rounded text-emerald-300 font-mono">A</kbd></div>
+                            <div><kbd class="px-1.5 py-0.5 bg-gray-800 rounded text-emerald-300 font-mono">SOUTH <span class="text-gray-500">A / ✕</span></kbd></div>
                             <div class="text-gray-400">Light Atk</div>
-                            <div><kbd class="px-1.5 py-0.5 bg-gray-800 rounded text-emerald-300 font-mono">X</kbd></div>
+                            <div><kbd class="px-1.5 py-0.5 bg-gray-800 rounded text-emerald-300 font-mono">WEST <span class="text-gray-500">X / □</span></kbd></div>
+                            <div class="text-gray-400">Medium Atk</div>
+                            <div><kbd class="px-1.5 py-0.5 bg-gray-800 rounded text-emerald-300 font-mono">NORTH <span class="text-gray-500">Y / △</span></kbd></div>
                             <div class="text-gray-400">Heavy Atk</div>
-                            <div><kbd class="px-1.5 py-0.5 bg-gray-800 rounded text-emerald-300 font-mono">Y</kbd></div>
+                            <div><kbd class="px-1.5 py-0.5 bg-gray-800 rounded text-emerald-300 font-mono">EAST <span class="text-gray-500">B / ○</span></kbd></div>
                             <div class="text-gray-400">Special Skill</div>
-                            <div><kbd class="px-1.5 py-0.5 bg-gray-800 rounded text-emerald-300 font-mono">B / LB / RB</kbd></div>
+                            <div><kbd class="px-1.5 py-0.5 bg-gray-800 rounded text-emerald-300 font-mono">LB / RB</kbd></div>
                             <div class="text-gray-400">Poof (tap) / Block (hold)</div>
                             <div><kbd class="px-1.5 py-0.5 bg-gray-800 rounded text-emerald-300 font-mono">LT / RT</kbd></div>
                             <div class="text-gray-400">Throw</div>
-                            <div><kbd class="px-1.5 py-0.5 bg-gray-800 rounded text-emerald-300 font-mono">Select</kbd></div>
-                            <div class="text-gray-400">Offensive Stance (Executioner)</div>
-                            <div><kbd class="px-1.5 py-0.5 bg-gray-800 rounded text-emerald-300 font-mono">Start</kbd></div>
+                            <div><kbd class="px-1.5 py-0.5 bg-gray-800 rounded text-emerald-300 font-mono">Back / Share</kbd></div>
+                            <div class="text-gray-400">Second Form / Stance</div>
+                            <div><kbd class="px-1.5 py-0.5 bg-gray-800 rounded text-emerald-300 font-mono">Start / Options</kbd></div>
                             <div class="text-gray-400">Pause</div>
                         </div>
                         <p class="text-[10px] text-gray-500 mt-1.5 leading-snug">
+                            All four attacks sit on the four face buttons, named by WHERE THEY ARE,
+                            because Nintendo prints A/B and X/Y mirrored against Xbox — the grey
+                            letters are the Xbox / PlayStation faces in that position.
                             Second pad drives P2 in 2 PLAYERS and TRAINING. Xbox / PlayStation /
                             Switch Pro / 8BitDo all work.
                         </p>
@@ -672,6 +677,11 @@
                             <button data-tier="4" id="tier-elite" title="what the pit's hunger fights like" class="tier-btn hidden px-3 py-1.5 bg-red-950 rounded font-bold text-[10px] border border-red-800 text-red-400">☠ ELITE</button>
                         </div>
                         <p id="select-hint" class="text-center text-xs text-gray-400">Tap to pick Player 1, then Player 2 — then hit FIGHT</p>
+                        <!-- PAD STATUS. A controller is polled, never announced, so until now the
+                             only way to learn whether the game had seen your pad was to press a
+                             button mid-match and find out. It lives on the SELECT screen, never
+                             over the canvas. Written by pollGamepads, and only when it changes. -->
+                        <p id="pad-status" class="text-center text-[10px] text-gray-600 mt-1"></p>
                     </div>
 
                     <!-- Six public ninjas plus three non-playable private silhouettes -->
@@ -16890,6 +16900,8 @@
         };
         const PAD_DEAD = 0.4;              // stick deadzone — a resting thumb must never walk
         const padHeld = [new Set(), new Set()];
+        const padSeen = [false, false];    // is a standard-mapping pad plugged in for this seat
+        let padStatusLine = null;          // last line written to #pad-status
         const padKey = (code, down) =>
             window.dispatchEvent(new KeyboardEvent(down ? 'keydown' : 'keyup', { code, bubbles: true }));
         function pollGamepads() {
@@ -16925,6 +16937,17 @@
                 for (const c of now) if (!held.has(c)) padKey(c, true);
                 for (const c of held) if (!now.has(c)) padKey(c, false);
                 padHeld[i] = now;
+                padSeen[i] = !!(pads[i] && pads[i].connected && pads[i].mapping === 'standard');
+            }
+            // Tell the player their pad arrived. `pads[i]` not the `live` gate above, so a
+            // second pad still READS as connected while vs-CPU refuses to let it play.
+            const line = padSeen[0] || padSeen[1]
+                ? (padSeen[0] ? 'P1 PAD ✓' : 'P1 PAD —') + '   ' + (padSeen[1] ? 'P2 PAD ✓' : 'P2 PAD —')
+                : '';
+            if (line !== padStatusLine) {          // touch the DOM on CHANGE, not 60x a second
+                padStatusLine = line;
+                const el = document.getElementById('pad-status');
+                if (el) el.textContent = line;
             }
         }
 
