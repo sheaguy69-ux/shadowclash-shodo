@@ -1,0 +1,70 @@
+{
+  "board": "tsubasa-sakate-backhand-rake-fresh-6f-v1-RGB-REVIEW.png",
+  "n": 6,
+  "cuts": [
+    287,
+    661,
+    994,
+    1431,
+    1732
+  ],
+  "cells": {
+    "c1": {
+      "board_x": 30,
+      "board_y": 179,
+      "w": 265,
+      "h": 354,
+      "board_foot_y": 524,
+      "cell_foot_y": 349,
+      "pad": 4
+    },
+    "c2": {
+      "board_x": 391,
+      "board_y": 151,
+      "w": 279,
+      "h": 385,
+      "board_foot_y": 526,
+      "cell_foot_y": 380,
+      "pad": 4
+    },
+    "c3": {
+      "board_x": 703,
+      "board_y": 158,
+      "w": 300,
+      "h": 383,
+      "board_foot_y": 528,
+      "cell_foot_y": 378,
+      "pad": 4
+    },
+    "c4": {
+      "board_x": 1059,
+      "board_y": 172,
+      "w": 380,
+      "h": 368,
+      "board_foot_y": 529,
+      "cell_foot_y": 363,
+      "pad": 4
+    },
+    "c5": {
+      "board_x": 1511,
+      "board_y": 194,
+      "w": 230,
+      "h": 347,
+      "board_foot_y": 529,
+      "cell_foot_y": 342,
+      "pad": 4
+    },
+    "c6": {
+      "board_x": 1821,
+      "board_y": 156,
+      "w": 257,
+      "h": 380,
+      "board_foot_y": 526,
+      "cell_foot_y": 375,
+      "pad": 4
+    }
+  },
+  "board_foot_y_min": 524,
+  "board_foot_y_max": 529,
+  "foot_spread_px": 5
+}

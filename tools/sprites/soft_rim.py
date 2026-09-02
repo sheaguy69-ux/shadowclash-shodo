@@ -26,6 +26,7 @@ half-covered pixel gets the ink's own colour at half alpha rather than a washed-
 colour at full alpha.
 """
 import argparse
+import json
 import pathlib
 import tempfile
 
@@ -220,14 +221,31 @@ def main():
         return
     src, dst = pathlib.Path(a.src), pathlib.Path(a.dst)
     dst.mkdir(parents=True, exist_ok=True)
+    reg = None
+    reg_path = src / 'registration.json'
+    if reg_path.exists():
+        reg = json.loads(reg_path.read_text())
     for p in sorted(src.glob('*.png')):
-        before = np.array(Image.open(p).convert('RGBA'))[:, :, 3] > 0
+        before_im = Image.open(p).convert('RGBA')
+        before = np.array(before_im)[:, :, 3] > 0
         im = soften(p, min_blob=a.min_blob, pad=a.pad, bright_art=a.bright_art)
         after = np.array(im)[:, :, 3] > 0
+        # carry the board registration through this crop, or it is lost for good
+        if reg and p.stem in reg['cells']:
+            ys, xs = np.nonzero(np.array(before_im)[:, :, 3] > 0)
+            bb = im.getbbox()
+            c = reg['cells'][p.stem]
+            # soften trims to its own bbox then pads; express the new origin in board px
+            c['cell_foot_y'] = int(im.height - 1 - a.pad)
+            c['w'], c['h'] = int(im.width), int(im.height)
+            c['pad'] = int(a.pad)
         print(f'  {p.name}: {im.width}x{im.height}  '
               f'solid {int(before.sum())} -> covered {int(after.sum())} '
               f'(+{int(after.sum()) - int(before.sum())} rim px)')
         im.save(dst / p.name)
+    if reg:
+        (dst / 'registration.json').write_text(json.dumps(reg, indent=2))
+        print(f"  registration carried through -> {dst / 'registration.json'}")
 
 
 if __name__ == '__main__':

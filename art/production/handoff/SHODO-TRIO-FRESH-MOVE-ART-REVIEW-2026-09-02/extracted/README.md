@@ -71,3 +71,20 @@ hair and weapon tips. The only size evidence that holds is the foot line: mizu 6
 
 `CONTACT-ON-STAGE-GREY.png` shows all 18 composited on the game's mid-grey.
 `SHA256SUMS.txt` covers the 18 frames.
+`<fighter>/registration.json` carries each cell's ORIGIN ON THE BOARD and the board foot
+line. Every cell is cropped to its own ink, so the shared baseline the six poses were
+drawn against does not survive into the files and cannot be re-derived from them — the
+packer should read footY from here rather than guess. Board foot spread: mizu 6px,
+shin 4px, tsubasa 5px.
+
+## Checks run on the final set
+
+| Check | Result |
+|---|---|
+| runtime keyer (`keyer_emu`) | **no-op on all 18** — the card path never arms, so what you see is what the engine draws |
+| figure gate (`gate_fragments` principle) | no fragments — body height 0.93-1.04 of each row's median, feet 0-6px off the floor |
+| alpha floor | 0 pixels with `0 < alpha < 8` on any cell |
+| art removed by the key | 6 px across all 18, every one pure page-white (254-255) in the source |
+| inner-rim halo | 587 px total, from 18,186 |
+| `soft_rim --selftest` | passes: 0.0006 alpha error and zero halo on dark ink, bright paint kept |
+| ink-area size spread | mizu 6.0%, shin 4.0%, tsubasa 13.2% — tsubasa's orders exactly by pose (extend 1.042 > neutral 1.000 > tuck 0.961), the signature of a pose confound, not size drift |

@@ -1,0 +1,70 @@
+{
+  "board": "shin-kagenui-poke-fresh-6f-v1-RGB-REVIEW.png",
+  "n": 6,
+  "cuts": [
+    293,
+    578,
+    946,
+    1327,
+    1627
+  ],
+  "cells": {
+    "c1": {
+      "board_x": 15,
+      "board_y": 219,
+      "w": 286,
+      "h": 324,
+      "board_foot_y": 532,
+      "cell_foot_y": 319,
+      "pad": 4
+    },
+    "c2": {
+      "board_x": 345,
+      "board_y": 208,
+      "w": 243,
+      "h": 338,
+      "board_foot_y": 534,
+      "cell_foot_y": 333,
+      "pad": 4
+    },
+    "c3": {
+      "board_x": 615,
+      "board_y": 222,
+      "w": 341,
+      "h": 325,
+      "board_foot_y": 534,
+      "cell_foot_y": 320,
+      "pad": 4
+    },
+    "c4": {
+      "board_x": 946,
+      "board_y": 222,
+      "w": 389,
+      "h": 320,
+      "board_foot_y": 533,
+      "cell_foot_y": 315,
+      "pad": 4
+    },
+    "c5": {
+      "board_x": 1353,
+      "board_y": 217,
+      "w": 283,
+      "h": 328,
+      "board_foot_y": 532,
+      "cell_foot_y": 323,
+      "pad": 4
+    },
+    "c6": {
+      "board_x": 1680,
+      "board_y": 218,
+      "w": 260,
+      "h": 325,
+      "board_foot_y": 530,
+      "cell_foot_y": 320,
+      "pad": 4
+    }
+  },
+  "board_foot_y_min": 530,
+  "board_foot_y_max": 534,
+  "foot_spread_px": 4
+}

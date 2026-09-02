@@ -18,6 +18,7 @@ The white key is a border flood (not a global threshold) so enclosed white — t
 mask, the wrappings — survives; see key_edge.py, same rule.
 """
 import argparse
+import json
 import pathlib
 
 import numpy as np
@@ -284,13 +285,34 @@ def main():
     d = pathlib.Path(a.outdir)
     d.mkdir(parents=True, exist_ok=True)
     kept = 0
+    # ⛔ EMIT THE REGISTRATION. Each cell is cropped to its own bbox, so the shared origin
+    # the six poses were drawn against does not survive into the files — and nothing
+    # downstream can re-derive it, because every cell now starts at its own ink. footY and
+    # a common baseline are exactly what the packer needs, so record them here while the
+    # board is still in hand.
+    reg = {'board': pathlib.Path(a.board).name, 'n': a.n, 'cuts': [int(b) for b in bounds[1:-1]],
+           'cells': {}}
     for i, c in enumerate(cells, 1):
         if c is None:
             continue
         Image.fromarray(c[0].astype(np.uint8)).save(d / f'{a.prefix}{i}.png')
+        _, bx, by, bw, bh = c
+        reg['cells'][f'{a.prefix}{i}'] = {
+            'board_x': int(bx), 'board_y': int(by), 'w': int(bw), 'h': int(bh),
+            'board_foot_y': int(by + bh - 1),
+        }
         kept += 1
+    feet = [v['board_foot_y'] for v in reg['cells'].values()]
+    if feet:
+        reg['board_foot_y_min'] = min(feet)
+        reg['board_foot_y_max'] = max(feet)
+        reg['foot_spread_px'] = max(feet) - min(feet)
+    (d / 'registration.json').write_text(json.dumps(reg, indent=2))
     print(f'  wrote {kept}/{a.n} -> {d}')
     print(f'  cuts at x: {bounds[1:-1]}')
+    if feet:
+        print(f'  board foot line {min(feet)}-{max(feet)} (spread {max(feet)-min(feet)}px) '
+              f'-> registration.json')
 
 
 if __name__ == '__main__':
