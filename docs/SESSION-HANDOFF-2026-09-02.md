@@ -1,25 +1,67 @@
 # Session handoff — 2026-09-02, SHEET_V 690
 
-Tree `SHODO-EDITION` · branch `shodo-edition` · HEAD `ecfc68f` · served on `:9101` ·
-**nothing pushed, 12 local commits after `05945ae`.**
+Tree `SHODO-EDITION` · branch `shodo-edition` · served on `:9101` ·
+**12 commits after `05945ae`** (7 art + 4 gamepad + 1 touch), plus this doc's own commit.
+Run `git log --oneline -1` for HEAD — landing this file moved it past `ecfc68f`.
 
 ---
+
+## ⛔ Read this before you type anything
+
+Five facts about this working directory. The first one is the only way to destroy the project.
+
+1. **57 files are tracked by git. 398 paths are untracked and NOT in `.gitignore`** — all of
+   `art/`, nearly all of `docs/`, `RECOVERY/`, `web/assets/`, and every tool in Start Here
+   except `check_gamepad_mapping.mjs`. **There is no remote** (`git remote -v` is empty, no
+   upstream, no `.git/refs/remotes`, no `FETCH_HEAD` has ever existed). So this directory is
+   the ONLY copy of everything, tracked and untracked alike. `git clean -fdx` here deletes the
+   art corpus and the toolchain with nothing to restore from.
+2. **A lane is already open** — `Codex Shodo Edition`, since 2026-08-31. `lane.py start`
+   will refuse. Commit with `LANE_AS="<your name>" git commit`. Do **not** reach for
+   `--takeover`; it wipes their claims, which is the exact failure lane.py exists to prevent.
+3. **A server is already listening on :9101** (its cwd is this tree). `serve.py 9101` will
+   fail with address-in-use. `curl` `/whoami` first and only start one if nothing is there.
+4. **`.claude/launch.json`'s FIRST entry serves THIS tree on :9100** — the port reserved for
+   the RECOVERED edition, which is under a never-touch order, and the two pages look
+   identical. Use the `shadowclash-9101` entry, never the default.
+5. **The pre-commit hook runs `check_sheets_whole.py`**, which refuses any commit that cuts a
+   fighter's key count below 70% or below 40 keys. The owed orphan strip therefore needs
+   `--allow-shrink`. When a hook refuses, the answer is never `--no-verify` — that bypasses
+   the foreign-file guard at the same time.
+
+Also stale and actively misleading, in this tree, right now: the root `_SNAPSHOT-INFO.md`
+("this is a COPY, run ./refresh.sh" — its source directory no longer exists), and the
+auto-loaded `CLAUDE.md` / `AGENTS.md`, which order "ONE TREE, SHADOWCLASH-RECOVERED" and point
+at a July audit as current state. You are working in SHODO-EDITION on :9101; that instruction
+supersedes them.
+
+Live state also lives OUTSIDE this repo: `~/OB-LOCAL_BRAIN/Claude-Brain/memory/shadow-clash-channel.md`
+and `shadow-clash-sync.md`. The post-commit hook writes to the channel on every commit, so its
+newest entry outranks this document.
 
 ## Start here
 
 ```bash
-python3 tools/lane.py start "your name"   # several agents share this tree
-python3 tools/lane.py who
+curl -s localhost:9101/whoami             # FIRST. One is probably already running.
+python3 tools/lane.py who                 # shows HEAD + the open Codex lane
+# start a server ONLY if nothing answered above:
 python3 tools/serve.py 9101 web
-curl -s localhost:9101/whoami             # MUST say SHODO-EDITION before you trust the screen
 node tools/check_gamepad_mapping.mjs      # 54 assertions, no browser, no server
 node tools/kinetics_check.mjs             # ALL PASS
 node tools/check_zero_legacy.mjs          # hard checks pass; orphans are expected
 ```
 
-`tools/check_story_cutscene.mjs` **cannot run on this machine** — it hardcodes port 9100
-(the other edition, never to be touched) and needs a Chrome remote-debugging port that is
-dead here. The cutscene path was verified by hand in the Browser pane instead.
+⚠ `lane.py who` calls `sweep_ports()`, which SIGTERMs any listening server whose command or
+cwd mentions shadowclash on a port other than 9100/9101/9102. Orienting can kill a co-tenant's
+dev server. (9102 is the approved-art gallery.)
+
+`tools/check_story_cutscene.mjs` needs **a one-line fix, not a rewrite**: line 8 hardcodes
+`const port = 9100`. Point it at 9101 and it passes 14/14 against this tree — Chrome remote
+debugging does work here. Give it an argv or env override and it becomes a live gate again.
+
+`check_zero_legacy.mjs` PASSES while reporting **21 dead row bases** the engine probes and no
+sheet packs (the `f2_*` second-mode family, `hb_catch`/`hb_low`/`hb_cross`/`hb_mist`, `lock`,
+`dashatk`, `kslash`, `airkick`). A passing check is hiding a real inventory.
 
 ## Laws that cost something to learn
 
@@ -103,10 +145,14 @@ of these through an offscreen canvas in one piece. Decoded, oni alone is ~345 MB
 - **Orphan strip** — mechanical and verifiable, but some orphans are deliberately reserved art
   (e.g. ember's ghost-pounce cells). He must name what stays first. Ember alone is now 152 of
   274 cells unreferenced (55%), including the 57 superseded by 686/689.
-- **127 straight cut-offs** on live cells (≥20px, only 1 is the legitimate wall stroke).
-  Not classified, nothing deleted. Sweep code in the session scratchpad; trivially re-runnable.
+- **127 straight cut-offs** on live cells (≥20px), across 135 flagged columns. **Two** carry a
+  wall key — exile 313 (wall-only) and oni 403 (his jump cell, which walljump aliases) — so
+  only ONE is a dedicated wall cell. Oni owns 57 of the 127, including his own idle cell 54.
+  Nothing classified, nothing deleted. Re-run it yourself:
+  `python3 tools/sprites/session-2026-09-02/straight_cut_sweep.py`
 
-**Needs new art** (brief written, in the 680 handoff folder)
+**Needs new art** — the brief is `docs/ART-BRIEF-OUTSTANDING-2026-09-02.md` (items 1-4; item 5
+landed at 690). It carries the cell indices, the measured defect and the house rules per item.
 - exec rise row beats at cells 108/110 (and 109, which has NO figure)
 - exec special mid beats 194-199 (bookends 193/200 are already canon)
 - kael `kxcut7`/`kxcut8` (cells 73/74), drawn ~1.41x and ~1.49x his idle
@@ -116,9 +162,19 @@ of these through an offscreen canvas in one piece. Decoded, oni alone is ~345 MB
 - Later phases of `docs/COMPETITIVE-GAMEPAD-IMPLEMENTATION-BRIEF.md`: hide the controls
   sidebar during a match, reduce the ordinary-hit screen wash, fixed 60Hz sim, training HUD,
   Story entry button (the cutscenes exist and are unreachable from the menus).
-- **Kael's packed idle measures the same as ember's** though canon orders kael above him.
-  Kael is the one off his label.
-- Portraits 404 on the select screen.
+- **The kael/ember margin has collapsed, but canon still HOLDS.** Kael's packed idle is 68.79
+  world px and ember's is 68.62 — kael is still the taller, so the ordering is not violated;
+  the gap is 0.25% where canon implies about 1.0%. Worth a look, not a size campaign.
+  *(An earlier draft of this handoff said "the same as ember". That was wrong, and it is the
+  kind of number that starts an unnecessary campaign — hence the correction here.)*
+- ⚠ **Do not "fix" shin from his `idle` key.** His idle row is a stand→crouch CYCLE: the eight
+  beats sweep 133 → 194 → 160 px. Measured off the `idle` key (cell 204, a crouched beat) he
+  looks 25% under canon; measured off his STAND beats (`xidle4`/`xidle5`, 194 px) he is 66.95
+  world px against a canon 66.6, i.e. correct within 0.5%. An independent reviewer fell into
+  this during the fact-check of this very document.
+- Portraits 404 on the select screen — and they fail **silently**: `web/assets/ninjas/` holds
+  only `kunoichi.png`, and `ninjaFallback` (web/index.html) repaints a code-drawn card on
+  error, so the screen never looks broken. Confirm a fix in the network tab, not by eye.
 
 ## Methods worth keeping
 
@@ -148,6 +204,10 @@ of these through an offscreen canvas in one piece. Decoded, oni alone is ~345 MB
 
 ## Scripts
 
+**`tools/sprites/keyer_emu.py` is now IN THE REPO.** Law 2 above names it as the mandatory
+ruler, and until this commit it existed only in a session scratchpad that gets deleted — the
+law was unactionable. `from keyer_emu import keyed_cell`, and it has a `selftest()`.
+
 `tools/sprites/session-2026-09-02/`
 
 | file | what |
@@ -157,6 +217,7 @@ of these through an offscreen canvas in one piece. Decoded, oni alone is ~345 MB
 | `grow_canvas.py` | grow `frameW`/`frameH`+`footY` without moving the art (both growths this session turned out unnecessary — measure a rigid landmark before growing) |
 | `wall_rebuild.py` | the intersect-the-two-cells wall method |
 | `pack_board.py` | pack an owner-supplied board into a fighter's cell window, pose-matched to the cells it replaces |
+| `straight_cut_sweep.py` | the roster-wide hard-cut sweep, post-keyer; shortlists, never deletes |
 
 Everything else lived in a session scratchpad that will be deleted. Nothing there is
 irreplaceable: every replaced cell is still on its sheet as an orphan, so any before/after is
