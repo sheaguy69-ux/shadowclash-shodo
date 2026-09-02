@@ -1,8 +1,8 @@
-# ShadowClash — what actually needs drawing (SHODO-EDITION, current at SHEET_V 693)
+# ShadowClash — what actually needs drawing (SHODO-EDITION, current at SHEET_V 694)
 
 Rewritten 2026-09-02 after a pass that fixed locally everything that could be fixed locally.
-**The list went from four items to three, and two of the original four turned out not to need
-art at all.** Nothing below is a scale problem — every scale problem in this tree has been
+**Two items left.** The list started at four; two of those turned out not to need art at all,
+and Ember's special was drawn and landed at 694. Nothing below is a scale problem — every scale problem in this tree has been
 measured and corrected in place.
 
 ## House rules for every prompt here
@@ -48,27 +48,16 @@ be verified after the fact either. It has to be drawn as one row.
 rising crouch → standing, with the last beat exactly his idle size. Keep the floor dust as a
 soft cloud that fades out; it must not end in a hard edge.
 
-## 3. EMBER — the special, or a ruling instead
-
-**Row:** `espec1..8`, cells 190-197.
-
-Honest status: **I cannot measure this row, and I am not certain it is wrong.** Ink area reads
-it 1.18 of his idle, but that is the claw spread, not his body — area over-reads exactly this
-kind of row. Every rigid landmark fails: his eye reads on 0 of the 8 beats (hidden behind the
-claws), and a hood template locks on none of them.
-
-The root cause is worth knowing: **ember's sheet is not one drawing.** His idle, light and
-crouch wear a scalloped hood with a stitched rim; his action rows wear a plain mottled dome.
-That is why no template that fits one family fits the other.
-
-So this is a choice, not a defect report:
-- **If the row looks right to you, it stays.** Nothing measurable says otherwise.
-- **If it looks oversized,** it needs redrawing at his idle head size, because there is no
-  ruler that could verify a rescale of it.
-
 ---
 
 ## Removed from this brief, and why
+
+- **Ember's special** — DRAWN AND LANDED at 694. The owner approved a regenerated eight-beat
+  board; it packed at one shared scale (0.7759, row spread 0.40% in height — integer-pixel
+  quantisation, not pop) as cells 274-281. Landing it uncovered that `specialCells()` returned
+  a frame instead of a cell list for Ember alone, so **his special had been drawing his idle
+  and none of this row's art would ever have appeared.** Fixed in the same commit. The old
+  cells 190-197 are now orphans awaiting the strip pass.
 
 - **Kael's air heavy last two beats** — FIXED at 691. They were drawn 35-45% oversized while
   the six jump beats were 25% undersized; all eight now match his idle head, measured on hood
