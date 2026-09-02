@@ -26,6 +26,10 @@ that spot. Plug a pad in and the select screen tells you it was seen. Standard m
 (Xbox, DualSense, Switch Pro, 8BitDo all report it); a second pad drives P2 in 2 PLAYERS and
 TRAINING and can never puppet a CPU opponent.
 
+On a phone the on-screen pad carries all four attacks too. Mouse and hand-tracking modes are
+casual schemes and stop at three: two buttons and a wheel have nowhere sane to put a fourth
+strength.
+
 ## The roster
 
 | Ninja | Weapon | Archetype |

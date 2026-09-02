@@ -513,7 +513,7 @@
                     <!-- Mouse Mode map — shown while 🖱️ MOUSE P1 is ON -->
                     <div id="map-mouse" class="mb-4 hidden">
                         <p class="font-bold text-cyan-400 mb-2 flex items-center gap-1">
-                            <span class="w-2 h-2 rounded-full bg-cyan-500"></span> 🖱️ Mouse Mode (P1)
+                            <span class="w-2 h-2 rounded-full bg-cyan-500"></span> 🖱️ Mouse Mode (P1) — casual
                         </p>
                         <div class="grid grid-cols-2 gap-y-1.5 text-xs text-gray-300">
                             <div><kbd class="px-1.5 py-0.5 bg-gray-800 rounded text-cyan-300 font-mono">Move cursor</kbd></div>
@@ -531,6 +531,11 @@
                             <div><kbd class="px-1.5 py-0.5 bg-gray-800 rounded text-cyan-300 font-mono">C</kbd></div>
                             <div class="text-gray-400">Poof (tap) / Block (hold)</div>
                         </div>
+                        <p class="text-[10px] text-gray-500 mt-1.5 leading-snug">
+                            No Medium here: two buttons and a wheel have nowhere sane to put a
+                            fourth strength. Mouse and Hand are casual schemes — the full four-attack
+                            hierarchy lives on the keyboard, a controller, or the touch pad.
+                        </p>
                     </div>
 
                     <!-- Hand Mode map — shown while 📷 HAND P1 is ON -->
@@ -847,6 +852,7 @@
                             </div>
                             <div id="combat-p1" class="grid grid-cols-2 gap-2">
                                 <button id="btn-t-p1-light" class="w-14 h-12 bg-purple-600/90 rounded-xl text-[11px] font-bold active:scale-95 text-white border border-purple-400">LIT</button>
+                                <button id="btn-t-p1-medium" class="w-14 h-12 bg-fuchsia-600/90 rounded-xl text-[11px] font-bold active:scale-95 text-white border border-fuchsia-400">MED</button>
                                 <button id="btn-t-p1-heavy" class="w-14 h-12 bg-pink-600/90 rounded-xl text-[11px] font-bold active:scale-95 text-white border border-pink-400">HVY</button>
                                 <button id="btn-t-p1-special" class="w-14 h-12 bg-cyan-600/90 rounded-xl text-[10px] font-bold active:scale-95 text-white border border-cyan-400">SPC</button>
                                 <button id="btn-t-p1-poof" class="w-14 h-12 bg-yellow-600/90 rounded-xl text-[10px] font-bold active:scale-95 text-white border border-yellow-400">POOF</button>
@@ -866,6 +872,7 @@
                                 </div>
                                 <div class="grid grid-cols-2 gap-2">
                                     <button id="btn-t-p2-light" class="w-14 h-12 bg-orange-600/90 rounded-xl text-[11px] font-bold active:scale-95 text-white border border-orange-400">LIT</button>
+                                    <button id="btn-t-p2-medium" class="w-14 h-12 bg-amber-600/90 rounded-xl text-[11px] font-bold active:scale-95 text-white border border-amber-400">MED</button>
                                     <button id="btn-t-p2-heavy" class="w-14 h-12 bg-red-600/90 rounded-xl text-[11px] font-bold active:scale-95 text-white border border-red-400">HVY</button>
                                     <button id="btn-t-p2-special" class="w-14 h-12 bg-cyan-600/90 rounded-xl text-[10px] font-bold active:scale-95 text-white border border-cyan-400">SPC</button>
                                     <button id="btn-t-p2-poof" class="w-14 h-12 bg-yellow-600/90 rounded-xl text-[10px] font-bold active:scale-95 text-white border border-yellow-400">POOF</button>
@@ -16800,8 +16807,8 @@
 
         // touch combat button -> the key code fireCombatKey already understands
         const TOUCH_CODE = {
-            p1_up: 'KeyW', p1_light: 'KeyF', p1_heavy: 'KeyG', p1_special: 'KeyH', p1_poof: 'KeyC',
-            p2_up: 'ArrowUp', p2_light: 'KeyI', p2_heavy: 'KeyO', p2_special: 'KeyP', p2_poof: 'KeyM',
+            p1_up: 'KeyW', p1_light: 'KeyF', p1_medium: 'KeyJ', p1_heavy: 'KeyG', p1_special: 'KeyH', p1_poof: 'KeyC',
+            p2_up: 'ArrowUp', p2_light: 'KeyI', p2_medium: 'KeyU', p2_heavy: 'KeyO', p2_special: 'KeyP', p2_poof: 'KeyM',
         };
 
         // Slide-across d-pad: one handler on the pad tracks the finger, so walking
@@ -16853,10 +16860,12 @@
         bindPad('pad-p1', 'p1_');
         bindPad('pad-p2', 'p2_');
         bindTouch('btn-t-p1-light', 'p1_light');
+        bindTouch('btn-t-p1-medium', 'p1_medium');
         bindTouch('btn-t-p1-heavy', 'p1_heavy');
         bindTouch('btn-t-p1-special', 'p1_special');
         bindTouch('btn-t-p1-poof', 'p1_poof');
         bindTouch('btn-t-p2-light', 'p2_light');
+        bindTouch('btn-t-p2-medium', 'p2_medium');
         bindTouch('btn-t-p2-heavy', 'p2_heavy');
         bindTouch('btn-t-p2-special', 'p2_special');
         bindTouch('btn-t-p2-poof', 'p2_poof');
