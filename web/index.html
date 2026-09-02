@@ -16861,17 +16861,29 @@
         const PAD_KEYS = [
             // pad 0 drives P1, pad 1 drives P2 — the same codes their keyboard half uses
             { up:'KeyW', down:'KeyS', left:'KeyA', right:'KeyD',
-              light:'KeyF', heavy:'KeyG', special:'KeyH', poof:'KeyC', stance:'KeyV' },
+              light:'KeyF', medium:'KeyJ', heavy:'KeyG', special:'KeyH', poof:'KeyC', stance:'KeyV' },
             { up:'ArrowUp', down:'ArrowDown', left:'ArrowLeft', right:'ArrowRight',
-              light:'KeyI', heavy:'KeyO', special:'KeyP', poof:'KeyM', stance:'KeyK' },
+              light:'KeyI', medium:'KeyU', heavy:'KeyO', special:'KeyP', poof:'KeyM', stance:'KeyK' },
         ];
-        // Face buttons are the three attacks plus guard; a SHOULDER is guard too,
-        // because that is where fighting-game players reach for block. Either trigger
-        // is the throw macro — it presses Light and Heavy on the same frame, which is
-        // exactly what F+G does, and the engine's own 90ms pairing does the rest.
+        // ⛔ MEDIUM WAS MISSING FROM THE PAD ENTIRELY. The keyboard has four attack
+        // strengths (KeyJ / KeyU are Medium and route to executeAttack(ATTACK_MEDIUM)
+        // like any other), but the pad only ever offered three, so a controller player
+        // could not reach the middle of every character's combo hierarchy. That is the
+        // whole reason this map moved.
+        //
+        // ALL FOUR ATTACKS NOW SIT ON THE FOUR FACE BUTTONS, by PHYSICAL POSITION, so
+        // Light -> Medium -> Heavy is a learnable path across the cluster:
+        //     0 South = Light   2 West = Medium   3 North = Heavy   1 East = Special
+        // Index, not label: Nintendo prints A/B and X/Y mirrored against Xbox, so the
+        // legend must say South/West/North/East or it lies on half the pads in the room.
+        // East gives up Poof to Special; guard stays on BOTH SHOULDERS, which is where
+        // fighting-game players reach for block anyway and is comfortable to hold while
+        // the thumb works the face cluster. Either trigger is still the throw macro — it
+        // presses Light and Heavy on the same frame, exactly what F+G does, and the
+        // engine's own 90ms pairing does the rest.
         const PAD_BUTTONS = {
-            0:'light', 2:'heavy', 3:'special',
-            1:'poof', 4:'poof', 5:'poof',
+            0:'light', 2:'medium', 3:'heavy', 1:'special',
+            4:'poof', 5:'poof',
             6:'throw', 7:'throw',
             8:'stance', 9:'pause',
             12:'up', 13:'down', 14:'left', 15:'right',
