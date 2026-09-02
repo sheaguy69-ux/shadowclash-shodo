@@ -91,19 +91,6 @@ light and ends in a body position that flows into his signature special.
    The combo: bō-thrust Light → Moon-Arc (pushes them out to HER range) → moonlit-reed
    ripple ranged Special, or vault slam over the top if they rush back in.
 
-## SHIN + EXILE — no-wall wall-cling redraws (like the ones already delivered for oni/mokurai)
-
-Their current wallslide/walljump cells were drawn pressed against a painted wall stroke:
-with the stroke removed, the figure ends at a flat vertical edge (half the body was never
-drawn). Redraw each as a COMPLETE figure clinging to an invisible wall on the LEFT — full
-body drawn, gripping hand open against empty space, NO wall, floor, or props. One row of
-2-4 frames each: cling/slide pose + kick-off pose.
-
-3. **Shin — wall cling + wall kick (2f)**: hooded green taijutsu build, full body, left
-   hand braced flat, knees coiled; then the push-off with legs extending.
-4. **Exile — wall cling + wall kick (2f)**: black-and-purple, chain gathered in the free
-   hand, sickle stowed; then the push-off.
-
 ## Parked (art exists, engine has no route yet)
 
 - Guard-break boards (exec/kael/tsubasa/ember/shin/oni) — no guard-break reaction route.
