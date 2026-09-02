@@ -53,7 +53,7 @@ def enclosed_page_white(rgb, page):
 
 
 def cut(path, n=6, title=TITLE, pad=6, verbose=True, forced=None, keep_enclosed=False,
-        keep_frac=0.45):
+        drop_pockets=()):
     im = Image.open(path).convert('RGBA')
     A = np.asarray(im).astype(int)
     H, W = A.shape[:2]
@@ -141,12 +141,42 @@ def cut(path, n=6, title=TITLE, pad=6, verbose=True, forced=None, keep_enclosed=
     # the top keep_frac of the figure and drop the rest. Verified on all three boards:
     # every eye and Shin's shoulder plate sit at 32-40% of figure height, every hip gap
     # and every caption counter sits below 45%.
-    figure = np.where((out[:, :, 3] > 0).any(1))[0]
-    cutoff = figure[0] + (figure[-1] - figure[0]) * keep_frac if figure.size else 0
+    # ⛔ WHEN IN DOUBT, KEEP THE ART. A position rule was tried here (keep pockets in the
+    # figure's top fraction, drop the rest) and it is WRONG: an 18-cell adversarial pass
+    # caught it deleting Mizu's specular robe highlights, Shin's white brush glyphs, and
+    # THE STEEL INSIDE TSUBASA'S KUNAI BLADES — 14 beats of drawn art, one graded a
+    # blocker. Every separator that was measured fails on this art: colour (eye cores
+    # 249.0-251.1 vs hip cores 244.1-248.9 vs page 251.4), neutrality, flatness, ring
+    # brightness (dies on Mizu's CATCH, her hanbō lights the ring to p75 201), and
+    # re-flooding at a looser threshold (all pockets stay sealed down to >=140).
+    #
+    # The two errors are not symmetric. Keeping a page pocket leaves a white patch the
+    # owner can SEE and rule on; deleting a highlight destroys his art invisibly. So keep
+    # every pocket and PRINT them, so a leftover is always reported and never silent.
+    # --drop-pocket names a pocket that a HUMAN looked at and called page. That is the
+    # only reliable input here, and it is auditable: the list below prints, the operator
+    # checks the crops, and the coordinates go back in. Nothing is guessed.
+    kept, dropped = [], []
     for m in enclosed_page_white(rgb, page):
-        if keep_enclosed and np.nonzero(m)[0].mean() < cutoff:
-            continue
+        if keep_enclosed:
+            ys, xs = np.nonzero(m)
+            cx, cy = int(xs.mean()), int(ys.mean())
+            hit = any(abs(cx - dx) <= 25 and abs(cy - dy) <= 25 for dx, dy in drop_pockets)
+            if not hit:
+                kept.append((int(m.sum()), cx, cy))
+                continue
+            dropped.append((int(m.sum()), cx, cy))
         out[m, 3] = 0
+    if verbose and keep_enclosed:
+        kept.sort(reverse=True)
+        big = [k for k in kept if k[0] >= 120]
+        print(f'  kept {len(kept)} enclosed-white pockets ({len(big)} >=120px) — '
+              f'eyes and highlights. CHECK each for page left at a limb gap:')
+        for sz, cx, cy in big[:14]:
+            print(f'      {sz:>5}px at x{cx} y{cy}')
+        if dropped:
+            print(f'  dropped {len(dropped)} pocket(s) named on the command line: '
+                  + ', '.join(f'{sz}px@{cx},{cy}' for sz, cx, cy in dropped))
 
     cells = []
     for i in range(n):
@@ -242,14 +272,15 @@ def main():
                     help="keep enclosed white in the figure's top fraction — use when the "
                          "art's own white is pure neutral (eyes), which the tint test "
                          'cannot tell from page white')
-    ap.add_argument('--keep-white-frac', type=float, default=0.45,
-                    help='with --keep-enclosed-white, the fraction of figure height that '
-                         'counts as head-and-shoulders (default 0.45)')
+    ap.add_argument('--drop-pocket', action='append', default=[], metavar='X,Y',
+                    help='with --keep-enclosed-white, drop the enclosed pocket centred near '
+                         'X,Y — for page you have LOOKED at and confirmed. Repeatable.')
     a = ap.parse_args()
 
     print(pathlib.Path(a.board).name)
     cells, bounds = cut(a.board, a.n, title=a.title, forced=a.cuts,
-                        keep_enclosed=a.keep_enclosed_white, keep_frac=a.keep_white_frac)
+                        keep_enclosed=a.keep_enclosed_white,
+                        drop_pockets=[tuple(int(v) for v in t.split(',')) for t in a.drop_pocket])
     d = pathlib.Path(a.outdir)
     d.mkdir(parents=True, exist_ok=True)
     kept = 0

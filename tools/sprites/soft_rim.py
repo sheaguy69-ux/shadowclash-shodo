@@ -57,20 +57,41 @@ def soften(path, tol=TOL, knee=KNEE, min_blob=MIN_BLOB, pad=4):
                 keep |= lab == i + 1
         mask = keep
 
-    dist = np.sqrt(((rgb - PAGE) ** 2).sum(2))
-    ramp = np.clip((dist - tol) / (knee - tol), 0, 1)
-
-    # Interior is opaque no matter what colour it is — that is the whole point.
+    # ⛔ SOLVE THE BLEND, DO NOT GUESS IT WITH A RAMP. key_white.py's TOL/KNEE ramp is
+    # calibrated for its own job and is far too steep for an edge: a pixel 84 luminance
+    # below the page is 33% covered by black ink, but the ramp scores its colour distance
+    # at 145 and calls it 96% opaque. Composited on the stage that pixel lands at 164
+    # where it belongs at 66 — a pale rim traced round the whole figure, which is exactly
+    # the halo this file exists to prevent. Verified by an 18-cell adversarial pass:
+    # 11 of 18 beats carried it, measured p99 ~110-132 against a 98 stage.
+    #
+    # The blend has a closed form. An edge pixel is p = a*C + (1-a)*PAGE for some ink
+    # colour C, so a is the projection of (PAGE - p) onto (PAGE - C). Take C from the
+    # nearest pixel the silhouette is sure about; that is the ink actually bleeding into
+    # this pixel.
     core = nd.binary_erosion(mask, np.ones((3, 3)), iterations=1)
-    outer = nd.binary_dilation(mask, np.ones((3, 3)), iterations=2) & ~mask
+    if not core.any():
+        core = mask
+    _, (iy, ix) = nd.distance_transform_edt(~core, return_indices=True)
+    C = rgb[iy, ix]                       # nearest sure-ink colour, per pixel
 
+    dPC = PAGE - C                        # page -> ink
+    dPp = PAGE - rgb                      # page -> this pixel
+    denom = (dPC ** 2).sum(2)
+    a_true = np.where(denom > 1e-6, (dPp * dPC).sum(2) / np.maximum(denom, 1e-6), 0.0)
+    a_true = np.clip(a_true, 0, 1)
+
+    # ⛔ SOLVE ONLY OUTSIDE THE SILHOUETTE. a_true reads any near-page pixel as ~0 alpha,
+    # and it cannot tell a 5%-covered blend from a pixel of BRIGHT ART sitting on the
+    # outline — a blade tip, a specular streak, the lit edge of a hood. Applying it to
+    # the mask's own rim punched ~200 pinholes per cell, 92% of them landing on source
+    # pixels brighter than 200. cut_strip's border flood already decided what is figure
+    # and is reliable there, so that decision stands and the solve only governs pixels
+    # the hard key had thrown away.
+    outer = nd.binary_dilation(mask, np.ones((3, 3)), iterations=2) & ~mask
     al = np.zeros(mask.shape, float)
-    al[mask] = 1.0                       # everything the silhouette claims
-    edge = mask & ~core
-    al[edge] = np.maximum(ramp[edge], 0.35)   # its own outermost ring, softened
-    al[outer] = ramp[outer]              # blend pixels the hard key threw away
-    al = np.clip(al, 0, 1)
-    al[core] = 1.0                       # ...but never eat into the interior
+    al[mask] = 1.0                       # the silhouette's claim stands
+    al[outer] = np.clip(a_true[outer], 0, 1)   # blend pixels the hard key threw away
 
     # ⛔ PURGE SUB-VISIBLE ALPHA LAST. The engine's own keyer treats alpha >= 8 as ink
     # (keyer_emu.keyed_cell), so anything under that is invisible in game but still
