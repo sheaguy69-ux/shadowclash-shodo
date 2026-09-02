@@ -79,6 +79,11 @@
         header h1::after { content: ''; display: block; height: 2px; margin-top: 5px; width: 72%; background: linear-gradient(90deg, var(--ember), transparent); }
         header i.fa-yin-yang { color: var(--ember) !important; }
         header button { border-radius: 5px !important; }
+        /* PAD FOCUS RING (brief Pass C). We call .focus() from code, and a programmatic
+           focus does not match :focus-visible, so the ring is a class we own. High
+           contrast on purpose: on a dark select screen a subtle ring is no ring. */
+        .pad-focus { outline: 3px solid #f5c542 !important; outline-offset: 2px;
+                     box-shadow: 0 0 0 6px rgba(245,197,66,.25) !important; border-radius: 8px; }
         #character-selection { background: linear-gradient(180deg, rgba(10,11,18,.97), rgba(7,7,13,.97)) !important; border: 1px solid var(--line) !important; box-shadow: 0 18px 50px rgba(0,0,0,.55); animation: sc-rise .5s ease both; }
         @keyframes sc-rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
         #character-selection h2 { color: var(--ember) !important; letter-spacing: .3em; font-weight: 700; }
@@ -16904,9 +16909,106 @@
         let padStatusLine = null;          // last line written to #pad-status
         const padKey = (code, down) =>
             window.dispatchEvent(new KeyboardEvent(down ? 'keydown' : 'keyup', { code, bubbles: true }));
+
+        // --- 5d. THE PAD DRIVES THE MENUS TOO (brief Pass C) ---
+        // A controller that can fight but cannot start a match is not controller support:
+        // until now you still had to reach for a mouse to pick a fighter or hit REMATCH.
+        // ponytail: this steers the REAL <button> elements with .focus() and .click(), so
+        // every existing handler, disabled state and mode rule keeps its single
+        // implementation — there is no parallel menu model to drift out of sync.
+        const MENU_IDS = ['title-screen', 'game-over-screen', 'pause-screen', 'character-selection'];
+        const MENU_BACK = { 'pause-screen': 'btn-resume' };   // East = the back action a screen already has
+        const MENU_FIRST = { 'pause-screen': 'btn-resume' };
+        // Where the cursor lands when a screen opens (brief Pass C item 2). On SELECT that
+        // is FIGHT once it is live, otherwise the mode you are already on — landing on a
+        // random tier button teaches nothing about where you are.
+        function menuDefault(root, items) {
+            const byId = id => document.getElementById(id);
+            if (root.id === 'character-selection') {
+                const fight = byId('btn-fight');
+                if (items.includes(fight)) return fight;
+                const mode = root.querySelector('.mode-btn.sc-on');
+                if (items.includes(mode)) return mode;
+            }
+            if (root.id === 'game-over-screen') return items[0];   // built per-outcome: Rematch / Next Opponent
+            const want = byId(MENU_FIRST[root.id] || '');
+            return items.includes(want) ? want : items[0];
+        }
+        const onScreen = el => !!el && !el.classList.contains('hidden') && el.getClientRects().length > 0;
+        function activeMenu() {
+            // z-order, top first: whatever is drawn over everything owns the stick
+            for (const id of MENU_IDS) { const el = document.getElementById(id); if (onScreen(el)) return el; }
+            return null;
+        }
+        function menuControls(root) {
+            // ⛔ THE FIGHTER CARDS ARE DIVS, not buttons — a pad that could reach every mode
+            // and tier button but not a single ninja would fail the one thing Pass C is for.
+            // They already carry a real click handler, so they only need to be FINDABLE and
+            // focusable; tabIndex is set once, here, rather than in the grid builder, so the
+            // builder keeps its single job.
+            const els = [...root.querySelectorAll('button, input[type="range"], .sc-card')];
+            for (const el of els) if (el.classList.contains('sc-card') && el.tabIndex !== 0) el.tabIndex = 0;
+            return els.filter(el => !el.disabled && el.getClientRects().length > 0
+                && getComputedStyle(el).visibility !== 'hidden');
+        }
+        let padFocus = null, padMenuId = null;
+        const padMenuPrev = [new Set(), new Set()];
+        function setPadFocus(el) {
+            if (padFocus === el) return;
+            if (padFocus) padFocus.classList.remove('pad-focus');
+            padFocus = el || null;
+            if (padFocus) { padFocus.classList.add('pad-focus'); try { padFocus.focus({ preventScroll: false }); } catch (e) {} }
+        }
+        // Nearest control in the pressed direction, by geometry rather than DOM order — the
+        // roster is a GRID, and tabbing through it in source order walks columns sideways.
+        function padStep(items, from, dir) {
+            if (!from) return items[0];
+            const a = from.getBoundingClientRect(), ax = a.left + a.width / 2, ay = a.top + a.height / 2;
+            let best = null, bestScore = Infinity;
+            for (const el of items) {
+                if (el === from) continue;
+                const b = el.getBoundingClientRect(), bx = b.left + b.width / 2, by = b.top + b.height / 2;
+                const dx = bx - ax, dy = by - ay;
+                const along = dir === 'left' ? -dx : dir === 'right' ? dx : dir === 'up' ? -dy : dy;
+                if (along <= 1) continue;                        // not that way
+                const across = (dir === 'left' || dir === 'right') ? Math.abs(dy) : Math.abs(dx);
+                const score = along + across * 2.5;              // straight ahead beats diagonal
+                if (score < bestScore) { bestScore = score; best = el; }
+            }
+            return best;
+        }
+        function padMenuNav(gp, i, root) {
+            const prev = padMenuPrev[i], now = new Set();
+            if (gp && gp.connected && gp.mapping === 'standard') {
+                for (const [b, act] of [[0,'ok'],[1,'back'],[12,'up'],[13,'down'],[14,'left'],[15,'right']])
+                    if (gp.buttons[b] && gp.buttons[b].pressed) now.add(act);
+                const ax = gp.axes[0] || 0, ay = gp.axes[1] || 0;
+                if (ax < -PAD_DEAD) now.add('left'); else if (ax > PAD_DEAD) now.add('right');
+                if (ay < -PAD_DEAD) now.add('up');   else if (ay > PAD_DEAD) now.add('down');
+            }
+            const fresh = a => now.has(a) && !prev.has(a);       // edges: a held stick must not sprint the cursor
+            padMenuPrev[i] = now;
+            if (i !== 0) return;                                  // one cursor; pad 2 picks its fighter with the mouse or P1's help
+            // The title screen has no controls — any face button is "start".
+            if (root.id === 'title-screen') { if (fresh('ok') || fresh('back')) dismissTitle(); return; }
+            const items = menuControls(root);
+            if (!items.length) { setPadFocus(null); return; }
+            if (padMenuId !== root.id || !items.includes(padFocus)) {
+                padMenuId = root.id;
+                setPadFocus(menuDefault(root, items));
+                return;                                           // the press that opened the screen must not also activate
+            }
+            for (const d of ['up','down','left','right'])
+                if (fresh(d)) { const n = padStep(items, padFocus, d); if (n) setPadFocus(n); }
+            if (fresh('ok') && padFocus) { padFocus.click(); sfx('select'); }
+            else if (fresh('back')) { const b = document.getElementById(MENU_BACK[root.id] || ''); if (b) b.click(); }
+        }
+
         function pollGamepads() {
             if (!navigator.getGamepads) return;
             const pads = navigator.getGamepads();
+            const menuRoot = activeMenu();
+            if (!menuRoot && padFocus) { setPadFocus(null); padMenuId = null; }
             for (let i = 0; i < PAD_KEYS.length; i++) {
                 const MAP = PAD_KEYS[i], now = new Set();
                 // Pad 2 only drives P2 when P2 is a PERSON — the same expression
@@ -16916,7 +17018,15 @@
                 // drifting stick walk the CPU around all match.
                 const live = i === 0 || isP2Human();
                 const gp = live ? pads[i] : null;
-                if (gp && gp.connected && gp.mapping === 'standard') {
+                // A MENU OWNS THE PAD WHILE IT IS UP. `now` stays empty, so anything held
+                // when the screen opened is released and no attack can fire behind it —
+                // except Start, which still has to reach Escape to unpause.
+                const menu = menuRoot;
+                if (menu) {
+                    if (gp && gp.connected && gp.mapping === 'standard'
+                        && gp.buttons[9] && gp.buttons[9].pressed) now.add('Escape');
+                    padMenuNav(pads[i], i, menu);
+                } else if (gp && gp.connected && gp.mapping === 'standard') {
                     for (const b in PAD_BUTTONS) {
                         if (!gp.buttons[b] || !gp.buttons[b].pressed) continue;
                         const act = PAD_BUTTONS[b];

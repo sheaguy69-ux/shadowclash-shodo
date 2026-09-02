@@ -26,12 +26,34 @@ const src = html.slice(start, end + endMark.length);
 let p2Human = true;
 const events = [];
 const statusEl = { textContent: '' };
+// A menu screen, stubbed only as far as activeMenu()/menuControls()/padMenuNav() reach
+// into it. `openMenu = null` is the normal "we are in a match" case every other
+// assertion in this file runs under.
+let openMenu = null;
+const clicked = [];
+const fakeControl = (id) => ({
+  id, disabled: false, tabIndex: 0, dataset: {}, classList: { contains: () => false, add() {}, remove() {} },
+  getClientRects: () => [{}], getBoundingClientRect: () => ({ left: 0, top: 0, width: 10, height: 10 }),
+  click() { clicked.push(this.id); }, focus() {},
+});
+const fakeMenu = (id, controls) => ({
+  id, classList: { contains: c => c !== 'hidden' ? false : false, add() {}, remove() {} },
+  getClientRects: () => [{}],
+  querySelectorAll: () => controls,
+  querySelector: () => null,
+});
 const sandbox = {
   navigator: { getGamepads: () => [null, null] },
   window: { dispatchEvent: e => events.push(e) },
   isP2Human: () => p2Human,
-  // pollGamepads also writes the #pad-status line; give it somewhere to write.
-  document: { getElementById: id => (statusEl.id = id, statusEl) },
+  // pollGamepads writes the #pad-status line and asks activeMenu() which screen is up.
+  // Only the status line exists here; every menu id resolves to null, which is the
+  // "no menu is open, the pad is driving combat" case this file is about.
+  document: {
+    getElementById: id => (id === 'pad-status' ? statusEl : (openMenu && id === openMenu.id ? openMenu : null)),
+  },
+  getComputedStyle: () => ({ visibility: 'visible' }),
+  sfx: () => {},
   KeyboardEvent: class { constructor(type, init) { this.type = type; this.code = init.code; } },
 };
 vm.createContext(sandbox);
@@ -123,6 +145,21 @@ poll(pad([]), pad([]));
 check('two pads connected read both', [statusEl.textContent], ['P1 PAD \u2713   P2 PAD \u2713']);
 poll(null, null);
 check('no pad clears the line', [statusEl.textContent], ['']);
+
+console.log('a menu owns the pad while it is up (brief Pass C)');
+release();
+const resume = fakeControl('btn-resume');
+openMenu = fakeMenu('pause-screen', [resume]);
+poll(pad([]));                                            // first poll adopts the screen and focuses the default
+for (const b of [0, 2, 3, 4, 5, 6, 7]) {
+  const r = poll(pad([b]));
+  check(`button ${b} fires no combat key while a menu is up`, r.down, []);
+  poll(pad([]));
+}
+check('Start still reaches Escape while paused', poll(pad([9])).down, ['Escape']);
+poll(pad([]));
+openMenu = null;
+release();
 
 console.log('non-standard mapping is ignored, never guessed');
 const weird = { ...pad([0, 2, 3]), mapping: '' };
