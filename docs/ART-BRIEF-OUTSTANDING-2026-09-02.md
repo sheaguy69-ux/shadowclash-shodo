@@ -1,72 +1,82 @@
-# ShadowClash — outstanding art brief (SHODO-EDITION, current at SHEET_V 690)
+# ShadowClash — what actually needs drawing (SHODO-EDITION, current at SHEET_V 693)
 
-*Written 2026-09-02. Item 5 (Exile's chain-less row) is DONE — the owner's board landed at
-690 as cells 314-321. The four remaining items are 1-4.*
-
-Everything in this file is art I could NOT fix locally. Anything fixable by scaling, erasing,
-repointing or growing a cell window is already done in the tree; nothing below is a scale problem.
+Rewritten 2026-09-02 after a pass that fixed locally everything that could be fixed locally.
+**The list went from four items to three, and two of the original four turned out not to need
+art at all.** Nothing below is a scale problem — every scale problem in this tree has been
+measured and corrected in place.
 
 ## House rules for every prompt here
-- ONE row per image, left-facing, transparent background, captions BELOW the row (never over the art).
-- The whole row at ONE body size: heads, hands and weapons the same size beat to beat. Do not shrink
-  the tucked beats.
-- No motion blur, no speed lines, no ground shadow, no background, no border, no drop shadow.
-- Nothing may end in a straight cut. If an effect leaves the figure, it fades to nothing inside the
-  frame; a smear that hits the canvas edge is a reject.
-- Match the fighter's existing design exactly (mask, hair, sash, weapon, palette) — these are
-  replacement beats inside a live animation, not a redesign.
+
+- ONE row per image, left-facing, transparent background, captions BELOW the row.
+- The whole row at ONE body size: heads, hands and weapons the same size beat to beat. Do not
+  shrink the tucked beats — a tuck keeps the same head.
+- No motion blur, no speed lines, no ground shadow, no background, no border.
+- Nothing may end in a straight cut. An effect that leaves the figure fades to nothing inside
+  the frame; a smear that hits the canvas edge is a reject.
+- Match the fighter's existing design exactly. These are replacement beats inside a live
+  animation, not a redesign.
 
 ---
 
-## 1. EXECUTIONER — "rise" row, three beats (highest value)
-Row: `xrise1..8` / `xkiriage1..8` (the same eight cells). Live cells: 105-112.
-What is wrong: the row was assembled from two different sources, so the beats step in size mid-swing.
-Measured against his idle (1.00 = idle size): 105 .88 | 106 .80 | 107 .84 | **108 .94** | 109 .77 |
-**110 .73** | 111 .81 | 112 .88. Beat 107→108 jumps 14%, 110→111 climbs 18%. One uniform scale cannot
-fix a row whose beats disagree with each other.
-**Generate:** the rising-cut sequence as ONE clean row of 8 beats at one body size — sheathed low →
-draw → rising diagonal cut → follow-through → recover to stance. Beat 3 of 8 (the cell now numbered
-109) currently has NO figure at all, only an effect arc: draw the fighter in it.
-Target size: the same body height as his idle stance (his standing beats read 0.88-0.92 of idle by ink
-area, which is correct for a crouched draw; the STAND beats at both ends must match idle exactly).
+## 1. EXECUTIONER — one beat of the rise row has no fighter in it
 
-## 2. EXECUTIONER — neutral special, the six middle beats
-Row: `special1..8`, live cells 193-200. The two bookends (193, 200) are already correct at idle size
-(0.92); the six middle beats (194-199) came from a smaller source and read 0.85. Scaling the row moves
-the good bookends 12-15% too big, so the middles have to be redrawn instead.
-**Generate:** beats 2-7 of the neutral special at the SAME body size as the row's first and last beat.
-Note: this row is currently unreachable in play (his neutral special routes elsewhere), so it is the
-lowest priority item in this file — worth doing only if you want the row alive later.
+**Row:** `xrise1..8` / `xkiriage1..8` (one set of eight cells, two names). Live cells 320-327.
+**The beat:** number 5 of 8 — currently cell 324.
 
-## 3. KAEL — air heavy, last two beats (`kxcut7`, `kxcut8`)
-Live cells 73 and 74. These two are old art and are drawn **41% and 49% larger** than kael's idle
-(1.41 and 1.49 where 1.00 is idle). The first six beats of the same move read 0.76-1.11. The engine
-plays all eight in sequence, so kael visibly inflates on the last two frames of every air heavy.
-**Generate:** the final two beats of the air heavy — the crossing slash and the recovery — at kael's
-idle body size, matching beats 1-6 of that row (hood, twin blades, gold trim).
+That cell is a **pure effect crescent with no figure at all.** Not a small figure, not a
+partial one: one stray 4px pixel and an orange-black arc. Everything else in the row was
+rebuilt at 693 and the row now holds one size to 1.3%, so this is the only gap left in it.
 
-## 4. SHIN — getup, the two floor beats
-Live cells 241 and 242 (`getup`, `getup2`). The row cannot be fixed with one scale: 241 (lying, with
-dust) reads 1.16 of idle and 242 (head down) reads 1.01, and the beat that hands back to idle lands
-10% big while another lands 13% small.
-**Generate:** a four-beat getup row at ONE size — flat on the floor → pushing up on one arm → rising
-crouch → standing, the last beat exactly idle size. Keep the floor dust as a soft cloud that fades out;
-it must not end in a hard edge.
+**Generate:** beat 5 of the rising diagonal cut — the fighter at the top of the swing, blade
+carried through, at the same body size as the beats either side of it. The arc that is already
+there is the shape the cut should follow.
 
-## 5. EXILE — "Chain to the Wall", chain-less beats (only if you reject my erase)
-I already produced chain-less versions locally by erasing the painted chain, and the engine now draws
-the rope itself from her drawn fist, so this is optional. If you want them drawn properly instead:
-same eight poses (ready → coil → cast → taut → yank → reel → wall-ready → brace), same prompt as the
-approved board, but with NO chain and NO sickle in flight. The gripping fist stays closed and fully
-visible in every beat, nothing overlapping it; the coiled chain and iron ball stay at her hip as in her
-idle. Same canvas and body size as the approved board.
+*Note: beats 7 and 8 of this row are runtime orphans — the engine takes a branch that reads
+only keys 1-6, so the live move is six beats. Draw beat 5 and the move is whole.*
+
+## 2. SHIN — the getup, four beats, redrawn as one row
+
+**Cells:** 241, 242 (lying, head-down) and 120, 121 (rising crouch, nearly standing).
+
+This is a mixed-source row and it is the one row in the roster where **no ruler locks.** His
+eye is not a ruler on him (idle spread 6.5% against a 3% gate), a hood measure reads 10.7% on
+his own idle, and on the prone and rising beats no head template locks at all — peaks 0.53 to
+0.74 where 0.85 is the threshold. So the row cannot be corrected by measurement and it cannot
+be verified after the fact either. It has to be drawn as one row.
+
+**Generate:** a four-beat getup at ONE size — flat on the floor → pushing up on one arm →
+rising crouch → standing, with the last beat exactly his idle size. Keep the floor dust as a
+soft cloud that fades out; it must not end in a hard edge.
+
+## 3. EMBER — the special, or a ruling instead
+
+**Row:** `espec1..8`, cells 190-197.
+
+Honest status: **I cannot measure this row, and I am not certain it is wrong.** Ink area reads
+it 1.18 of his idle, but that is the claw spread, not his body — area over-reads exactly this
+kind of row. Every rigid landmark fails: his eye reads on 0 of the 8 beats (hidden behind the
+claws), and a hood template locks on none of them.
+
+The root cause is worth knowing: **ember's sheet is not one drawing.** His idle, light and
+crouch wear a scalloped hood with a stitched rim; his action rows wear a plain mottled dome.
+That is why no template that fits one family fits the other.
+
+So this is a choice, not a defect report:
+- **If the row looks right to you, it stays.** Nothing measurable says otherwise.
+- **If it looks oversized,** it needs redrawing at his idle head size, because there is no
+  ruler that could verify a rescale of it.
 
 ---
 
-## Not art — for your information
-- **Ember** is the only fighter whose size pass is unfinished; his verification fleet is running now.
-- **Straight-edge sweep:** I swept every live cell of all nine fighters for hard vertical cut-offs
-  (127 candidate edges). Most look like blade edges or the drawn wall stroke, which are legitimate.
-  I have not deleted anything — say the word and I will classify them cell by cell and delete the
-  effects that genuinely end in a cut.
-- **Portraits** still 404 on the select screen; that is art you own, not a size issue.
+## Removed from this brief, and why
+
+- **Kael's air heavy last two beats** — FIXED at 691. They were drawn 35-45% oversized while
+  the six jump beats were 25% undersized; all eight now match his idle head, measured on hood
+  mass (validated on his idle at 2.7% against a 3% gate).
+- **Executioner's rise row, beats 4 and 6** — FIXED at 693 along with the rest of the row.
+  Beat 4's eye was unreadable only because its front wedge is lost to the turned head; its
+  rear eye alone was validated as a ruler and placed it.
+- **Executioner's special middle beats** — NOT A DEFECT. The premise was wrong. All eight
+  beats come from one board at one pack scale (0.8950, row spread 0.00%), and the row sits
+  0.6% off his idle, inside the ruler's own noise. Ink area lied because the source board
+  carries a painted ground shadow. Nothing to draw.
