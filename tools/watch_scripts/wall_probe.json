@@ -1,0 +1,70 @@
+[
+ {
+  "wait": 1.2
+ },
+ {
+  "key": "Space"
+ },
+ {
+  "wait": 0.6
+ },
+ {
+  "eval": "gameMode='training'; cpuMode=false; p1Pick=7; p2Pick=8; stagePick='bamboo'; attractMode=false; startNewGame(); return 'boot'",
+  "label": "boot"
+ },
+ {
+  "wait": 3.2
+ },
+ {
+  "eval": "moveListOpen=false; player2.x=500; player2.hp=999; return 1"
+ },
+ {
+  "eval": "player1.x=120; player1.y=560; player1.vy=0; player1.isGrounded=false; return 1"
+ },
+ {
+  "down": "KeyA"
+ },
+ {
+  "wait": 0.9
+ },
+ {
+  "key": "KeyW",
+  "hold": 0.08
+ },
+ {
+  "wait": 0.45
+ },
+ {
+  "eval": "const g=canvas.getContext('2d',{willReadFrequently:true}); const grab=()=>g.getImageData(0,0,canvas.width,canvas.height).data; setPaused(true); drawScene(); const A=grab(); const sx=player1.x, sy=player1.y; player1.x=-5000; player1.y=-5000; drawScene(); const B=grab(); player1.x=sx; player1.y=sy; drawScene(); let x0=1e9,x1=-1,y0=1e9,y1=-1; const colH=new Int32Array(canvas.width); for(let y=0;y<canvas.height;y++)for(let x=0;x<canvas.width;x++){   const i=(y*canvas.width+x)*4;   if(Math.abs(A[i]-B[i])+Math.abs(A[i+1]-B[i+1])+Math.abs(A[i+2]-B[i+2])>40){     colH[x]++; if(x<x0)x0=x; if(x>x1)x1=x; if(y<y0)y0=y; if(y>y1)y1=y;} } setPaused(false); const H=y1-y0+1; const tall=[]; for(let x=x0;x<=x1;x++) if(colH[x]>H*0.75) tall.push(x); const ropeMid = tall.length ? (tall[0]+tall[tall.length-1])/2 : null; const bodyMid = (x0+x1)/2; const wallSide = player1.wallDir>0 ? 'RIGHT' : 'LEFT'; const ropeSide = ropeMid===null ? 'none' : (ropeMid<bodyMid ? 'LEFT' : 'RIGHT'); return JSON.stringify({wall:wallSide, wallX: player1.wallDir>0?canvas.width-10:10,   hitboxX:+player1.x.toFixed(1), facing:player1.facing,   sprite:[x0,x1,y0,y1], spriteMid:+bodyMid.toFixed(0),   ropeCols: tall.length?[tall[0],tall[tall.length-1]]:null, ropeSide,   ropeOnWallSide: ropeSide===wallSide,   gapWallToSprite: player1.wallDir>0 ? (canvas.width-10)-x1 : x0-10}); ",
+  "label": "LEFT"
+ },
+ {
+  "up": "KeyA"
+ },
+ {
+  "wait": 1.0
+ },
+ {
+  "eval": "player1.x=900; player1.y=560; player1.vy=0; player1.isGrounded=false; return 1"
+ },
+ {
+  "down": "KeyD"
+ },
+ {
+  "wait": 0.9
+ },
+ {
+  "key": "KeyW",
+  "hold": 0.08
+ },
+ {
+  "wait": 0.45
+ },
+ {
+  "eval": "const g=canvas.getContext('2d',{willReadFrequently:true}); const grab=()=>g.getImageData(0,0,canvas.width,canvas.height).data; setPaused(true); drawScene(); const A=grab(); const sx=player1.x, sy=player1.y; player1.x=-5000; player1.y=-5000; drawScene(); const B=grab(); player1.x=sx; player1.y=sy; drawScene(); let x0=1e9,x1=-1,y0=1e9,y1=-1; const colH=new Int32Array(canvas.width); for(let y=0;y<canvas.height;y++)for(let x=0;x<canvas.width;x++){   const i=(y*canvas.width+x)*4;   if(Math.abs(A[i]-B[i])+Math.abs(A[i+1]-B[i+1])+Math.abs(A[i+2]-B[i+2])>40){     colH[x]++; if(x<x0)x0=x; if(x>x1)x1=x; if(y<y0)y0=y; if(y>y1)y1=y;} } setPaused(false); const H=y1-y0+1; const tall=[]; for(let x=x0;x<=x1;x++) if(colH[x]>H*0.75) tall.push(x); const ropeMid = tall.length ? (tall[0]+tall[tall.length-1])/2 : null; const bodyMid = (x0+x1)/2; const wallSide = player1.wallDir>0 ? 'RIGHT' : 'LEFT'; const ropeSide = ropeMid===null ? 'none' : (ropeMid<bodyMid ? 'LEFT' : 'RIGHT'); return JSON.stringify({wall:wallSide, wallX: player1.wallDir>0?canvas.width-10:10,   hitboxX:+player1.x.toFixed(1), facing:player1.facing,   sprite:[x0,x1,y0,y1], spriteMid:+bodyMid.toFixed(0),   ropeCols: tall.length?[tall[0],tall[tall.length-1]]:null, ropeSide,   ropeOnWallSide: ropeSide===wallSide,   gapWallToSprite: player1.wallDir>0 ? (canvas.width-10)-x1 : x0-10}); ",
+  "label": "RIGHT"
+ },
+ {
+  "up": "KeyD"
+ }
+]
