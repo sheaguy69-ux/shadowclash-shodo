@@ -10407,7 +10407,18 @@
         // the skeleton doll mid-fight (exactly what the owner saw on his phone after the
         // #40 art drop). The width check catches any mismatch that still slips through
         // and retries once with a hard cache-buster.
-        const SHEET_V = 704;   // 704: THE ART WAS NEVER BROKEN - THE ENGINE WAS EATING IT AT DRAW TIME.
+        const SHEET_V = 705;   // 705: oni glfwd7 loses a PACKED PANEL DIVIDER — a 1-2px dotted vertical
+        // line at x204-207 running the cell's whole height, 594px of ink, detached from him and
+        // 55px taller than his head. Appended as cell 483 with the four columns cleared; his real
+        // left edge is x208 so not one body pixel moved (byte-identical outside those columns,
+        // keyer loss 0, no canvas-edge ink). Old cell 430 KEPT as an orphan.
+        // WHAT I DID NOT TOUCH: exile wallslide/walljump and shin wallslide/walljump each carry a
+        // tall vertical bar that a bar-detector called a baked wall on 5 cells. I rendered them and
+        // looked: it is the ROPE each of them is gripping, hand closed around it. Removing it would
+        // leave them clutching air. Finding RETRACTED. The rope does inflate those cells' ink box by
+        // 55-65px, but cellInk only drives the crouch squash and undrawn spin-rolls, neither of
+        // which a wall cling enters, so it costs nothing.
+        // 704: THE ART WAS NEVER BROKEN - THE ENGINE WAS EATING IT AT DRAW TIME.
         // Traced oni glfwd through every stage: master board -> frame-archive extract -> packed cell
         // are all INTACT (solidity 0.87-0.97). The loss happens in keyedShodoCell. Its card test
         // measures ink on the INK BBOX perimeter, and already-keyed art (every live cell is 87-97%
