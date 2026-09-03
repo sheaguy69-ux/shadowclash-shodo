@@ -2,7 +2,7 @@
  "name": "executioner",
  "frameW": 388,
  "frameH": 496,
- "cols": 329,
+ "cols": 330,
  "footY": 488,
  "scale": 0.2665441176470588,
  "frames": {
@@ -79,7 +79,7 @@
   "xidle6": 70,
   "idle": 71,
   "idle2": 72,
-  "xtsuki1": 295,
+  "xtsuki1": 329,
   "xtsuki2": 296,
   "xtsuki3": 297,
   "kpush1": 97,
