@@ -49,23 +49,47 @@ from keyer_emu import keyed_cell  # noqa: E402
 EDGE_INK_MAX = 24  # a couple of stray antialias pixels is not a cut-off
 
 
-def git(*args: str) -> bytes:
-    return subprocess.run(["git", *args], capture_output=True, cwd=ROOT).stdout
+def git(*args: str) -> tuple[int, bytes]:
+    proc = subprocess.run(["git", *args], capture_output=True, cwd=ROOT)
+    return proc.returncode, proc.stdout
+
+
+def must(*args: str) -> bytes:
+    code, out = git(*args)
+    if code != 0:
+        raise SystemExit(f"  art guard: `git {' '.join(args)}` failed ({code}) — cannot verify.")
+    return out
 
 
 def staged_sheets() -> list[str]:
-    names = git("diff", "--cached", "--name-only").decode().split()
+    names = must("diff", "--cached", "--name-only").decode().split()
     return sorted(
         {Path(n).stem for n in names if n.startswith("web/assets/sprites/") and n.endswith(".png")}
     )
 
 
-def load(ref: str, fighter: str):
-    raw_png = git("show", f"{ref}:web/assets/sprites/{fighter}.png")
-    raw_json = git("show", f"{ref}:web/assets/sprites/{fighter}.json")
-    if not raw_png or not raw_json:
-        return None, None
-    return np.array(Image.open(io.BytesIO(raw_png)).convert("RGBA")), json.loads(raw_json)
+# ⛔ THE INDEX REF IS "" — `git show :path`, one colon. Written as ":" it composed "::path",
+# which git rejects; the guard read nothing, `after` came back None, and the loop `continue`d.
+# It reported nothing and exited 0 on EVERY commit, so it had never once compared staged art.
+# Found 2026-09-03 while landing Shin's ankle. That is why `must()` now refuses a failed git
+# call instead of returning empty: a check that goes quiet is worse than no check at all.
+INDEX = ""
+
+
+def load(ref: str, fighter: str, required: bool):
+    """Read a fighter's sheet+manifest at `ref`. `required` turns absence into a refusal."""
+    blobs = []
+    for ext in ("png", "json"):
+        code, out = git("show", f"{ref}:web/assets/sprites/{fighter}.{ext}")
+        if code != 0 or not out:
+            if required:
+                raise SystemExit(
+                    f"  art guard: {fighter}.{ext} is staged but unreadable at '{ref or 'index'}' "
+                    f"— refusing to pass a commit it could not check."
+                )
+            return None, None
+        blobs.append(out)
+    return np.array(Image.open(io.BytesIO(blobs[0])).convert("RGBA")), json.loads(blobs[1])
 
 
 def main() -> int:
@@ -77,10 +101,8 @@ def main() -> int:
         return 0
     problems: list[str] = []
     for fighter in fighters:
-        before, meta_before = load("HEAD", fighter)
-        after, meta_after = load(":", fighter)
-        if after is None:
-            continue
+        before, meta_before = load("HEAD", fighter, required=False)
+        after, meta_after = load(INDEX, fighter, required=True)
         if before is None:
             print(f"  art guard: {fighter} is new, nothing to protect")
             continue
