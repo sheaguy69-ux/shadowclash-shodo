@@ -9,16 +9,21 @@ Audience: the image-generation lane. Read section 1 before generating anything e
 
 Two delivered packages were **rejected by Anthony on 2026-09-02**:
 
-- `art/production/handoff/SHODO-MIZU-HANBO-KAESHI-V2-APPROVED-READY-2026-09-02/`
-- `art/production/handoff/SHODO-TSUBASA-SAKATE-BACKHAND-RAKE-V2-APPROVED-READY-2026-09-02/`
+- `art/production/handoff/SHODO-MIZU-HANBO-KAESHI-V2-REJECTED-DO-NOT-INTEGRATE-2026-09-02/`
+- `art/production/handoff/SHODO-TSUBASA-SAKATE-BACKHAND-RAKE-V2-REJECTED-DO-NOT-INTEGRATE-2026-09-02/`
 
 Both carry a `REJECTED-BY-OWNER.md`:
 
 > Anthony rejected this handoff on 2026-09-02 because an old animation/choreography source
 > was used as a generation reference. Do not pack, wire, copy, or hand these frames forward.
 
-⛔ **Both folders are still NAMED `APPROVED-READY`.** The name is wrong and the ruling
-inside the folder is right. Do not read a folder name as a status.
+Both were originally named `...-APPROVED-READY-...`, with the rejection visible only in a
+file inside them. They have been **renamed to `...-REJECTED-DO-NOT-INTEGRATE-...`** so the
+name matches the ruling — anyone listing the directory now sees the status before opening
+anything. Their contents are untouched.
+
+⛔ **A folder name is not a status.** Check for `REJECTED-BY-OWNER.md` before treating any
+package as usable, whatever it is called.
 
 ### The specific cause
 
