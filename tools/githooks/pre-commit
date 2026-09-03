@@ -1,0 +1,22 @@
+#!/bin/sh
+# Refuse to commit another agent's work. See tools/lane.py.
+# lane.py is located RELATIVE TO THIS HOOK, not to the working tree: an absolute
+# core.hooksPath means worktrees on older branches (which have no tools/ yet) still
+# get the guard. Bypass with --no-verify only if you are certain.
+python3 "$(cd "$(dirname "$0")/.." && pwd)/lane.py" check || exit 1
+
+# SHEET GUARD — refuse a commit that guts a fighter's sprite manifest.
+# Four times in one day a purge or an orphan strip re-ran against a manifest another
+# lane had already rewritten, and shipped a fighter with no keys at all: mizu 204 -> 0,
+# executioner 335 -> 0, ember 284 -> 84. The loser of that race gets no error, just an
+# empty character. Runs against the STAGED sheets, so it catches the commit, not the edit.
+# Deliberate big deletions still ship: python3 tools/check_sheets_whole.py --allow-shrink
+python3 "$(cd "$(dirname "$0")/.." && pwd)/check_sheets_whole.py" || exit 1
+
+# ART DAMAGE GUARD — refuse a commit that rewrites existing sprite art.
+# Owner, Sep 3 2026: "you can catch a mistake before it reaches production, but you can't
+# catch when you're fucking up." Every piece of damage this session was found by an audit
+# afterwards, never in the moment — deleted eyes, deleted blade steel, a chain erase that
+# took a whole arm. So the check runs on its own, on every commit. Deliberate repaint:
+# ALLOW_ART_REWRITE=1 git commit
+python3 "$(cd "$(dirname "$0")/.." && pwd)/check_no_art_damage.py" || exit 1
