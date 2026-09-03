@@ -31,7 +31,10 @@ def keyed_cell(a):
         edge_ink += int(op[y0 + 1:y1, x0].sum())
         if x1 != x0:
             edge_ink += int(op[y0 + 1:y1, x1].sum())
-    if edge_ink <= perimeter * 0.30:
+    # A card FILLS its cell. Already-keyed art arrives mostly transparent and its ink
+    # bbox hugs the figure, so a pose can trip the perimeter test with no card present.
+    clear = int((alpha < 8).sum())
+    if clear >= H * W * 0.70 or edge_ink <= perimeter * 0.30:
         return a
     # dominant colour bucket among alpha>=128 inside the rect
     rect = a[y0:y1 + 1, x0:x1 + 1]
