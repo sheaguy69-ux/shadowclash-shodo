@@ -18,6 +18,47 @@ measured and corrected in place.
 
 ---
 
+## 0. ⛔ BLOCKED — the approved beat-5 frame does not fit his cell (owner decision open)
+
+Item 1 below was DRAWN and owner-approved: package
+`art/production/handoff/SHODO-EXECUTIONER-XRISE-BEAT5-V2-APPROVED-READY-2026-09-02`,
+all six hashes verified. Integration is blocked on a geometry decision, not on art.
+
+**At any fighter-correct scale the frame overflows his 300x412 cell window.**
+
+| scale | frame becomes | fits 300x412? |
+|---|---|---|
+| 0.669 | 395 x 507 | no — and the fighter reads bigger than beats 4 and 6 |
+| 0.600 | 355 x 455 | no |
+| 0.550 | 325 x 417 | no |
+| 0.507 | 300 x 384 | yes, but he reads ~20% small against the row |
+
+Not trimmable: the ink extent is identical at every alpha threshold from 8 to 128, and
+**15.5% of the ink falls outside a 300px-wide window**. The cause is that the approved
+crescent is about **1.5x the crescent it replaces** (live cell 324 is 250x344).
+
+**Scale could not be pinned by any single ruler.** Five were tried and three failed a
+known-answer or known-equal check outright: horns (66% spread on cells that are the same
+size), hood band (50%), hood mass (62%). Template matching failed too — live 323 against
+live 325 peaks at ncc 0.41, not 1.0, because the poses differ. His EYE, the one ruler
+validated elsewhere in this roster, is invalid ON THIS FRAME: the approved art draws a
+single eye 21x19 where his live cells carry an 11x12 teardrop plus a small front wedge,
+so the eye is proportionally larger and matching it oversizes the head. A visual scale
+sweep and the template median agree on roughly **0.55-0.60**.
+
+**Three ways forward, owner's call:**
+
+1. **Grow his cell window** to ~440x560. Follows the handoff contract ("grow the
+   transparent cell window rather than shrinking the fighter") and is in-family — shin is
+   already 520 wide, exile 480. Costs a re-layout of all 328 cells, and `frameW` feeds the
+   crack aura radius (`fw * S * 0.62`, index.html:13317) which would swell ~47% — a visible
+   change to a different feature, against contract item 6's "preserve gameplay exactly".
+2. **Send beat 5 back with the crescent sized to the row.** Drops into the existing window
+   with no engine change. The fighter in the approved art is fine; only the arc is oversized.
+3. Shrink to fit — not recommended, he reads ~20% small.
+
+Nothing has been written to the sheet.
+
 ## 1. EXECUTIONER — one beat of the rise row has no fighter in it
 
 **Row:** `xrise1..8` / `xkiriage1..8` (one set of eight cells, two names). Live cells 320-327.
