@@ -10407,7 +10407,22 @@
         // the skeleton doll mid-fight (exactly what the owner saw on his phone after the
         // #40 art drop). The width check catches any mismatch that still slips through
         // and retries once with a hard cache-buster.
-        const SHEET_V = 705;   // 705: oni glfwd7 loses a PACKED PANEL DIVIDER — a 1-2px dotted vertical
+        const SHEET_V = 706;   // 706: SHIN'S EYE WAS A HOLE — owner: "wipe his eyes back out. I don't
+        // know why his eyes was erased you know, but you tell me." Answer: a PACK-TIME keyer punched
+        // the sclera out of his IDLE ROW and only that row. Measured on the raw sheet, not the render:
+        // idle/idle2/xidle1-6 carry 68-85 px of alpha<8 FULLY ENCLOSED by the eye rim — you could see
+        // the page through his head. Every other cell of his is filled (lum 29-46 dark lens, or the
+        // 217-229 glowing orb his specials and jump1/hneu4/hneu7 use). Exactly 8 cells, his most-seen
+        // pose, which is why the owner spotted it there.
+        // Located with tools/sprites/eye_scale.py eyes(), which already encodes the right gates
+        // (enclosed by ink, disc-shaped, head band, rim polarity) — after my own two attempts failed
+        // their known-answer tests, one landing on his SCARF in every cell. Every one of the 141 hits
+        // was rendered and eyeballed before a pixel moved.
+        // Filled with the pocket's OWN enclosing rim colour, so it is his art, not a paint. Appended
+        // as cells 346-353, the 8 keys repointed, originals kept. Gates per cell: only the pocket
+        // changed, nothing outside the 23px eye window, runtime-keyer loss 0, no canvas-edge ink. 8/8.
+        // NOT TOUCHED: the 60 dark-lens cells. They are filled and consistent; no evidence of damage.
+        // 705: oni glfwd7 loses a PACKED PANEL DIVIDER — a 1-2px dotted vertical
         // line at x204-207 running the cell's whole height, 594px of ink, detached from him and
         // 55px taller than his head. Appended as cell 483 with the four columns cleared; his real
         // left edge is x208 so not one body pixel moved (byte-identical outside those columns,
