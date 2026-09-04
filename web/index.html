@@ -10409,7 +10409,43 @@
         // the skeleton doll mid-fight (exactly what the owner saw on his phone after the
         // #40 art drop). The width check catches any mismatch that still slips through
         // and retries once with a hard cache-buster.
-        const SHEET_V = 707;   // 707: THE GROUND FRAME IN THE AIR WAS NEVER THE JUMP ROW.
+        const SHEET_V = 708;   // 708: THE KEYER ATE WHITE EYES — SHIN WAS NOT THE ONLY ONE.
+        // 706 refilled shin's eye after finding a punched-out HOLE in his idle row. The
+        // obvious next question was whether the other eight had the same wound, and three
+        // of them do. A pocket scan of all 1414 live cells — enclosed transparent regions
+        // on the RAW sheet, in the head band, matching that fighter's OWN measured eye in
+        // area and in width x height — finds 24 cells across mizu, tsubasa and ember where
+        // the eye is not dim or dark but GONE: you can see the page through the socket.
+        // MEASURED, NOT GUESSED. Each fighter's healthy eye was measured off his own clean
+        // cells first: mizu 47px 7x9 rgb(247,246,246), tsubasa 85px 12x11 rgb(250,250,250),
+        // ember 54px 9x11 rgb(247,248,248). The holes match to the pixel — mizu's are 8x9
+        // and 8x10, tsubasa's 11x12 and 12x12. All three eyes are NEAR-WHITE, which is the
+        // whole story: the pack-time keyer takes a near-white eye for background and floods
+        // it out. Every fighter whose landmark is coloured is untouched — the executioner's
+        // amber pair and kael's gold clasp scan CLEAN at zero.
+        // ⛔ THE GATE WAS BUILT ON A KNOWN ANSWER FIRST. 706 left shin's holed originals on
+        // the sheet as orphans beside the repaired cells, which is an exact before/after
+        // pair for this defect. The detector scores 8/8 on it — hole on 198/199/204/205,
+        // none on the repaired 346/347/350/351 — and the first version of the gate FAILED
+        // that test (it caught a 563px pocket between shin's legs, which is real negative
+        // space, not damage). Only the version that separates them is used here.
+        // ⛔ AND EVERY HIT WAS RENDERED AND LOOKED AT. The shape gate is a filter, not a
+        // verdict: it also flagged shin (5), exile (4) and mokurai (1), and looking at them
+        // shows shin's cyan eye ring intact in all five with the pocket in his hood, exile's
+        // pockets in the gap between her hair spikes with her face fine, and mokurai's a dot
+        // in a gold FX swirl. All discarded. Tsubasa's roll_2 and special6 went the same way.
+        // THE FILL IS THE FIGHTER'S OWN EYE COLOUR, sampled from his own healthy cells, into
+        // the enclosed pocket only. Four gates per cell, 24/24: only the pocket changed,
+        // nothing outside a 29px window around it, runtime-keyer loss 0, no canvas-edge ink.
+        // APPEND-ONLY — mizu 207->214, tsubasa 326->341, ember 282->284, 24 cells appended,
+        // every original kept as an orphan and every key repointed. Verified in the running
+        // game at 60 rAF/sec: all three sheets ready, all 24 keys resolving to the new cells.
+        // NOT TOUCHED: mizu's second socket. On ristaff1/ristaff3/grabbed8 one eye was a hole
+        // and the other is DARK INK — it has ink, so it is drawn, not eaten, and this pass
+        // does not repaint ink. He reads with one lit eye and one shadowed on those beats
+        // where idle has two lit. If both should be lit that is a look change on cells that
+        // are not damaged, and it is the owner's call.
+        // 707: THE GROUND FRAME IN THE AIR WAS NEVER THE JUMP ROW.
         // Owner, 2026-09-04: "there's still ground frames that's in the fucking air ... GPT has
         // created enough jumping airframes for each character for it to not react a ground frame
         // in the air." He was right on both counts. 702 fixed the JUMP row and stopped there —
