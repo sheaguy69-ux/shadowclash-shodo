@@ -10409,7 +10409,54 @@
         // the skeleton doll mid-fight (exactly what the owner saw on his phone after the
         // #40 art drop). The width check catches any mismatch that still slips through
         // and retries once with a hard cache-buster.
-        const SHEET_V = 706;   // 706: SHIN'S EYE WAS A HOLE — owner: "wipe his eyes back out. I don't
+        const SHEET_V = 707;   // 707: THE GROUND FRAME IN THE AIR WAS NEVER THE JUMP ROW.
+        // Owner, 2026-09-04: "there's still ground frames that's in the fucking air ... GPT has
+        // created enough jumping airframes for each character for it to not react a ground frame
+        // in the air." He was right on both counts. 702 fixed the JUMP row and stopped there —
+        // but a fighter off the ground is not only in STATE.JUMP. Hooking spriteFrameIndex in a
+        // real 60fps match and logging every draw with isGrounded=false, across all nine
+        // fighters: 2903 airborne frames were drawing a ground cell, and only ~180 of those came
+        // from the jump row at all. FIVE separate causes, four of them one shared line each:
+        //   1. attackFrame's recovery settle returned `F.idle` — the standing stance, planted
+        //      feet, on most sheets its own cast shadow. EVERY attack tier funnels through it,
+        //      so every air attack ended by snapping the fighter upright in mid-flight. 375
+        //      frames, all nine fighters. Off the ground there is nothing to settle TO, so the
+        //      follow-through now holds until the feet are down.
+        //   2. ATTACK_MEDIUM drew medium1..N whenever the row existed — and it exists on all
+        //      nine. The four approved medium boards are STANDING boards. Now grounded-only,
+        //      falling through to Light exactly as a sheet with no medium row does.
+        //   3. ATTACK_HEAVY's `if (p.attackAir)` map is hfwd/hback/hup/hdown/hneu — the GROUNDED
+        //      heavy rows (`hdown` is on no live sheet at all; it exists only in PURGED-KEYS).
+        //      Fighters with no h* rows fell further to heavyCells() and drew heavy_i / xheavy /
+        //      heavy / light, also standing rows: mokurai spent 52 airborne frames in his horse
+        //      stance, exile 425 in xheavy1-5.
+        //   4. ATTACK_SPECIAL's air map (sfwd/sback/sup/sdown/sneu) is labelled "drawn for the
+        //      air" and is not. Only sneu and sup are on any live sheet, and rendered beat by
+        //      beat they are planted stances — oni's sup1-8 in a wide horse stance, shin's sneu2
+        //      landing in a splash, sneu7 inside a ground crater.
+        //   5. The picker's own last resort was `F.idle` — so ANY stranded route drew a standing
+        //      pose in the air. Kael's airborne Light and Medium reach `[F.light1, F.light2]` on
+        //      a sheet with no `light` row: an array of two undefineds, 89 frames of it.
+        // THE ART WAS ALREADY THERE, which is the whole point: aneu1..8 on seven fighters,
+        // mokurai's bair1..8, kael's kxcut1..8 — every one a tucked body with the feet off any
+        // line and nothing underneath, and every one wired to ONE tier. airAttackCells() is that
+        // row, and Medium/Heavy/Special now reach it. Kael's `adown` is deliberately excluded:
+        // it is his air-DOWN stomp and several beats end on a ground line with impact sparks.
+        // NO ART WAS ADDED, MOVED, EDITED OR DELETED — routing only, not one sheet byte changed.
+        // MEASURED, NOT ASSUMED: 2903 -> 487 airborne ground frames (83.2%). Every attack tier
+        // is clean on all nine. Verified in the running game at 60 rAF/sec — 12 mid-air attacks
+        // captured across oni/mokurai/executioner/shin, all grounded=false, all landing on
+        // aneu/bair. GROUNDED IS UNTOUCHED: a deterministic routing sweep (20 states x 20 vy x 5
+        // dirs x 5 kicks x 6 attack phases x chudan, per fighter) returns an IDENTICAL cell set
+        // before and after on all nine. That sweep is also what caught two regressions of my own
+        // — neutralFrame collapsing two different grounded fallbacks into one, and the special
+        // gate stripping sneu from a move that starts in the air and lands mid-swing.
+        // ⛔ STILL WRONG, AND IT NEEDS ART: STUNNED. 487 frames, all nine fighters. hurt/hurt2/
+        // hurt3 (xhurt, mhurt) are upright recoils with the feet planted, and NO SHEET HAS AN
+        // AIR-HURT ROW — there is nothing to route to. Swapping in the flight pose would delete
+        // the hit read, which is a gameplay change, not an art fix, so it is left alone and
+        // flagged. This is the last class of ground frame in the air and it is an art job.
+        // 706: SHIN'S EYE WAS A HOLE — owner: "wipe his eyes back out. I don't
         // know why his eyes was erased you know, but you tell me." Answer: a PACK-TIME keyer punched
         // the sclera out of his IDLE ROW and only that row. Measured on the raw sheet, not the render:
         // idle/idle2/xidle1-6 carry 68-85 px of alpha<8 FULLY ENCLOSED by the eye rim — you could see
@@ -10631,9 +10678,44 @@
             if (total > 0 && p.recoveryTimer > 0 && F) {
                 const leftFrac = p.recoveryTimer / total;            // 1 -> 0 across recovery
                 if (leftFrac > FOLLOW_THROUGH_HOLD) return arr[arr.length - 1];   // follow-through hold
+                // ⛔ THE SETTLE IS A GROUNDED IDEA. `F.idle` is the standing stance —
+                // planted feet, weight on the floor, and on most sheets its own cast
+                // shadow. Every attack tier funnels through here, so an attack thrown
+                // in the air ended its recovery by snapping the fighter into that
+                // standing pose WHILE STILL AIRBORNE: measured live, 375 frames of it
+                // across all nine fighters in one short capture each (kael 73, exile
+                // 75, ember 62, executioner 55, mokurai 39, shin 38, mizu 23, tsubasa
+                // 9, oni 1). That is the ground frame in the air the owner keeps
+                // seeing, and it was one shared line rather than nine routing bugs.
+                // There is nothing to settle TO off the ground — you cannot return to
+                // neutral stance mid-flight — so the follow-through simply holds until
+                // the feet are down, which is also what the move's last beat is drawn
+                // for. Grounded behaviour is byte-identical.
+                if (!p.isGrounded) return arr[arr.length - 1];
                 return F.idle;   // settle back to neutral
             }
             return arr[arr.length - 1];
+        }
+
+        // THE AIR ROW. Every fighter has ONE purpose-drawn airborne attack row and it was
+        // wired to a single tier: aneu1..8 on seven of them, mokurai's bair1..8, kael's
+        // kxcut1..8. Rendered beat by beat against that same fighter's ground rows, the
+        // difference is not subtle — aneu/bair/kxcut are tucked bodies with the feet off
+        // any line and nothing underneath, while hneu/sneu/sup/medium/light/special are
+        // planted stances, both feet flat, several of them carrying their own grey ground
+        // smudge or crater (oni hfwd1/hneu1/hup1/sneu1-8/sup1-8, shin sneu2/3/7, kael
+        // sneu, mokurai light1-8, exile special1). Those are the ground frames in the air.
+        // ⛔ kael's `adown` is DELIBERATELY NOT HERE. It is his air-DOWN stomp and several
+        // of its beats end on a ground line with impact sparks, so it is not a general
+        // air pose; his kxcut is, and it is what he gets.
+        function airAttackCells(F) {
+            for (const r of ['aneu', 'bair', 'kxcut']) {
+                if (F[r + '1'] === undefined) continue;
+                const a = [];
+                for (let i = 1; F[r + i] !== undefined; i++) a.push(F[r + i]);
+                return a;
+            }
+            return null;
         }
 
         function runCells(F) {
@@ -11179,14 +11261,37 @@
         // Filed as a WRAPPER rather than a `?? idle` on each dead tail, because the tails
         // are not the bug — a purged row can strand any branch, and there are eight call
         // sites that would each need their own guard. One place, once.
+        // ⛔ AND THE LAST RESORT MUST KNOW WHETHER THE FEET ARE DOWN. Both guards below
+        // ended on `F.idle` — the standing stance — so ANY route that resolved to
+        // undefined put the fighter into a planted ground pose, in the air as readily as
+        // on the floor. That is not hypothetical: Kael's airborne Light and Medium reach a
+        // branch whose cell list is [undefined, undefined] (89 frames measured), Exile's
+        // airborne Heavy strands on 74, Mokurai's on 12 — every one of them drew the idle.
+        // Off the ground the last resort is the flight pose instead: the fighter's own
+        // jump-arc beat, which all nine have under one of three names.
+        // ⛔ THIS IS A FALLBACK, NOT A FIX FOR THE STRANDED ROUTE. A branch handing back
+        // undefined is still a bug in that branch; this only stops it looking like a
+        // fighter standing on nothing.
+        // ⛔ THE GROUNDED DEFAULT IS THE CALLER'S. The two guards below did NOT share one:
+        // the inner returned `F.idle`, the outer `F.xidle1 ?? F.idle ?? F.idle1 ?? 0`.
+        // Collapsing them moved Kael, the Executioner and Ember off F.idle onto xidle1 on
+        // the FLOOR — caught by the grounded routing sweep, not by eye. So only the
+        // airborne answer is decided here; grounded is passed in and is untouched.
+        function neutralFrame(p, F, grounded) {
+            if (p && !p.isGrounded) {
+                const air = F.ajump4 ?? F.xjump4 ?? F.bjump4 ?? F.fall2 ?? F.fall ?? F.jump2;
+                if (air !== undefined) return air;
+            }
+            return grounded;
+        }
         function spriteFrameIndex(p, F) {
             const idx = spriteFrameIndexInner(p, F);
             if (typeof idx === 'number' && idx >= 0) return idx;
-            return F.xidle1 ?? F.idle ?? F.idle1 ?? 0;
+            return neutralFrame(p, F, F.xidle1 ?? F.idle ?? F.idle1 ?? 0);
         }
         function spriteFrameIndexInner(p, F) {
             const i = spriteFrameIndexRaw(p, F);
-            return (i === undefined || i === null) ? F.idle : i;
+            return (i === undefined || i === null) ? neutralFrame(p, F, F.idle) : i;
         }
 
         function spriteFrameIndexRaw(p, F) {
@@ -11472,6 +11577,12 @@
                 // Prefer the 4-frame i2v run cycle (size-consistent, side-profile) when
                 // present; else the 2-frame nrun toggle; else the original run cells.
                 case STATE.RUN: {
+                    // ⛔ A RUN CYCLE IS FEET ON THE FLOOR. The state survives one frame past
+                    // takeoff before JUMP takes over, and that frame drew a running stride in
+                    // mid-air (1 frame per launch, caught live on ember, exile, oni and shin).
+                    // One frame is 16ms and nobody would name it, but it is the same law as
+                    // the rest of this pass, and the flight pose is already one call away.
+                    if (!p.isGrounded) return neutralFrame(p, F, F.idle);
                     // Owner APPROVED the frames 2026-07-12 after seeing the strips
                     // (his earlier "revert" was the cache-skeleton bug, not this art).
                     const run = runCells(F);
@@ -11670,7 +11781,14 @@
                     // The four approved standing-medium boards live on medium1..N. A
                     // sheet without the row FALLS THROUGH to the light art below — same
                     // interim contract as every other fallback in this switch.
-                    if (F.medium1 !== undefined) {
+                    // ⛔ isGrounded, NOT just "has the row". The four approved medium boards
+                    // are STANDING boards — planted feet on a floor line — and every fighter
+                    // has one, so the row never fell through and a Medium thrown in the air
+                    // played the standing board in mid-flight on all nine (measured live:
+                    // 6+4+4+4+2 frames each, every fighter, every capture). Off the ground it
+                    // falls through to Light exactly as a sheet with no medium row does — and
+                    // Light already routes the air row. Grounded behaviour is unchanged.
+                    if (p.isGrounded && F.medium1 !== undefined) {
                         const md = [];
                         for (let i = 1; F['medium' + i] !== undefined; i++) md.push(F['medium' + i]);
                         return attackFrame(p, md, F, trackFor(p, 'heavy'));
@@ -11960,10 +12078,16 @@
                     // 157-cell cut had no aneu row to reach. The rebuilt sheet does, purpose-drawn
                     // for neutral air and six beats long, so it takes the input and 41/42 go
                     // unreferenced. They stay in the sheet, drawing nowhere.
-                    if (!p.isGrounded && F.aneu1 !== undefined) {
-                        const an = [];
-                        for (let i = 1; F['aneu' + i] !== undefined; i++) an.push(F['aneu' + i]);
-                        return attackFrame(p, an, F, trackFor(p, 'light'));
+                    // ⛔ ANY air row, not just `aneu`. Hardcoding aneu here left KAEL with no
+                    // airborne Light at all: he has no aneu row, his kdual branch below is
+                    // grounded-only, and the case's tail is `[F.light1, F.light2]` on a sheet
+                    // with no `light` row — so his air Light resolved to [undefined, undefined]
+                    // and the picker's last resort drew him STANDING (89 frames measured across
+                    // Light and Medium). airAttackCells hands him his kxcut, which is the
+                    // jumping X-cut his own sheet names.
+                    if (!p.isGrounded) {
+                        const an = airAttackCells(F);
+                        if (an) return attackFrame(p, an, F, trackFor(p, 'light'));
                     }
                     // aerial slash: airborne normals get their own sequence (owner order)
                     if (!p.isGrounded && F.air3 !== undefined)
@@ -12276,6 +12400,22 @@
                     // DRAW-ONLY: hitbox, damage and timing untouched. What these poses imply
                     // (a dive that reaches further, a divekick that spikes) is balance and is
                     // not smuggled in with an art fix.
+                    // ⛔ THE AIR ROW GOES FIRST. The map below is gated on `attackAir` and
+                    // every row in it is GROUND art: oni's hfwd1/hneu1/hup1 and the
+                    // executioner's hneu are planted, both feet flat, with the floor smudge
+                    // drawn in. (`hdown` is on no live sheet at all — it exists only in
+                    // PURGED-KEYS.json — so that entry has never resolved.) Fighters with no
+                    // h* rows fared no better: they fell past this to heavyCells() and drew
+                    // heavy_i / xheavy / heavy / light, which are also standing rows. Measured
+                    // live, mokurai spent 52 airborne frames in his light1/light2 horse stance
+                    // and exile 425 in xheavy1-5.
+                    // ⛔ KAEL IS EXCLUDED BY F.kxcut1. His JUMPING X-CUT is his air heavy and
+                    // owns its own timing track ('xcut'); its branch is below this one, so
+                    // catching him here would draw the same cells on the wrong track.
+                    if (!p.isGrounded && F.kxcut1 === undefined) {
+                        const ac = airAttackCells(F);
+                        if (ac) return attackFrame(p, ac, F, trackFor(p, 'heavy'));
+                    }
                     if (p.attackAir) {
                         const c = dirCells(p, F, { fwd: 'hfwd', back: 'hback', up: 'hup',
                                                    down: 'hdown', neutral: 'hneu' });
@@ -12306,7 +12446,27 @@
                     // for a fighter with these rows is Tsubasa's `3:down` dive cut, and a
                     // dedicated airborne pose is exactly what should beat it there. Grounded,
                     // the table still wins and divecut still draws.
-                    if (p.attackAir) {
+                    // ⛔ THIS MAP IS NOT "DRAWN FOR THE AIR". Only two of its five rows are on
+                    // any live sheet — `sneu` (oni, shin, tsubasa, kael) and `sup` (oni) — and
+                    // both were rendered beat by beat: planted stances, feet flat, oni's sup1-8
+                    // in a wide horse stance, shin's sneu2 landing in a splash and sneu7 inside
+                    // a ground crater. Off the ground they are the complaint itself. So the
+                    // branch now yields to a sheet that HAS an air row, and stays exactly as it
+                    // was for one that does not — no fighter loses art, and none gains a
+                    // ground pose in mid-flight.
+                    // ⛔ AND IT STAYS HERE rather than moving the air row up to the top of the
+                    // case. Everything below — the moveArt table, ember's ceiling hook, oni's
+                    // air throw and whip, tsubasa's divecut — is a SPECIFIC airborne special,
+                    // and a generic air branch above them would shadow every one. The air row
+                    // is the LAST resort instead, filed just above specialCells().
+                    // ⛔ `p.isGrounded ||`, and it is load-bearing. attackAir is captured at
+                    // PRESS time and deliberately stays true if the fighter lands mid-swing
+                    // (this file says so in four other places) — so gating on attackAir alone
+                    // stripped sneu from a special that STARTED in the air and FINISHED on the
+                    // floor, where the ground row is the right art. Shin, Tsubasa, Kael and Oni
+                    // each lost their whole sneu row that way; the grounded routing sweep
+                    // caught it, nothing on screen would have.
+                    if (p.attackAir && (p.isGrounded || !airAttackCells(F))) {
                         const ac = dirCells(p, F, { fwd: 'sfwd', back: 'sback', up: 'sup',
                                                     down: 'sdown', neutral: 'sneu' });
                         if (ac) return attackFrame(p, ac, F, trackFor(p, 'special'));
@@ -12518,6 +12678,15 @@
                     if (p.spec.id === 8 && p.whipAnim && F.whip1 !== undefined)
                         return attackFrame(p, [F.whip1, F.whip2, F.whip3,
                                                F.whip4, F.whip5, F.whip6], F, trackFor(p, 'special'));
+                    // LAST RESORT, AND ONLY OFF THE GROUND. specialCells() ends on the
+                    // standing special1..8 / espec / bspec / xtsuki rows — exile's special1
+                    // stands in a pale ground blob, oni's special1 is planted — so an air
+                    // Special that matched no specific branch above finished on a ground
+                    // frame. Every drawn airborne special still wins: they are all above.
+                    if (!p.isGrounded) {
+                        const ac = airAttackCells(F);
+                        if (ac) return attackFrame(p, ac, F, trackFor(p, 'special'));
+                    }
                     return attackFrame(p, specialCells(p, F), F, trackFor(p, 'special'));
                 // parry = the cross-guard cells ONLY (the 7-cell special would dash him
                 // in place). origin/main's 750bd0f fixed the sibling line by passing F so
