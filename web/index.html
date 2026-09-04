@@ -101,15 +101,11 @@
         .sc-card:hover { border-color: var(--fc, var(--ember)); transform: translateY(-2px); box-shadow: 0 8px 22px rgba(0,0,0,.5); }
         .sc-card .arch { font-size: 9px; letter-spacing: .18em; font-weight: 700; color: var(--paper-dim); text-transform: uppercase; }
         .sc-plaque { flex: 1; display: flex; align-items: center; justify-content: center; margin: 4px 0; background: linear-gradient(180deg, #f0e9d8, #e2d9c2); border-radius: 4px; border: 1px solid rgba(0,0,0,.35); overflow: hidden; }
-        /* CLOSE-UP CARDS (owner, Aug 7 2026: "better images and more up close"):
-           cover-crop each full-body portrait to a head-and-shoulders framing instead
-           of floating the whole figure in the plaque. --pz/--pp are per-fighter
-           overrides from PORTRAIT_FRAME for the few portraits whose figure sits
-           small in the canvas (Mokurai, Exile). Originals untouched — pure CSS. */
+        /* Approved SHODO busts already contain their framing: show the whole painting. */
         .sc-plaque { height: 7.5rem; }
-        .sc-plaque img { height: 100%; width: 100%; object-fit: cover;
-                         object-position: var(--pp, 50% 18%);
-                         transform: scale(var(--pz, 1.35)); transform-origin: var(--pp, 50% 18%); }
+        .sc-plaque img { height: 100%; width: 100%; object-fit: contain; }
+        .hud-portrait { width: clamp(32px, 4vw, 48px); aspect-ratio: 1;
+                        object-fit: contain; border: 1px solid var(--line); border-radius: 3px; }
         .sc-card .nm { font-family: 'Shippori Mincho B1', serif; font-size: 13px; font-weight: 800; letter-spacing: .08em; color: var(--paper); }
         .sc-card .wp { font-size: 9px; color: var(--paper-dim); font-style: italic; }
         .sc-card [data-badge] { color: var(--ember) !important; }
@@ -766,9 +762,12 @@
                     <div class="absolute top-4 inset-x-4 flex justify-between pointer-events-none z-20">
                         <!-- Player 1 Bar -->
                         <div class="w-5/12 flex flex-col gap-1">
-                            <div class="flex justify-between items-center">
-                                <span id="hud-p1-name" class="text-xs font-black text-purple-400 arcade-font">PLAYER 1</span>
-                                <span id="hud-p1-hp-text" class="text-xs font-mono text-purple-300">150 / 150</span>
+                            <div class="flex items-center gap-2">
+                                <img id="hud-p1-portrait" class="hud-portrait" alt="" draggable="false">
+                                <div>
+                                    <span id="hud-p1-name" class="block text-xs font-black text-purple-400 arcade-font">PLAYER 1</span>
+                                    <span id="hud-p1-hp-text" class="block text-xs font-mono text-purple-300">150 / 150</span>
+                                </div>
                             </div>
                             <!-- HP Bar -->
                             <div class="h-4 bg-gray-900 border border-purple-900 rounded overflow-hidden relative">
@@ -800,9 +799,12 @@
 
                         <!-- Player 2 Bar -->
                         <div class="w-5/12 flex flex-col gap-1">
-                            <div class="flex justify-between items-center flex-row-reverse">
-                                <span id="hud-p2-name" class="text-xs font-black text-orange-400 arcade-font">PLAYER 2</span>
-                                <span id="hud-p2-hp-text" class="text-xs font-mono text-orange-300">150 / 150</span>
+                            <div class="flex items-center gap-2 flex-row-reverse">
+                                <img id="hud-p2-portrait" class="hud-portrait" alt="" draggable="false">
+                                <div class="text-right">
+                                    <span id="hud-p2-name" class="block text-xs font-black text-orange-400 arcade-font">PLAYER 2</span>
+                                    <span id="hud-p2-hp-text" class="block text-xs font-mono text-orange-300">150 / 150</span>
+                                </div>
                             </div>
                             <!-- HP Bar -->
                             <div class="h-4 bg-gray-900 border border-orange-900 rounded overflow-hidden relative">
@@ -13738,24 +13740,14 @@
             return cv.toDataURL();
         }
 
-        // Fal-generated full-body chibi illustration per ninja (assets/ninjas/<name>.png).
-        function portraitSrc(spec) { return `assets/ninjas/${spec.id === 8 ? 'oni-new-look' : spec.name.toLowerCase()}.png?v=${SHEET_V}`; }
-        // Per-fighter close-up framing for the select cards (owner, Aug 7 2026).
-        // pp = object-position (where the face sits in the source), pz = extra zoom.
-        // Only portraits whose figure sits small in the 640px canvas need entries;
-        // everyone else uses the CSS defaults (50% 18%, 1.35).
-        // Mokurai / Exile / Oni now ship the owner's own CHOOSE YOUR WARRIOR card art
-        // (Aug 12 2026) — full-bleed painted panels, figure large in frame, so they
-        // need LESS zoom than the old floating chibis, not more. Frames are measured
-        // off each head's centre in the 640 square, not guessed.
-        const PORTRAIT_FRAME = {
-            Mokurai: { pp: '53% 34%', pz: 1.3 },   // stone head, centre-right of the panel
-            Exile:   { pp: '38% 41%', pz: 1.3 },   // face sits LEFT — the hair mass owns the right
-            Oni:     { pp: '55% 37%', pz: 1.3 },   // mask rides high between the two back swords
-        };
-        function portraitStyle(spec) {
-            const f = PORTRAIT_FRAME[spec.name];
-            return f ? `style="--pp:${f.pp}; --pz:${f.pz}"` : '';
+        // Approved opaque SHODO UI paintings; never run them through the sprite keyer.
+        function portraitSrc(spec) { return `assets/ninjas/${spec.id === 8 ? 'oni-new-look' : spec.name.toLowerCase()}.png?v=shodo-face-20260904`; }
+        function setHudFighter(side, spec) {
+            document.getElementById(`hud-p${side}-name`).textContent = spec.name.toUpperCase();
+            const img = document.getElementById(`hud-p${side}-portrait`);
+            img.alt = spec.name;
+            img.onerror = () => ninjaFallback(img, spec.id);
+            img.src = portraitSrc(spec);
         }
         function ninjaFallback(img, id) { img.onerror = null; img.src = makePortrait(NINJA_ROSTER[id]); }
 
@@ -13989,7 +13981,7 @@
             card.innerHTML = `
                 <div class="arch">${doorNPC ? 'THE DOOR' : ninja.archetype}</div>
                 <div class="sc-plaque">
-                    <img src="${portraitSrc(ninja)}" ${portraitStyle(ninja)} onerror="ninjaFallback(this, ${ninja.id})" alt="${ninja.name}" draggable="false">
+                    <img src="${portraitSrc(ninja)}" onerror="ninjaFallback(this, ${ninja.id})" alt="${ninja.name}" draggable="false">
                 </div>
                 <div class="nm">${ninja.name}</div>
                 <div class="wp">${ninja.weapon}</div>
@@ -16092,8 +16084,8 @@
             if (!attractMode) arena.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
             // Set HUD Labels
-            document.getElementById('hud-p1-name').innerText = NINJA_ROSTER[p1Pick].name.toUpperCase();
-            document.getElementById('hud-p2-name').innerText = NINJA_ROSTER[p2Pick].name.toUpperCase();
+            setHudFighter(1, NINJA_ROSTER[p1Pick]);
+            setHudFighter(2, NINJA_ROSTER[p2Pick]);
 
             // Stage: STORY pins each fight to its authored board; otherwise the
             // menu pick pins, and RANDOM rolls the pool each match.
@@ -16293,8 +16285,7 @@
             // the HP bar's NAME is written once at match start from the pick — after a
             // swap it kept announcing the fighter who just left while their partner's
             // health ran underneath it. Repoint it at whoever is actually on the floor.
-            const nameEl = document.getElementById(side === 1 ? 'hud-p1-name' : 'hud-p2-name');
-            if (nameEl) nameEl.innerText = inc.spec.name.toUpperCase();
+            setHudFighter(side, inc.spec);
             player1.opponent = player2; player2.opponent = player1;
             if (teamP1[1]) teamP1[1].opponent = player2;
             if (teamP2[1]) teamP2[1].opponent = player1;
