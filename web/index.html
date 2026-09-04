@@ -10409,7 +10409,46 @@
         // the skeleton doll mid-fight (exactly what the owner saw on his phone after the
         // #40 art drop). The width check catches any mismatch that still slips through
         // and retries once with a hard cache-buster.
-        const SHEET_V = 708;   // 708: THE KEYER ATE WHITE EYES — SHIN WAS NOT THE ONLY ONE.
+        const SHEET_V = 709;   // 709: DIRECTIONS. Owner: "characters directions still havent
+        // been corrected." He was right and my facing audit answered the wrong question — it
+        // checked which way the HEAD points (249 rows, all clean, and still clean) and never
+        // asked whether a DIRECTIONAL MOVE reaches its own art. Driving all nine fighters
+        // through fwd/back/up/down x light/medium/heavy/special in the running game and
+        // time-sampling each move from press to recovery found three real failures:
+        //   1. heavyCells() IS A CELL-LIST FUNCTION and two of its eight returns handed back
+        //      `attackFrame(...)` — a frame INDEX. Its one call site is
+        //      `attackFrame(p, heavyCells(p, F), F, ...)`, so those two got a number where a
+        //      list belongs: arr.length undefined, arr[...] undefined, and the picker's last
+        //      resort drew F.idle. EMBER'S ENTIRE HEAVY WAS HIS IDLE POSE in all four
+        //      directions, and KAEL'S NEUTRAL HEAVY likewise — every sample, press to
+        //      recovery. eheavy1..8 and kcross1..8 are approved, packed, drawn boards that had
+        //      never once reached the screen. Two words.
+        //   2. The unarmed-kick fallback promised "a LEG pose, NEVER the sword light chain"
+        //      and did not keep it: `F.kstomp ?? F.jump2 ?? F.fall ?? F.light1` reached a
+        //      GROUNDED kick through a JUMP pose, and on a sheet with none of the four it
+        //      reached nothing, so the idle drew. NOBODY on the roster has a `kheel` row, so
+        //      back+Light is unartworked on all nine — mizu drew jump2 for the whole move.
+        //      KAEL HAS NO KICK ART AT ALL (no kpush, ksweep or kheel), so THREE of his four
+        //      Light inputs — forward, back, down — drew him standing still. A kick now
+        //      borrows another KICK first (still unarmed, still his own drawing); only a sheet
+        //      with no kick art anywhere falls through to the light row, because a light that
+        //      draws beats an idle that does not.
+        //   3. 59 direction slots collapse onto the neutral animation, 27 of them because NO
+        //      fighter has a directional Medium at all. That is missing art, not a bug, and it
+        //      is listed for the owner rather than faked.
+        // RETRACTED BEFORE IT SHIPPED: exile's forward Special looked like it drew the
+        // BACKWARD row. It does not — she grapples to the left wall and TURNS AROUND, so left
+        // becomes her forward: facing=-1, axis=-1, dir='fwd', gsfwd. My probe was not
+        // controlling her facing. Likewise oni's "wrong facing" frames were one frame at the
+        // exact crossover, and an earlier 110/270 reading came from my own teleport plus the
+        // attack facing-lock doing its job.
+        // MEASURED: kael fwd/back/down+L now play kdual3->5->7 instead of idle; his neutral
+        // Heavy kcross2->7. Ember's Heavy eheavy2->7; his down+L kpush4->5->7. Mizu's back+L
+        // ksweep3->5->8 instead of jump2. Grounded routing sweep before/after: the ONLY cells
+        // lost are the wrong fallbacks — seven fighters lose jump2/ajump3 on a grounded kick,
+        // ember loses idle on his heavy, exile loses light1 in favour of her own xksweep. What
+        // is gained is kcross, kpush and ksweep — real rows that could not draw before.
+        // 708: THE KEYER ATE WHITE EYES — SHIN WAS NOT THE ONLY ONE.
         // 706 refilled shin's eye after finding a punched-out HOLE in his idle row. The
         // obvious next question was whether the other eight had the same wound, and three
         // of them do. A pocket scan of all 1414 live cells — enclosed transparent regions
@@ -10797,9 +10836,18 @@
             if (p.spec.name === 'Ember' && F.eheavy1 !== undefined) {
                 // HEAVY IS 1..N (SHEET_V 652) — the approved Shodo heavy board is 8 frames; a
                 // hardcoded 4 played half of it. Same open collector as light/special/kick.
+                // ⛔ RETURN THE ARRAY, NOT attackFrame(). heavyCells is a CELL-LIST
+                // function — its one call site is `attackFrame(p, heavyCells(p, F), F, ...)`.
+                // Returning attackFrame() here handed that call a frame INDEX where it wanted
+                // a list, so `arr.length` was undefined, `arr[...]` was undefined, and the
+                // picker's last resort drew F.idle. EMBER'S ENTIRE HEAVY WAS HIS IDLE POSE —
+                // measured live, every sample from press to recovery, all four directions.
+                // eheavy1..8 is drawn, approved and packed, and had never once reached the
+                // screen. The caller applies trackFor(p,'heavy'), which is the same track
+                // this line was passing, so the timing is unchanged.
                 const eh = [];
                 for (let i = 1; F['eheavy' + i] !== undefined; i++) eh.push(F['eheavy' + i]);
-                return attackFrame(p, eh, F, trackFor(p, 'heavy'));
+                return eh;
             }
             if (p.spec.name === 'Ember' && F.light5 !== undefined)
                 return [F.light1, F.light2, F.light3, F.light4, F.light5];
@@ -10879,9 +10927,13 @@
             // air heavy is the jumping X-cut, wired in the draw switch.
             if (p.spec.id === 5 && p.isGrounded && F.kcross1 !== undefined) {
                 // KAEL GROUND CROSS IS 1..N (SHEET_V 657).
+                // ⛔ SAME BUG, SAME FUNCTION. KAEL'S NEUTRAL HEAVY WAS HIS IDLE POSE for the
+                // whole move. kcross1..8 is his approved cross-slash board and it could never
+                // draw. (The other six returns in this function hand back arrays; these two
+                // were the odd ones out.)
                 const kc = [];
                 for (let i = 1; F['kcross' + i] !== undefined; i++) kc.push(F['kcross' + i]);
-                return attackFrame(p, kc, F);
+                return kc;
             }
             // Every shipped sheet defines heavy_i1..5, so that is the only live
             // path; the old heavy_smear / heavy1-3 fallbacks were dead (removed).
@@ -11923,12 +11975,33 @@
                         for (let n = 1; n <= 8; n++) { const c = F['k' + p.kickKind + n]; if (c === undefined) break; kf.push(c); }
                         if (kf.length) return attackFrame(p, kf, F);
                         const kc = F['k' + p.kickKind]; if (kc !== undefined) return kc;
-                        // Unarmed kick with no dedicated cell (sweep/heel for everyone,
-                        // push for Mizu/Exile): fall to a LEG pose, NEVER the sword
-                        // light chain — an unarmed kick must not brandish a weapon
-                        // (matches executeKick's no-blade-crescent VFX). Interim pose
-                        // until dedicated kick art exists — owner/K3 pick the frame.
-                        return F.kstomp ?? F.jump2 ?? F.fall ?? F.light1;
+                        // Unarmed kick with no dedicated cell: fall to a LEG pose, NEVER the
+                        // sword light chain — an unarmed kick must not brandish a weapon
+                        // (matches executeKick's no-blade-crescent VFX).
+                        // ⛔ THE OLD CHAIN DID NOT KEEP THAT PROMISE. `F.kstomp ?? F.jump2 ??
+                        // F.fall ?? F.light1` reached a GROUNDED kick's art through a JUMP
+                        // pose, and on a sheet with none of the four it reached nothing at
+                        // all, so the picker's last resort drew the idle. Measured live:
+                        // NOBODY on the roster has a `kheel` row, so back+Light is unartworked
+                        // on all nine — mizu's drew his jump2 for the entire move. Kael has NO
+                        // kick art whatsoever (no kpush, no ksweep, no kheel), so THREE of his
+                        // four Light inputs — forward, back and down — drew him standing still
+                        // from press to recovery.
+                        // A kick borrows another KICK first: still unarmed, still a leg pose,
+                        // and it is that fighter's own drawing. Only a sheet with no kick art
+                        // at all falls through to the light row below, because a light that
+                        // draws beats an idle that does not — that trade is flagged for the
+                        // owner rather than made silently.
+                        if (F.kstomp !== undefined) return F.kstomp;
+                        for (const alt of ['ksweep', 'kpush', 'xksweep', 'xkpush']) {
+                            if (F[alt + '1'] !== undefined) {
+                                const a = [];
+                                for (let n = 1; F[alt + n] !== undefined; n++) a.push(F[alt + n]);
+                                return attackFrame(p, a, F, trackFor(p, 'light'));
+                            }
+                            if (F[alt] !== undefined) return F[alt];
+                        }
+                        // no kick art on this sheet at all — fall THROUGH to the light row
                     }
                     // air up-poke: the skyward thrust cell (ember's rising claw,
                     // everyone else's overhead air swing)
