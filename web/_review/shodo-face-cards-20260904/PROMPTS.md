@@ -1,6 +1,6 @@
 # SHODO face-card generation — 2026-09-04
 
-Status: Anthony approved the portraits and requested a commit, then corrected Exile's missing eye wrap. Eight approved portraits are installed locally on :9101. Exile's original two-eye portrait is REJECTED; `exile-eye-wrap-v2.png` is a new review-only correction awaiting approval. No Exile portrait has been installed.
+Status: APPROVED. All nine portraits are installed locally on :9101. Anthony approved Exile's corrected right-eye wrap on 2026-09-04 with "correct and approve". Her original two-eye portrait is REJECTED and `exile-eye-wrap-v2.png` is authoritative.
 
 All nine are newly generated with the built-in image generator, not cropped from old art. Existing approved art was used as identity reference only. Final cards are intentionally opaque, warm ivory-backed UI images, NOT transparent sprites. Never feed these through a sprite keyer, atlas packer, background flood-fill, or drawShodoFrame. The first Executioner/Mizu/Shin outputs had baked checkerboards and are rejected; final revisions replace that background. Integration updates the shared UI portrait helper and adds both fight-HUD portraits, including tag swaps. No combat, atlas, SHEET_V, or public roster-gate changes. No deployment.
 
@@ -180,7 +180,7 @@ DELIVERY: Intentionally OPAQUE full square UI card image with uniform warm ivory
 
 ONI: authoritative identity is the attached approved V4 reference, NOT any straw hat or old human redesign. White angular horned demon MASK with its exact black-and-red ornamental slash markings, two tall curved pale ivory horns, narrow glowing RED EYES in dark sockets, black tattered hood and layered black gunmetal shoulder armor, desaturated torn burgundy/rust mantle from the attached design. Face is a solid ceramic/ivory mask, not human or flesh, not a skull, no skeletal exposed teeth redesign. Back-mounted katana and bo may be omitted by this tight face-card crop, do not invent hand weapons. New nearly frontal, slightly viewer-left bust: silent ancient absolute certainty, chin level, monumental calm threat, NOT snarling or shouting. Two eye embers supply the strongest accent; keep weathered grey-white mask crisp inside heavy black dry-brush hood and armor. Tall horns entirely inside generous safe margin. No hands, no extra horns.
 
-## Exile right-eye correction — 2026-09-04, approval pending
+## Exile right-eye correction — 2026-09-04, approved
 
 Anthony's latest correction overrides the v4 no-eye-patch reference mistakenly used above. Her anatomical RIGHT eye (viewer-left in this portrait) must be fully covered; only her left eye is visible. The approved v5 art shows warm ivory/tan cloth with a red brush marking. Its exact Japanese wording/meaning and the missing-eye backstory were not verified; do not invent them. The current Story Bible wording conflicts with the older identity lock and v5 visuals on the eye wrap, so follow the owner's explicit correction.
 
@@ -192,7 +192,7 @@ Identity lock: /Users/anthonyguy/OB-LOCAL_BRAIN/ShadowClash-Second-Brain/Exile-I
 
 Generated original: /Users/anthonyguy/.codex/generated_images/01a060c4-5fe0-7622-a916-27296479a681/exec-87fc72ee-b27e-4df1-974a-a506a9ae84ff.png
 
-Review copy: exile-eye-wrap-v2.png. Not installed until Anthony approves this revision. No change to her combat frames.
+Approved source: exile-eye-wrap-v2.png. Installed byte-identically as web/assets/ninjas/exile.png. No change to her combat frames.
 
 ### Correction prompt
 

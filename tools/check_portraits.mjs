@@ -16,13 +16,14 @@ vm.runInContext(source + '\n' + hud, context);
 const fixtures = [
     [0,'Executioner','executioner'], [1,'Mizu','mizu'], [2,'Shin','shin'],
     [3,'Tsubasa','tsubasa'], [4,'Ember','ember'], [5,'Kael','kael'],
-    [6,'Mokurai','mokurai'], [8,'Oni','oni-new-look']
+    [6,'Mokurai','mokurai'], [7,'Exile','exile','exile-eye-wrap-v2'],
+    [8,'Oni','oni-new-look']
 ];
 const hash = data => createHash('sha256').update(data).digest('hex');
-for (const [id,name,file] of fixtures) {
+for (const [id,name,file,review = name.toLowerCase()] of fixtures) {
     const spec = {id,name};
     const src = context.portraitSrc(spec);
-    const reference = readFileSync(new URL(`web/_review/shodo-face-cards-20260904/${name.toLowerCase()}.png`,root));
+    const reference = readFileSync(new URL(`web/_review/shodo-face-cards-20260904/${review}.png`,root));
     const packed = readFileSync(new URL(`web/assets/ninjas/${file}.png`,root));
     assert.equal(hash(packed),hash(reference),`${name}: approved artwork changed`);
     const res = await fetch(new URL(src, process.argv[2] || 'http://localhost:9101/'));
