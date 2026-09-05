@@ -2016,17 +2016,13 @@
             // MIZU — reach 10, the zoner. Her whole kit is spacing, and every direction
             // played a 90px mid swing, so she had one poke and a mist.
             '1:fwd':  { art: 'bothrust',  dur: 380, rec: 0.44, vx: 90,
-                        box: [[165, 26, 12, 0.11, 150, {}]],
-                        track: [0, 0.10, 0.22, 0.29, 0.58, 0.82] },
+                        box: [[165, 26, 12, 0.11, 150, {}]] },
             '1:down': { art: 'bolow',     dur: 360, rec: 0.42, vx: 0,
-                        box: [[140, 20, 10, 0.12, 120, { low: true, trip: true }]],
-                        track: [0, 0.10, 0.22, 0.33, 0.60, 0.84] },
+                        box: [[140, 20, 10, 0.12, 120, { low: true, trip: true }]] },
             '1:up':   { art: 'ristaff',   dur: 380, rec: 0.44, vx: 0,
-                        box: [[44, 130, 12, 0.12, 110, { up: true, launch: true, launchVy: -380 }]],
-                        track: [0, 0.10, 0.20, 0.32, 0.58, 0.82] },
+                        box: [[44, 130, 12, 0.12, 110, { up: true, launch: true, launchVy: -380 }]] },
             '1:back': { art: 'staffspin', dur: 400, rec: 0.46, vx: -130,
-                        box: [[110, 46, 11, 0.14, 190, {}]],
-                        track: [0, 0.08, 0.18, 0.35, 0.60, 0.84] },
+                        box: [[110, 46, 11, 0.14, 190, {}]] },
 
             // SHIN — power 4, speed 9, the hand-to-hand one. His art is unarmed on purpose.
             '2:fwd':  { art: 'ghfwd',     dur: 420, rec: 0.40, vx: 140,
@@ -2053,14 +2049,11 @@
             // TSUBASA — precision/counter, twin tanto, reverse grip is his style.
             '3:fwd':  { art: 'rgrush',    dur: 380, rec: 0.40, vx: 180,
                         box: [[54, 40, 7, 0.08, 50, {}],
-                              [54, 40, 7, 0.18, 140, {}]],
-                        track: [0, 0.08, 0.21, 0.40, 0.62, 0.84] },
+                              [54, 40, 7, 0.18, 140, {}]] },
             '3:down': { art: 'lowtanto',  dur: 340, rec: 0.38, vx: 30,
-                        box: [[70, 20, 10, 0.10, 90, { low: true, trip: true }]],
-                        track: [0, 0.12, 0.29, 0.50, 0.70, 0.88] },
+                        box: [[70, 20, 10, 0.10, 90, { low: true, trip: true }]] },
             '3:up':   { art: 'ristwin',   dur: 380, rec: 0.44, vx: 0,
-                        box: [[42, 120, 12, 0.11, 110, { up: true, launch: true, launchVy: -390 }]],
-                        track: [0, 0.10, 0.29, 0.48, 0.68, 0.86] },
+                        box: [[42, 120, 12, 0.11, 110, { up: true, launch: true, launchVy: -390 }]] },
             '3:back': { art: 'eflick',    dur: 400, rec: 0.42, vx: -180,
                         box: [[66, 40, 11, 0.20, 150, {}]],
                         track: [0, 0.08, 0.18, 0.30, 0.50, 0.78] },
@@ -2109,8 +2102,7 @@
             '8:down': { art: 'ghdown',  dur: 800, rec: 0.42, vx: 20,
                         box: [[145, 20, 10, 0.12, 120, { low: true, trip: true }]] },
             '8:up':   { art: 'ghup',    dur: 800, rec: 0.44, vx: 0,
-                        box: [[48, 128, 12, 0.12, 115, { up: true, launch: true, launchVy: -380 }]],
-                        track: [0, 0.10, 0.20, 0.32, 0.58, 0.82] },
+                        box: [[48, 128, 12, 0.12, 115, { up: true, launch: true, launchVy: -380 }]] },
             '8:back': { art: 'ghback',  dur: 800, rec: 0.42, vx: -120,
                         box: [[96, 44, 11, 0.12, 150, {}]] },
         };
@@ -2119,8 +2111,7 @@
         // already a real move.
         const DIR_SPECIALS = {
             '2:up':   { art: 'srisaa',   dur: 420, rec: 0.46, vx: 0, vy: -280, air: false,
-                        box: [[44, 150, 14, 0.14, 120, { up: true, launch: true, launchVy: -400 }]],
-                        track: [0, 0.10, 0.24, 0.36, 0.58, 0.82] },
+                        box: [[44, 150, 14, 0.14, 120, { up: true, launch: true, launchVy: -400 }]] },
             // ⛔ NEGATIVE vy IS UP IN THIS ENGINE (this.y += this.vy * dt). Shipped as
             // vy -300 with the box at 0.20s, which put a move named DIVE CUT on a rising
             // arc with its entire active window at or above the apex — and carrying
@@ -2131,11 +2122,9 @@
             // vyAir drives him DOWN when the input comes from the air, instead of
             // cancelling a descent into a second climb.
             '3:down': { art: 'divecut',  dur: 460, rec: 0.48, vx: 190, vy: -300, vyAir: 620, air: true,
-                        box: [[60, 72, 16, 0.34, 170, { spike: true, down: true }]],
-                        track: [0, 0.10, 0.22, 0.40, 0.80, 0.90] },
+                        box: [[60, 72, 16, 0.34, 170, { spike: true, down: true }]] },
             '3:up':   { art: 'airthrow', dur: 440, rec: 0.46, vx: 0, air: false,
-                        box: [[36, 160, 13, 0.16, 110, { up: true }]],
-                        track: [0, 0.10, 0.22, 0.38, 0.60, 0.84] },
+                        box: [[36, 160, 13, 0.16, 110, { up: true }]] },
         };
         // Which of the five directions is being held. Returns null for neutral, so a table
         // lookup can never fire on an undirected press.
@@ -18356,37 +18345,26 @@
                     // below is what a trade does, and a bind is the opposite of a recoil —
                     // the fighters stay in contact and strain. Taken before the recoil so
                     // nothing pushes them apart on the frame they catch.
-                    if (bindPair && clashCd <= 0) {
+                    // ⛔ GROUNDED, AND NEITHER ALREADY LOCKED. This branch replaced an older
+                    // steel-only kiai block and dropped every one of its guards on the way,
+                    // along with the banner. That block's own comment carried the reason:
+                    // a mid-air lockup has no floor to brace against and would just hang two
+                    // bodies in space until the timer ran out. Two air heavies that caught
+                    // each other did exactly that, silently. The old block is gone rather
+                    // than kept beside this one — it was unreachable anyway, since every
+                    // steel pair is also a bind pair (proved over the material matrix in
+                    // tools/blade_lock_check.mjs, which now also pins these guards).
+                    if (bindPair && clashCd <= 0 && a.isGrounded && b.isGrounded
+                        && !a.lock && !b.lock && a.stunTimer <= 0 && b.stunTimer <= 0) {
                         enterBladeLock(a, b);
                         clashCd = CLASH_COOLDOWN;   // no back-to-back binds
-                        return true;
-                    }
-
-                    a.recoveryTimer = Math.max(a.recoveryTimer, 0.16);
-                    b.recoveryTimer = Math.max(b.recoveryTimer, 0.16);
-                    if (a.isGrounded) a.vx = -a.facing * 105;
-                    if (b.isGrounded) b.vx = -b.facing * 105;
-
-                    hitstopRemaining = Math.max(hitstopRemaining, steelPair ? 130 : 115);
-                    screenShakeAmount = Math.max(screenShakeAmount, steelPair ? 8 : 6);
-                    // ---- KIAI CLASH & BLADE STRUGGLE (item 5) ---------------------
-                    // TWO EDGES LOCK. Anything else — a staff on a katana, a claw on a
-                    // fist — still cancels and recoils the way it always did, because
-                    // there is nothing to bind: a struggle needs two blades to catch on
-                    // each other. Grounded only, and neither side already locked: a
-                    // mid-air lockup has no floor to brace against and would just hang
-                    // two bodies in space until the timer ran out.
-                    if (steelPair && clashCd <= 0 && a.isGrounded && b.isGrounded && !a.lock && !b.lock
-                        && a.stunTimer <= 0 && b.stunTimer <= 0) {
-                        a.enterKiai(b); b.enterKiai(a);
-                        createSparks(cx, cy, "#fff7cc");
-                        createSparks(cx, cy, "#93c5fd");
-                        flashAmount = Math.max(flashAmount, 0.34);
-                        sfx('clash');
                         if (typeof roundBanner !== 'undefined')
                             roundBanner = { text: 'BLADE LOCK — MASH!', until: performance.now() + 800 };
                         return true;
                     }
+
+                    hitstopRemaining = Math.max(hitstopRemaining, steelPair ? 130 : 115);
+                    screenShakeAmount = Math.max(screenShakeAmount, steelPair ? 8 : 6);
                     a.recoveryTimer = Math.max(a.recoveryTimer, 0.16);
                     b.recoveryTimer = Math.max(b.recoveryTimer, 0.16);
                     if (a.isGrounded) a.vx = -a.facing * KIAI_PUSH;
