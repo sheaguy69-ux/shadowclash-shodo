@@ -12643,7 +12643,7 @@
                     }
                     // JUMPING X-CUT — his air heavy. air1..3 is the one generic set every
                     // early fighter shares; this is the move his own sheet names.
-                    if (p.spec.id === 5 && !p.isGrounded && F.kxcut1 !== undefined) {
+                    if (p.spec.id === 5 && (p.attackAir || !p.isGrounded) && F.kxcut1 !== undefined) {
                         // KAEL AIR CUT IS 1..N (SHEET_V 657).
                         const kxcu = [];
                         for (let i = 1; F['kxcut' + i] !== undefined; i++) kxcu.push(F['kxcut' + i]);

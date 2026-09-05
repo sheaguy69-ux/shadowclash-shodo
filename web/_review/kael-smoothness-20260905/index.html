@@ -1,11 +1,11 @@
 <!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Kael landing — animation review</title>
 <style>body{margin:0;padding:32px;background:#18191c;color:#eee;font:17px system-ui}main{max-width:1050px;margin:auto}h1{font-size:30px}p{color:#bdc0c7;line-height:1.5}.pair{display:grid;grid-template-columns:1fr 1fr;gap:20px}canvas{width:100%;background:#e6e0d5;border-radius:12px}h2{font-size:20px}.controls{display:flex;gap:20px;align-items:center;margin:20px 0}input{flex:1}button{font:inherit;padding:10px 20px;border:0;border-radius:6px;background:#ead39e;color:#171717}a{color:#ead39e}@media(max-width:650px){.pair{grid-template-columns:1fr}body{padding:16px}}</style>
-<main><h1>Let the X-cut finish when Kael lands</h1><p>Eight consecutive captured ticks. Touchdown is frame 4. The proposed correction preserves his air attack through its remaining animation; weapons, effects and combat timing stay the same. This correction is review-only.</p>
-<div class="pair"><section><h2>Current — changes attack on landing</h2><canvas id="before" width="480" height="480" aria-label="Current Kael landing"></canvas></section><section><h2>Proposed — finishes the same attack</h2><canvas id="after" width="480" height="480" aria-label="Proposed Kael landing"></canvas></section></div>
+<main><h1>Let the X-cut finish when Kael lands</h1><p>Eight consecutive captured ticks. Touchdown is frame 4. The approved correction preserves his air attack through its remaining animation; weapons, effects and combat timing stay the same. This correction is now applied on :9101.</p>
+<div class="pair"><section><h2>Before — changes attack on landing</h2><canvas id="before" width="480" height="480" aria-label="Current Kael landing"></canvas></section><section><h2>Approved — finishes the same attack</h2><canvas id="after" width="480" height="480" aria-label="Proposed Kael landing"></canvas></section></div>
 <div class="controls"><button id="play">Play slowly</button><label for="frame">Frame</label><input id="frame" type="range" min="0" max="7" value="3"><output id="label">4 / 8 · touchdown</output></div>
-<p><a href="current.png">Current filmstrip</a> · <a href="candidate.png">Proposed filmstrip</a></p>
-<p>The ink-rendering performance improvement is separate from this proposed landing correction.</p></main>
+<p><a href="current.png">Before filmstrip</a> · <a href="candidate.png">Approved filmstrip</a></p>
+<p>The ink-rendering performance improvement is separate from this approved landing correction.</p></main>
 <script>
 const images=[new Image(),new Image()],canvases=['before','after'].map(id=>document.getElementById(id)),slider=document.getElementById('frame');let timer=null;
 function draw(){const n=+slider.value;images.forEach((img,i)=>{if(img.complete&&img.naturalWidth)canvases[i].getContext('2d').drawImage(img,(n%4)*320,Math.floor(n/4)*350+30,320,320,0,0,480,480)});document.getElementById('label').textContent=(n+1)+' / 8'+(n===3?' · touchdown':'');}

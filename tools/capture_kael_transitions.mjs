@@ -56,7 +56,7 @@ try {
  if(${candidate}){
   const src=spriteFrameIndexRaw.toString();
   const from='p.spec.id === 5 && !p.isGrounded && F.kxcut1 !== undefined';
-  if(!src.includes(from))throw new Error('candidate source anchor changed');
+  if(!src.includes(from)&&!src.includes('p.spec.id === 5 && (p.attackAir || !p.isGrounded) && F.kxcut1 !== undefined'))throw new Error('candidate source anchor changed');
   spriteFrameIndexRaw=eval('('+src.replace(from,'p.spec.id === 5 && (p.attackAir || !p.isGrounded) && F.kxcut1 !== undefined')+')');
  }
  const groups=[],ring=[],trace=[];let collecting=null;
@@ -88,7 +88,7 @@ try {
  const strips=groups.map(group=>{const c=document.createElement('canvas');c.width=1280;c.height=Math.ceil(group.shots.length/4)*350;const g=c.getContext('2d');g.fillStyle='#e6e0d5';g.fillRect(0,0,c.width,c.height);
   group.shots.forEach((s,i)=>{const x=i%4*320,y=Math.floor(i/4)*350;g.drawImage(s.canvas,x,y+30,320,320);g.fillStyle='#151515';g.font='14px sans-serif';g.fillText('tick '+s.meta.frame+' / cell '+s.meta.cell+' / '+(s.meta.ground?'ground':'air'),x+8,y+20);});
   return {label:group.label,frames:group.shots.map(s=>s.meta),png:c.toDataURL('image/png').split(',')[1]};});
- return {candidate:${candidate},trace,strips,errors:window.captureErrors};
+ return {candidate:${candidate},trace,strips,airCells:Object.entries(SPRITES.kael.frames).filter(([k])=>/^kxcut[0-9]+$/.test(k)).map(([,v])=>v),errors:window.captureErrors};
  })()`);
 } finally {ws.close();chrome.kill('SIGKILL');}
 const dir=path.resolve(process.env.OUT||'media/kael-smoothness-review-20260905');await mkdir(dir,{recursive:true});
@@ -96,3 +96,11 @@ for(const s of out.strips){await writeFile(path.join(dir,s.label+'.png'),Buffer.
 await writeFile(path.join(dir,'trace.json'),JSON.stringify(out,null,2));
 console.log(JSON.stringify({dir,candidate,errors:out.errors,transitions:out.strips.map(s=>({label:s.label,frames:s.frames}))},null,2));
 if(!out.strips.some(s=>s.label==='air-heavy-landing'))process.exitCode=1;
+
+if(out.errors.length)process.exitCode=1;
+if(process.argv.includes('--check-landing')){
+ const landing=out.strips.find(s=>s.label==='air-heavy-landing');
+ if(!landing||!landing.frames.some(f=>f.ground)||landing.frames.some(f=>!out.airCells.includes(f.cell))){
+  console.error('FAIL: Kael must keep X-cut cells through landing');process.exitCode=1;
+ }
+}

@@ -22,12 +22,12 @@ Cold first-use hitches remain; this change primarily reduces repeated work. Capt
 - `node tools/drive_real_input.mjs --all`: 648 input probes passed, no dead inputs or errors. Shared-animation groupings remain informational.
 - Node syntax and `git diff --check` passed.
 
-## Kael landing — proposed, awaiting image approval
+## Kael landing — approved and applied
 
 Real DOM key events through the running game produced four consecutive transition strips: idle/run, run/idle, ground heavy/recovery and late airborne heavy/landing. The late air heavy swaps from X-cut cells 293/294 to grounded cells 198/199 on touchdown while about 280 ms recovery remains.
 
-The review-only candidate changes the X-cut routing guard from `!p.isGrounded` to `(p.attackAir || !p.isGrounded)`. Its next cells are 295/296, continuing the same attack at identical timing. The candidate exists only in an isolated capture browser; the gameplay source has not adopted that routing change. Existing authored cells and full weapons/effects are preserved; no cells were generated, resized or packed.
+The approved fix changes the X-cut routing guard from `!p.isGrounded` to `(p.attackAir || !p.isGrounded)`. Its next cells are 295/296, continuing the same attack at identical timing. Anthony approved the displayed comparison with “ok good”; the gameplay source now uses the reviewed guard. Existing authored cells and full weapons/effects are preserved; no cells were generated, resized or packed.
 
-Compare at `http://localhost:9101/_review/kael-smoothness-20260905/`. Full traces and four strips per version are in `media/kael-smoothness-review-20260905/{current,candidate}/`. Reproduce with `OUT=media/kael-check node tools/capture_kael_transitions.mjs`; add `--candidate` for the isolated proposal. This captures the real sprite renderer in an isolated view, not the entire stage or procedural effects.
+Compare at `http://localhost:9101/_review/kael-smoothness-20260905/`. Full traces and four strips per version are in `media/kael-smoothness-review-20260905/{current,candidate}/`. Reproduce with `OUT=media/kael-check node tools/capture_kael_transitions.mjs`; add `--check-landing` to assert that every captured landing beat stays in the X-cut row. This captures the real sprite renderer in an isolated view, not the entire stage or procedural effects.
 
-AGENTS.md rule 3 requires owner image approval before changing visible animation. No other air/landing routing changes are included.
+Owner image approval satisfies AGENTS.md rule 3. The focused live-loop regression fails before the fix and passes after it. No other air/landing routing changes are included.
