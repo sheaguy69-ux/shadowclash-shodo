@@ -5,13 +5,13 @@
 | | |
 |---|---|
 | Tree | `/Users/anthonyguy/SHADOWCLASH.1.0*2/SHODO-EDITION` (served on **:9101**) |
-| SHEET_V | measured at **709**, re-measured and updated at **711** |
-| HEAD | `0f5d796 test(air): the two HELD airborne cells get a runnable gate` |
+| SHEET_V | measured at **709**, re-measured at **711**, ported and re-measured at **714** |
+| HEAD | `3317a1b art(714): the twelve directional rows were never missing` |
 | Written | 2026-09-05 |
 | Engine | one file — `web/index.html`, 20,284 lines |
 | Sheets | `web/assets/sprites/<fighter>.png` + `<fighter>.json` |
 
-**Nothing below is quoted from a design doc.** Every move table in §5 was produced at SHEET_V 711 by
+**Nothing below is quoted from a design doc.** Every move table in §5 was produced at SHEET_V 714 by
 pressing the input on a real `Player` object in a real headless match and reading back
 what actually drew and what hitbox actually spawned:
 
@@ -50,7 +50,7 @@ prose — including this prose — over the probe.
 | 4 | `DIR_MOVES` / `DIR_SPECIALS` — verbatim numbers |
 | 5 | **The nine fighters** — packed rows + measured 30-input tables |
 | 6 | **THE FRAME LAW** — do not cut frames, do not cut VFX |
-| 7 | What the 709 probe flags right now |
+| 7 | What the probe flagged, and where each one landed |
 | 8 | Reproduce everything here |
 
 
@@ -271,7 +271,7 @@ his standing thrust played mid-jump. The keys are `gh*`, their own family.
 
 ## 5. The nine fighters
 
-Each table is **measured**, one real press each, at SHEET_V 709. `cells` = how many
+Each table is **measured**, one real press each, at SHEET_V 714. `cells` = how many
 distinct cells that input actually plays. `boxes` = hitboxes spawned. `dmg` = raw
 recorded damage, BEFORE the global modifiers in §3.
 
@@ -281,6 +281,7 @@ recorded damage, BEFORE the global modifiers in §3.
 > **she/her:** Mizu, Exile.
 > This binds UI strings, ending cards, commit messages and `SHEET_V` entries, not just
 > prose. Anyone not listed: open the Story Bible first.
+
 
 
 ### Executioner — `spec.id 0`
@@ -297,11 +298,13 @@ Sheet `executioner.png` / `executioner.json` — **388 × 496**, footY **488**, 
 - **Dread:** three landed heavies arm the next Special — `w ×1.4, h ×1.2, dmg ×1.5`, 0.5 s armor, orange spark tell.
 - His `hneu` and `special` rows are packed but were not reached by any of the 30 probe inputs — stance/condition gated, not dead.
 
+
 **Every packed row**
 
 `ajump`×6, `aneu`×8, `block`×1, `blockhit`×1, `crouch_`×8, `fall`×1, `getup`×4, `grab`×8, `grabbed`×8, `guard`×8, `hneu`×8, `hurt`×2, `idle`×1, `jump`×2, `kpush`×8, `ksweep`×8, `medium`×8, `roll_`×6, `run_clean`×8, `special`×8, `walljump`×1, `wallslide`×1, `xidle`×6, `xjodan`×8, `xkiriage`×8, `xnuki`×6, `xrise`×8, `xsheath`×6, `xtsuki`×3
 
-**Measured move table — 30 inputs**
+
+**Measured move table — 30 inputs, SHEET_V 714**
 
 | where | tier | dir | draws | cells | dmg | dur ms | boxes | proj | field |
 |---|---|---|---|---|---|---|---|---|---|
@@ -324,11 +327,11 @@ Sheet `executioner.png` / `executioner.json` — **388 × 496**, footY **488**, 
 | air | Light | fwd | `aneu` | 8 | 12 | 112 | 1 | 0 | 0 |
 | air | Light | back | `aneu` | 8 | 12 | 112 | 1 | 0 | 0 |
 | air | Light | down | `aneu` | 8 | 12 | 112 | 1 | 0 | 0 |
-| air | Light | up | `fall`+`ajump` | 1 | 10.5 | 112 | 1 | 0 | 0 |
-| air | Heavy | neutral | `aneu` | 8 | 27 | 205 | 1 | 0 | 0 |
+| air | Light | up | `aneu` | 1 | 10.5 | 112 | 1 | 0 | 0 |
+| air | Heavy | neutral | `hneu` | 8 | 27 | 205 | 1 | 0 | 0 |
 | air | Heavy | fwd | `aneu` | 8 | 27 | 205 | 1 | 0 | 0 |
 | air | Heavy | back | `aneu` | 8 | 27 | 205 | 1 | 0 | 0 |
-| air | Heavy | down | `fall`+`ajump` | 1 | 24 | 900 | 1 | 0 | 0 |
+| air | Heavy | down | `aneu` | 1 | 24 | 900 | 1 | 0 | 0 |
 | air | Heavy | up | `aneu` | 8 | 27 | 205 | 1 | 0 | 0 |
 | air | Special | neutral | `aneu` | 8 | 28 | 250 | 1 | 0 | 0 |
 | air | Special | fwd | `aneu` | 8 | 28 | 250 | 1 | 0 | 0 |
@@ -336,7 +339,7 @@ Sheet `executioner.png` / `executioner.json` — **388 × 496**, footY **488**, 
 | air | Special | down | `aneu` | 8 | 28 | 250 | 1 | 0 | 0 |
 | air | Special | up | `aneu` | 8 | 28 | 250 | 1 | 0 | 0 |
 
-**Rows the 30 presses never reached:** `hneu`, `medium`, `special`.
+**Rows the 30 presses never reached:** `medium`, `special`.
 `medium` is the probe's blind spot (§3); the rest are stance- or condition-gated.
 **Two independent signals before you call any row dead.**
 
@@ -345,7 +348,7 @@ Sheet `executioner.png` / `executioner.json` — **388 × 496**, footY **488**, 
 
 **Long Bo Staff · Zoning / Support · spd 6 · pow 5 · reach 10 · def 5 · Special costs 30 chakra**
 
-Sheet `mizu.png` / `mizu.json` — **300 × 320**, footY **312**, scale **0.3782**, **214 cells**, 140 named keys.
+Sheet `mizu.png` / `mizu.json` — **300 × 320**, footY **312**, scale **0.3782**, **228 cells**, 154 named keys.
 
 **What this fighter does that nobody else does**
 
@@ -354,11 +357,13 @@ Sheet `mizu.png` / `mizu.json` — **300 × 320**, footY **312**, scale **0.3782
 - Her staff is **wood** — `weaponMat` is not metal, so her boxes carry **no `hasuji`** and clash differently from a blade.
 - Drops circular mist fields (`smokeFields`) — a field, not a hitbox; the probe counts these in the `field` column.
 
+
 **Every packed row**
 
-`ajump`×6, `aneu`×8, `block`×1, `bolow`×8, `fall`×1, `getup`×4, `grab`×8, `grabbed`×8, `gsup`×6, `heavy_i`×8, `hurt`×2, `idle`×1, `jump`×2, `kpush`×8, `ksweep`×8, `light`×8, `medium`×8, `ristaff`×8, `roll_`×6, `run_clean`×8, `special`×8, `walljump`×1, `wallslide`×1, `xidle`×6
+`ajump`×6, `aneu`×8, `block`×1, `bolow`×8, `bothrust`×7, `fall`×1, `getup`×4, `grab`×8, `grabbed`×8, `gsup`×6, `heavy_i`×8, `hurt`×2, `idle`×1, `jump`×2, `kpush`×8, `ksweep`×8, `light`×8, `medium`×8, `ristaff`×8, `roll_`×6, `run_clean`×8, `special`×8, `staffspin`×7, `walljump`×1, `wallslide`×1, `xidle`×6
 
-**Measured move table — 30 inputs**
+
+**Measured move table — 30 inputs, SHEET_V 714**
 
 | where | tier | dir | draws | cells | dmg | dur ms | boxes | proj | field |
 |---|---|---|---|---|---|---|---|---|---|
@@ -368,8 +373,8 @@ Sheet `mizu.png` / `mizu.json` — **300 × 320**, footY **312**, scale **0.3782
 | ground | Light | down | `ksweep` | 8 | 5 | 165 | 1 | 0 | 0 |
 | ground | Light | up | `light` | 8 | 6.7 | 180 | 1 | 0 | 0 |
 | ground | Heavy | neutral | `heavy_i` | 8 | 15 | 330 | 1 | 0 | 0 |
-| ground | Heavy | fwd | `heavy_i` | 8 | 10 | 380 | 1 | 0 | 0 |
-| ground | Heavy | back | `heavy_i` | 8 | 9.2 | 400 | 1 | 0 | 0 |
+| ground | Heavy | fwd | `bothrust` | 7 | 10 | 380 | 1 | 0 | 0 |
+| ground | Heavy | back | `staffspin` | 7 | 9.2 | 400 | 1 | 0 | 0 |
 | ground | Heavy | down | `bolow` | 8 | 8.3 | 360 | 1 | 0 | 0 |
 | ground | Heavy | up | `ristaff` | 8 | 10 | 380 | 1 | 0 | 0 |
 | ground | Special | neutral | `special` | 8 | 0 | 320 | 0 | 0 | 1 |
@@ -381,11 +386,11 @@ Sheet `mizu.png` / `mizu.json` — **300 × 320**, footY **312**, scale **0.3782
 | air | Light | fwd | `aneu` | 8 | 6.7 | 180 | 1 | 0 | 0 |
 | air | Light | back | `aneu` | 8 | 6.7 | 180 | 1 | 0 | 0 |
 | air | Light | down | `aneu` | 8 | 6.7 | 180 | 1 | 0 | 0 |
-| air | Light | up | `light` | 1 | 5.8 | 206 | 1 | 0 | 0 |
+| air | Light | up | `aneu` | 1 | 5.8 | 206 | 1 | 0 | 0 |
 | air | Heavy | neutral | `aneu` | 8 | 15 | 330 | 1 | 0 | 0 |
 | air | Heavy | fwd | `aneu` | 8 | 15 | 330 | 1 | 0 | 0 |
 | air | Heavy | back | `aneu` | 8 | 15 | 330 | 1 | 0 | 0 |
-| air | Heavy | down | `fall`+`ajump` | 1 | 13.3 | 900 | 1 | 0 | 0 |
+| air | Heavy | down | `aneu` | 1 | 13.3 | 900 | 1 | 0 | 0 |
 | air | Heavy | up | `aneu` | 8 | 15 | 330 | 1 | 0 | 0 |
 | air | Special | neutral | `aneu` | 8 | 0 | 320 | 0 | 0 | 1 |
 | air | Special | fwd | `aneu` | 8 | 12 | 380 | 1 | 0 | 0 |
@@ -402,7 +407,7 @@ Sheet `mizu.png` / `mizu.json` — **300 × 320**, footY **312**, scale **0.3782
 
 **Hand-to-Hand / Wire Tool · Speed / Assassin · spd 9 · pow 4 · reach 7 · def 4 · Special costs 15 chakra**
 
-Sheet `shin.png` / `shin.json` — **520 × 370**, footY **330**, scale **0.3451**, **354 cells**, 146 named keys.
+Sheet `shin.png` / `shin.json` — **520 × 370**, footY **330**, scale **0.3451**, **378 cells**, 170 named keys.
 
 **What this fighter does that nobody else does**
 
@@ -413,11 +418,13 @@ Sheet `shin.png` / `shin.json` — **520 × 370**, footY **330**, scale **0.3451
 - **Air Light is deliberately excluded from Form 2** — the owner's Form-2 table lists exactly one airborne family (Air Heavy, the Dive-Pierce). It used to fall through and run the grounded jab, box and all, in mid-air.
 - **His single eye is CANON** — never flag his eye count, and never measure face defects off keyed cells.
 
+
 **Every packed row**
 
-`ajump`×6, `aneu`×8, `block`×1, `fall`×1, `getup`×3, `grab`×8, `grabbed`×8, `gsback`×8, `hneu`×8, `hurt`×2, `idle`×1, `jump`×2, `kpush`×5, `ksweep`×8, `light`×8, `medium`×8, `roll_`×6, `run_clean`×8, `sneu`×8, `sparry`×8, `special`×8, `srisaa`×8, `walljump`×1, `wallslide`×1, `xidle`×6
+`ajump`×6, `aneu`×8, `block`×1, `fall`×1, `getup`×3, `ghback`×6, `ghdown`×6, `ghfwd`×6, `ghup`×6, `grab`×8, `grabbed`×8, `gsback`×8, `hneu`×8, `hurt`×2, `idle`×1, `jump`×2, `kpush`×5, `ksweep`×8, `light`×8, `medium`×8, `roll_`×6, `run_clean`×8, `sneu`×8, `sparry`×8, `special`×8, `srisaa`×8, `walljump`×1, `wallslide`×1, `xidle`×6
 
-**Measured move table — 30 inputs**
+
+**Measured move table — 30 inputs, SHEET_V 714**
 
 | where | tier | dir | draws | cells | dmg | dur ms | boxes | proj | field |
 |---|---|---|---|---|---|---|---|---|---|
@@ -427,10 +434,10 @@ Sheet `shin.png` / `shin.json` — **520 × 370**, footY **330**, scale **0.3451
 | ground | Light | down | `ksweep` | 8 | 4 | 165 | 1 | 0 | 0 |
 | ground | Light | up | `light` | 8 | 5.3 | 180 | 1 | 0 | 0 |
 | ground | Heavy | neutral | `hneu` | 8 | 12 | 330 | 1 | 0 | 0 |
-| ground | Heavy | fwd | `hneu` | 8 | 11.3 | 420 | 3 | 0 | 0 |
-| ground | Heavy | back | `hneu` | 8 | 5.3 | 400 | 1 | 0 | 0 |
-| ground | Heavy | down | `hneu` | 8 | 6 | 340 | 1 | 0 | 0 |
-| ground | Heavy | up | `hneu` | 8 | 7.3 | 380 | 1 | 0 | 0 |
+| ground | Heavy | fwd | `ghfwd` | 6 | 11.3 | 420 | 3 | 0 | 0 |
+| ground | Heavy | back | `ghback` | 6 | 5.3 | 400 | 1 | 0 | 0 |
+| ground | Heavy | down | `ghdown` | 6 | 6 | 340 | 1 | 0 | 0 |
+| ground | Heavy | up | `ghup` | 6 | 7.3 | 380 | 1 | 0 | 0 |
 | ground | Special | neutral | `special` | 8 | 13 | 320 | 1 | 0 | 0 |
 | ground | Special | fwd | `special` | 8 | 0 | 320 | 0 | 1 | 0 |
 | ground | Special | back | `gsback` | 8 | 13 | 320 | 1 | 0 | 0 |
@@ -440,11 +447,11 @@ Sheet `shin.png` / `shin.json` — **520 × 370**, footY **330**, scale **0.3451
 | air | Light | fwd | `aneu` | 8 | 5.3 | 180 | 1 | 0 | 0 |
 | air | Light | back | `aneu` | 8 | 5.3 | 180 | 1 | 0 | 0 |
 | air | Light | down | `aneu` | 8 | 5.3 | 180 | 1 | 0 | 0 |
-| air | Light | up | `light` | 1 | 4.7 | 206 | 1 | 0 | 0 |
-| air | Heavy | neutral | `aneu` | 8 | 12 | 330 | 1 | 0 | 0 |
+| air | Light | up | `aneu` | 1 | 4.7 | 206 | 1 | 0 | 0 |
+| air | Heavy | neutral | `hneu` | 8 | 12 | 330 | 1 | 0 | 0 |
 | air | Heavy | fwd | `aneu` | 8 | 12 | 330 | 1 | 0 | 0 |
 | air | Heavy | back | `aneu` | 8 | 12 | 330 | 1 | 0 | 0 |
-| air | Heavy | down | `fall`+`ajump` | 1 | 10.7 | 900 | 1 | 0 | 0 |
+| air | Heavy | down | `aneu` | 1 | 10.7 | 900 | 1 | 0 | 0 |
 | air | Heavy | up | `aneu` | 8 | 12 | 330 | 1 | 0 | 0 |
 | air | Special | neutral | `aneu` | 8 | 13 | 320 | 1 | 0 | 0 |
 | air | Special | fwd | `aneu` | 8 | 13 | 320 | 1 | 0 | 0 |
@@ -461,7 +468,7 @@ Sheet `shin.png` / `shin.json` — **520 × 370**, footY **330**, scale **0.3451
 
 **Twin Daggers (Tantō) · Precision / Counter · spd 7 · pow 6 · reach 6 · def 7 · Special costs 20 chakra**
 
-Sheet `tsubasa.png` / `tsubasa.json` — **301 × 320**, footY **312**, scale **0.3663**, **341 cells**, 178 named keys.
+Sheet `tsubasa.png` / `tsubasa.json` — **301 × 320**, footY **312**, scale **0.3663**, **347 cells**, 184 named keys.
 
 **What this fighter does that nobody else does**
 
@@ -470,11 +477,13 @@ Sheet `tsubasa.png` / `tsubasa.json` — **301 × 320**, footY **312**, scale **
 - **Air Throw (Up+Special)** is a 160 px-tall `up` box with `air: false` — it plants him.
 - **Mode 2 — Sakate (`V`)**: both tantō reversed. Dash+Light in sakate plays `rgrush` as a dash attack: `62,40,12*pow,.12,170`.
 
+
 **Every packed row**
 
-`airthrow`×8, `ajump`×6, `aneu`×8, `block`×1, `crouch_`×4, `divecut`×8, `fall`×1, `getup`×4, `grab`×8, `grabbed`×8, `gsfwd`×8, `heavy`×2, `hurt`×2, `idle`×1, `jump`×2, `kpush`×8, `ksweep`×8, `light`×8, `lowtanto`×8, `medium`×8, `rgrush`×8, `ristwin`×8, `roll_`×8, `run_clean`×8, `sneu`×8, `special`×8, `walljump`×1, `wallslide`×4, `xidle`×6
+`airthrow`×8, `ajump`×6, `aneu`×8, `block`×1, `crouch_`×4, `divecut`×8, `eflick`×6, `fall`×1, `getup`×4, `grab`×8, `grabbed`×8, `gsfwd`×8, `heavy`×2, `hurt`×2, `idle`×1, `jump`×2, `kpush`×8, `ksweep`×8, `light`×8, `lowtanto`×8, `medium`×8, `rgrush`×8, `ristwin`×8, `roll_`×8, `run_clean`×8, `sneu`×8, `special`×8, `walljump`×1, `wallslide`×4, `xidle`×6
 
-**Measured move table — 30 inputs**
+
+**Measured move table — 30 inputs, SHEET_V 714**
 
 | where | tier | dir | draws | cells | dmg | dur ms | boxes | proj | field |
 |---|---|---|---|---|---|---|---|---|---|
@@ -485,7 +494,7 @@ Sheet `tsubasa.png` / `tsubasa.json` — **301 × 320**, footY **312**, scale **
 | ground | Light | up | `light` | 8 | 8 | 180 | 1 | 0 | 0 |
 | ground | Heavy | neutral | `heavy` | 2 | 18 | 330 | 1 | 0 | 0 |
 | ground | Heavy | fwd | `rgrush` | 8 | 14 | 380 | 2 | 0 | 0 |
-| ground | Heavy | back | `heavy` | 2 | 11 | 400 | 1 | 0 | 0 |
+| ground | Heavy | back | `eflick` | 6 | 11 | 400 | 1 | 0 | 0 |
 | ground | Heavy | down | `lowtanto` | 8 | 10 | 340 | 1 | 0 | 0 |
 | ground | Heavy | up | `ristwin` | 8 | 12 | 380 | 1 | 0 | 0 |
 | ground | Special | neutral | `special` | 2 | 0 | 320 | 0 | 0 | 0 |
@@ -497,11 +506,11 @@ Sheet `tsubasa.png` / `tsubasa.json` — **301 × 320**, footY **312**, scale **
 | air | Light | fwd | `aneu` | 8 | 8 | 180 | 1 | 0 | 0 |
 | air | Light | back | `aneu` | 8 | 8 | 180 | 1 | 0 | 0 |
 | air | Light | down | `aneu` | 8 | 8 | 180 | 1 | 0 | 0 |
-| air | Light | up | `light` | 1 | 7 | 206 | 1 | 0 | 0 |
+| air | Light | up | `aneu` | 1 | 7 | 206 | 1 | 0 | 0 |
 | air | Heavy | neutral | `aneu` | 8 | 18 | 330 | 1 | 0 | 0 |
 | air | Heavy | fwd | `aneu` | 8 | 18 | 330 | 1 | 0 | 0 |
 | air | Heavy | back | `aneu` | 8 | 18 | 330 | 1 | 0 | 0 |
-| air | Heavy | down | `fall`+`ajump` | 1 | 16 | 900 | 1 | 0 | 0 |
+| air | Heavy | down | `aneu` | 1 | 16 | 900 | 1 | 0 | 0 |
 | air | Heavy | up | `aneu` | 8 | 18 | 330 | 1 | 0 | 0 |
 | air | Special | neutral | `aneu` | 8 | 13 | 320 | 1 | 0 | 0 |
 | air | Special | fwd | `aneu` | 8 | 13 | 320 | 1 | 0 | 0 |
@@ -518,7 +527,7 @@ Sheet `tsubasa.png` / `tsubasa.json` — **301 × 320**, footY **312**, scale **
 
 **Tekko-Kagi Claws · Brawler / Rushdown · spd 8 · pow 7 · reach 3 · def 8 · Special costs 25 chakra**
 
-Sheet `ember.png` / `ember.json` — **340 × 377**, footY **369**, scale **0.3414**, **284 cells**, 128 named keys.
+Sheet `ember.png` / `ember.json` — **340 × 377**, footY **369**, scale **0.3414**, **302 cells**, 146 named keys.
 
 **What this fighter does that nobody else does**
 
@@ -529,11 +538,13 @@ Sheet `ember.png` / `ember.json` — **340 × 377**, footY **369**, scale **0.34
 - **He has no valid scale ruler** — hood-in-box reads ×1.20 as ×1.04. Prove the PACK, never the board.
 - **Sheet geometry is non-standard: 340 × 377, footY 369.** Never assume 300×320 for him.
 
+
 **Every packed row**
 
-`ajump`×6, `aneu`×8, `block`×1, `crouch_`×4, `eheavy`×8, `eparry`×8, `erip`×6, `espec`×8, `fall`×1, `getup`×4, `grab`×8, `grabbed`×8, `hurt`×2, `idle`×1, `jump`×2, `kpush`×8, `light`×8, `medium`×8, `roll_`×6, `run_clean`×8, `walljump`×1, `wallslide`×1, `xidle`×6
+`ajump`×6, `aneu`×8, `block`×1, `clawrend`×6, `crouch_`×4, `eheavy`×8, `eparry`×8, `eretreat`×6, `erip`×6, `espec`×8, `fall`×1, `getup`×4, `grab`×8, `grabbed`×8, `hurt`×2, `idle`×1, `jump`×2, `kpush`×8, `light`×8, `lowrake`×6, `medium`×8, `roll_`×6, `run_clean`×8, `walljump`×1, `wallslide`×1, `xidle`×6
 
-**Measured move table — 30 inputs**
+
+**Measured move table — 30 inputs, SHEET_V 714**
 
 | where | tier | dir | draws | cells | dmg | dur ms | boxes | proj | field |
 |---|---|---|---|---|---|---|---|---|---|
@@ -543,9 +554,9 @@ Sheet `ember.png` / `ember.json` — **340 × 377**, footY **369**, scale **0.34
 | ground | Light | down | `kpush` | 8 | 7 | 165 | 1 | 0 | 0 |
 | ground | Light | up | `light` | 8 | 9.3 | 180 | 1 | 0 | 0 |
 | ground | Heavy | neutral | `eheavy` | 8 | 21 | 330 | 1 | 0 | 0 |
-| ground | Heavy | fwd | `eheavy` | 8 | 18.7 | 380 | 2 | 0 | 0 |
-| ground | Heavy | back | `eheavy` | 8 | 11.7 | 340 | 1 | 0 | 0 |
-| ground | Heavy | down | `eheavy` | 8 | 12.8 | 360 | 1 | 0 | 0 |
+| ground | Heavy | fwd | `clawrend` | 6 | 18.7 | 380 | 2 | 0 | 0 |
+| ground | Heavy | back | `eretreat` | 6 | 11.7 | 340 | 1 | 0 | 0 |
+| ground | Heavy | down | `lowrake` | 6 | 12.8 | 360 | 1 | 0 | 0 |
 | ground | Heavy | up | `eheavy` | 8 | 21 | 380 | 1 | 0 | 0 |
 | ground | Special | neutral | `espec` | 8 | 14 | 320 | 1 | 0 | 0 |
 | ground | Special | fwd | `espec` | 8 | 22 | 420 | 2 | 0 | 0 |
@@ -556,11 +567,11 @@ Sheet `ember.png` / `ember.json` — **340 × 377**, footY **369**, scale **0.34
 | air | Light | fwd | `aneu` | 8 | 9.3 | 180 | 1 | 0 | 0 |
 | air | Light | back | `aneu` | 8 | 9.3 | 180 | 1 | 0 | 0 |
 | air | Light | down | `aneu` | 8 | 9.3 | 180 | 1 | 0 | 0 |
-| air | Light | up | `light` | 1 | 8.2 | 206 | 1 | 0 | 0 |
+| air | Light | up | `aneu` | 1 | 8.2 | 206 | 1 | 0 | 0 |
 | air | Heavy | neutral | `aneu` | 8 | 21 | 330 | 1 | 0 | 0 |
 | air | Heavy | fwd | `aneu` | 8 | 21 | 330 | 1 | 0 | 0 |
 | air | Heavy | back | `aneu` | 8 | 21 | 330 | 1 | 0 | 0 |
-| air | Heavy | down | `fall`+`ajump` | 1 | 18.7 | 900 | 1 | 0 | 0 |
+| air | Heavy | down | `aneu` | 1 | 18.7 | 900 | 1 | 0 | 0 |
 | air | Heavy | up | `aneu` | 8 | 21 | 330 | 1 | 0 | 0 |
 | air | Special | neutral | `aneu` | 8 | 14 | 320 | 1 | 0 | 0 |
 | air | Special | fwd | `aneu` | 8 | 14 | 320 | 1 | 0 | 0 |
@@ -587,11 +598,13 @@ Sheet `kael.png` / `kael.json` — **300 × 320**, footY **312**, scale **0.4046
 - **`kxcut` is his air family.** He is deliberately excluded from the generic `!isGrounded` air branch by `F.kxcut1 !== undefined`. Branch order matters — `kxcut` once ate his `hfwd`/`hback`/`hup` and measured 0/6 cells.
 - He has **no kick art at all** — no `kpush`, no `ksweep`, no `kheel`. Three of his four directional Lights therefore route to `kdual` (measured `kdual3→5→7`). A known ART gap, not a routing bug.
 
+
 **Every packed row**
 
 `adown`×8, `ajump`×6, `block`×1, `crouch_`×4, `getup`×4, `grab`×8, `grabbed`×7, `hurt`×2, `idle`×1, `kcross`×8, `kcyc`×8, `kdual`×8, `kfang`×8, `krise`×8, `kscis`×8, `kspin`×8, `ktrav`×8, `kxcut`×8, `medium`×8, `roll_`×6, `run_clean`×8, `sneu`×8, `walljump`×1, `wallslide`×1, `xidle`×6, `xparry`×6
 
-**Measured move table — 30 inputs**
+
+**Measured move table — 30 inputs, SHEET_V 714**
 
 | where | tier | dir | draws | cells | dmg | dur ms | boxes | proj | field |
 |---|---|---|---|---|---|---|---|---|---|
@@ -614,11 +627,11 @@ Sheet `kael.png` / `kael.json` — **300 × 320**, footY **312**, scale **0.4046
 | air | Light | fwd | `kxcut` | 8 | 8 | 180 | 1 | 0 | 0 |
 | air | Light | back | `kxcut` | 8 | 8 | 180 | 1 | 0 | 0 |
 | air | Light | down | `adown` | 8 | 8 | 180 | 1 | 0 | 0 |
-| air | Light | up | `ajump` | 1 | 7 | 206 | 1 | 0 | 0 |
+| air | Light | up | `kxcut` | 1 | 7 | 206 | 1 | 0 | 0 |
 | air | Heavy | neutral | `kxcut` | 8 | 18 | 330 | 1 | 0 | 0 |
 | air | Heavy | fwd | `kxcut` | 8 | 18 | 330 | 1 | 0 | 0 |
 | air | Heavy | back | `kxcut` | 8 | 18 | 330 | 1 | 0 | 0 |
-| air | Heavy | down | `ajump` | 1 | 16 | 900 | 1 | 0 | 0 |
+| air | Heavy | down | `kxcut` | 1 | 16 | 900 | 1 | 0 | 0 |
 | air | Heavy | up | `kxcut` | 8 | 18 | 330 | 1 | 0 | 0 |
 | air | Special | neutral | `kxcut` | 6 | 15 | 520 | 1 | 0 | 0 |
 | air | Special | fwd | `kxcut` | 6 | 15 | 520 | 1 | 0 | 0 |
@@ -648,11 +661,13 @@ Sheet `mokurai.png` / `mokurai.json` — **300 × 248**, footY **218**, scale **
 - **He is TALLER than Exile** (owner, Sep 1) — keep that through any exile re-ruling.
 - **Sheet geometry: 300 × 248, footY 218.** The `b*`/`m*` families (`bair`, `bheavy`, `bjump`, `brun`, `bspec`, `mbell`, `mblast`, `mhammer`, `mpalm`, `mroll`, `mwall`) are his alone.
 
+
 **Every packed row**
 
 `bair`×8, `bheavy`×5, `bjump`×8, `block`×1, `brun`×8, `bspec`×5, `crouch_`×4, `getup`×7, `grabbed`×8, `gsup`×8, `hurt`×1, `idle`×1, `kpush`×8, `light`×8, `mbell`×8, `mblast`×8, `mblock`×7, `medium`×8, `mhammer`×5, `mhurt`×7, `mpalm`×5, `mroll`×8, `mthrow`×3, `mwall`×8, `special`×8, `upatk`×8, `xidle`×6
 
-**Measured move table — 30 inputs**
+
+**Measured move table — 30 inputs, SHEET_V 714**
 
 | where | tier | dir | draws | cells | dmg | dur ms | boxes | proj | field |
 |---|---|---|---|---|---|---|---|---|---|
@@ -675,11 +690,11 @@ Sheet `mokurai.png` / `mokurai.json` — **300 × 248**, footY **218**, scale **
 | air | Light | fwd | `bair` | 8 | 9.3 | 200 | 1 | 0 | 0 |
 | air | Light | back | `bair` | 8 | 9.3 | 180 | 1 | 0 | 0 |
 | air | Light | down | `bair` | 8 | 9.3 | 200 | 1 | 0 | 0 |
-| air | Light | up | `upatk` | 1 | 8.2 | 206 | 1 | 0 | 0 |
+| air | Light | up | `bair` | 1 | 8.2 | 206 | 1 | 0 | 0 |
 | air | Heavy | neutral | `bair` | 8 | 21 | 330 | 1 | 0 | 0 |
 | air | Heavy | fwd | `bair` | 8 | 21 | 330 | 1 | 0 | 0 |
 | air | Heavy | back | `bair` | 8 | 21 | 330 | 1 | 0 | 0 |
-| air | Heavy | down | `bjump` | 1 | 18.7 | 900 | 1 | 0 | 0 |
+| air | Heavy | down | `bair` | 1 | 18.7 | 900 | 1 | 0 | 0 |
 | air | Heavy | up | `bair` | 8 | 21 | 330 | 1 | 0 | 0 |
 | air | Special | neutral | `bair` | 8 | 16 | 320 | 1 | 0 | 0 |
 | air | Special | fwd | `bair` | 8 | 13 | 380 | 1 | 0 | 0 |
@@ -687,7 +702,7 @@ Sheet `mokurai.png` / `mokurai.json` — **300 × 248**, footY **218**, scale **
 | air | Special | down | `bair` | 8 | 12 | 320 | 1 | 0 | 0 |
 | air | Special | up | `bair` | 8 | 10 | 320 | 1 | 0 | 0 |
 
-**Rows the 30 presses never reached:** `medium`.
+**Rows the 30 presses never reached:** `medium`, `upatk`.
 `medium` is the probe's blind spot (§3); the rest are stance- or condition-gated.
 **Two independent signals before you call any row dead.**
 
@@ -709,11 +724,13 @@ Sheet `exile.png` / `exile.json` — **480 × 432**, footY **344**, scale **0.44
 - `xanchor`/`xgrap` are only reachable through the anchor and grapple systems. **`xanchor` is chain-less on the live rope and `handAnchor` is in CELL px** (owner ruling @684).
 - **Sheet geometry in THIS tree: 480 × 432, footY 344.** The sprite README's 200×226 line is stale — read the manifest, every time.
 
+
 **Every packed row**
 
 `aneu`×8, `block`×1, `crouch_`×8, `getup`×4, `glback`×8, `grabbed`×8, `gsback`×8, `gsfwd`×8, `guard`×8, `idle`×1, `light`×8, `medium`×8, `run_clean`×8, `slide`×4, `special`×8, `upreach`×8, `walljump`×1, `wallslide`×1, `xanchor`×8, `xgrap`×10, `xheavy`×5, `xhurt`×3, `xidle`×6, `xjump`×6, `xkpush`×8, `xksweep`×8
 
-**Measured move table — 30 inputs**
+
+**Measured move table — 30 inputs, SHEET_V 714**
 
 | where | tier | dir | draws | cells | dmg | dur ms | boxes | proj | field |
 |---|---|---|---|---|---|---|---|---|---|
@@ -736,11 +753,11 @@ Sheet `exile.png` / `exile.json` — **480 × 432**, footY **344**, scale **0.44
 | air | Light | fwd | `aneu` | 8 | 6.7 | 180 | 1 | 0 | 0 |
 | air | Light | back | `aneu` | 8 | 6.7 | 180 | 1 | 0 | 0 |
 | air | Light | down | `aneu` | 8 | 6.7 | 180 | 1 | 0 | 0 |
-| air | Light | up | `light` | 1 | 5.8 | 206 | 1 | 0 | 0 |
+| air | Light | up | `aneu` | 1 | 5.8 | 206 | 1 | 0 | 0 |
 | air | Heavy | neutral | `aneu` | 8 | 11.7 | 320 | 1 | 0 | 0 |
 | air | Heavy | fwd | `aneu` | 8 | 11.7 | 320 | 1 | 0 | 0 |
 | air | Heavy | back | `aneu` | 8 | 11.7 | 320 | 1 | 0 | 0 |
-| air | Heavy | down | `xjump` | 1 | 13.3 | 900 | 1 | 0 | 0 |
+| air | Heavy | down | `aneu` | 1 | 13.3 | 900 | 1 | 0 | 0 |
 | air | Heavy | up | `aneu` | 8 | 11.7 | 320 | 1 | 0 | 0 |
 | air | Special | neutral | `aneu` | 8 | 30 | 520 | 2 | 0 | 0 |
 | air | Special | fwd | `aneu` | 8 | 13 | 420 | 1 | 0 | 0 |
@@ -757,7 +774,7 @@ Sheet `exile.png` / `exile.json` — **480 × 432**, footY **344**, scale **0.44
 
 **Tekko-Kagi Claw · Acrobat / Rushdown · spd 9 · pow 8 · reach 6 · def 6 · Special costs 25 chakra**
 
-Sheet `oni.png` / `oni.json` — **480 × 372**, footY **330**, scale **0.5573**, **484 cells**, 249 named keys.
+Sheet `oni.png` / `oni.json` — **480 × 372**, footY **330**, scale **0.5573**, **502 cells**, 267 named keys.
 
 **What this fighter does that nobody else does**
 
@@ -771,11 +788,13 @@ Sheet `oni.png` / `oni.json` — **480 × 372**, footY **330**, scale **0.5573**
 - **23 of his beats are SUBSTITUTIONS, not restorations** (703): their source boards are not on disk, so each gutted beat borrows the nearest healthy beat in its own row. `glfwd` is down to 4 distinct poses, `gsback`/`sneu`/`wclaw` to 5, and `wire` collapses to one held pose across all 3 beats. The damaged cells stay on the sheet as orphans and are **NOT deleted** — the day their real boards turn up, one pointer each puts them back.
 - **Biggest sheet: 484 cells, 480 × 372, footY 330, scale 0.5573.**
 
+
 **Every packed row**
 
-`ajump`×6, `aneu`×8, `block`×1, `blockhit`×1, `crouch_`×4, `dive`×6, `fall`×1, `getup`×4, `ghfwd`×8, `ghup`×8, `glfwd`×8, `grab`×8, `grabbed`×8, `gsback`×8, `gsfwd`×8, `gsup`×6, `guard`×8, `hfwd`×8, `hneu`×8, `hup`×8, `hurt`×2, `idle`×1, `jump`×2, `kdraw`×8, `knives`×8, `ksweep`×8, `light`×8, `medium`×8, `roll_`×6, `run_clean`×8, `sneu`×8, `special`×8, `stand`×6, `sup`×8, `walljump`×1, `wallneedle`×8, `wallslide`×1, `wclaw`×8, `wire`×3, `wslice`×8
+`ajump`×6, `aneu`×8, `block`×1, `blockhit`×1, `crouch_`×4, `dive`×6, `fall`×1, `getup`×4, `ghback`×10, `ghdown`×8, `ghfwd`×8, `ghup`×8, `glfwd`×8, `grab`×8, `grabbed`×8, `gsback`×8, `gsfwd`×8, `gsup`×6, `guard`×8, `hfwd`×8, `hneu`×8, `hup`×8, `hurt`×2, `idle`×1, `jump`×2, `kdraw`×8, `knives`×8, `ksweep`×8, `light`×8, `medium`×8, `roll_`×6, `run_clean`×8, `sneu`×8, `special`×8, `stand`×6, `sup`×8, `walljump`×1, `wallneedle`×8, `wallslide`×1, `wclaw`×8, `wire`×3, `wslice`×8
 
-**Measured move table — 30 inputs**
+
+**Measured move table — 30 inputs, SHEET_V 714**
 
 | where | tier | dir | draws | cells | dmg | dur ms | boxes | proj | field |
 |---|---|---|---|---|---|---|---|---|---|
@@ -786,8 +805,8 @@ Sheet `oni.png` / `oni.json` — **480 × 372**, footY **330**, scale **0.5573**
 | ground | Light | up | `light` | 8 | 10.7 | 396 | 1 | 0 | 0 |
 | ground | Heavy | neutral | `hfwd` | 8 | 24 | 726 | 1 | 0 | 0 |
 | ground | Heavy | fwd | `ghfwd` | 8 | 17.3 | 850 | 1 | 0 | 0 |
-| ground | Heavy | back | `hfwd` | 8 | 14.7 | 800 | 1 | 0 | 0 |
-| ground | Heavy | down | `hfwd` | 8 | 13.3 | 800 | 1 | 0 | 0 |
+| ground | Heavy | back | `ghback` | 10 | 14.7 | 800 | 1 | 0 | 0 |
+| ground | Heavy | down | `ghdown` | 8 | 13.3 | 800 | 1 | 0 | 0 |
 | ground | Heavy | up | `ghup`+`gsup`+`sup` | 8 | 16 | 800 | 1 | 0 | 0 |
 | ground | Special | neutral | `special` | 8 | 9 | 460 | 1 | 0 | 0 |
 | ground | Special | fwd | `gsfwd` | 8 | 28 | 260 | 1 | 0 | 0 |
@@ -798,22 +817,21 @@ Sheet `oni.png` / `oni.json` — **480 × 372**, footY **330**, scale **0.5573**
 | air | Light | fwd | `aneu` | 8 | 10.7 | 396 | 1 | 0 | 0 |
 | air | Light | back | `aneu` | 8 | 10.7 | 396 | 1 | 0 | 0 |
 | air | Light | down | `aneu` | 8 | 10.7 | 396 | 1 | 0 | 0 |
-| air | Light | up | `light` | 1 | 9.3 | 396 | 1 | 0 | 0 |
-| air | Heavy | neutral | `aneu` | 8 | 24 | 726 | 1 | 0 | 0 |
-| air | Heavy | fwd | `aneu` | 8 | 24 | 726 | 1 | 0 | 0 |
+| air | Light | up | `aneu` | 1 | 9.3 | 396 | 1 | 0 | 0 |
+| air | Heavy | neutral | `hup`+`hneu` | 8 | 24 | 726 | 1 | 0 | 0 |
+| air | Heavy | fwd | `hfwd` | 8 | 24 | 726 | 1 | 0 | 0 |
 | air | Heavy | back | `aneu` | 8 | 24 | 726 | 1 | 0 | 0 |
 | air | Heavy | down | `dive` | 1 | 21.3 | 900 | 1 | 0 | 0 |
-| air | Heavy | up | `aneu` | 8 | 24 | 726 | 1 | 0 | 0 |
+| air | Heavy | up | `hup`+`hneu` | 8 | 24 | 726 | 1 | 0 | 0 |
 | air | Special | neutral | `aneu` | 8 | 42.7 | 704 | 2 | 0 | 0 |
 | air | Special | fwd | `aneu` | 8 | 20 | 400 | 1 | 0 | 0 |
 | air | Special | back | `aneu` | 8 | 0 | 360 | 0 | 0 | 0 |
 | air | Special | down | `aneu` | 8 | 0 | 300 | 0 | 0 | 1 |
 | air | Special | up | `aneu` | 8 | 14 | 380 | 1 | 0 | 0 |
 
-**Rows the 30 presses never reached:** `hneu`, `hup`, `kdraw`, `knives`, `medium`, `sneu`, `wallneedle`, `wclaw`, `wire`, `wslice`.
+**Rows the 30 presses never reached:** `kdraw`, `knives`, `medium`, `sneu`, `wallneedle`, `wclaw`, `wire`, `wslice`.
 `medium` is the probe's blind spot (§3); the rest are stance- or condition-gated.
 **Two independent signals before you call any row dead.**
-
 
 ---
 
@@ -946,38 +964,20 @@ leave it there.
 
 ---
 
-## 7. What the 709 probe flags right now
+## 7. What the probe flagged, and where each one landed
 
 Straight out of the probe run that produced §5. **Reported, not repaired.** Confirm
 each against a second signal before touching it, and never delete a row to make a
 symptom go away — the sweep reports what it REACHED, nothing more.
 
-### 7.1 Directional Heavies whose `DIR_MOVES` art row is not on the sheet
+### 7.1 Directional Heavies whose art row was not on the sheet — CLOSED at 714
 
-The move **runs** — the box spawns, the vx applies, the recovery is right. Only the
-**art** falls back to a generic row, because the row the table names was never packed.
-**12 of the 22 `DIR_MOVES` art rows are not on the SHODO sheets — and all twelve are packed on
-`SHADOWCLASH-RECOVERED`.** This is a PORT, not an art gap: the SHODO sheets were rebuilt and
-these directional rows never came across. Do NOT rewrite the table to point at the fallback
-row — that would delete the request. See §7.4.
-
-| input | table's art | on the sheet? | what actually drew |
-|---|---|---|---|
-| Mizu · ground Heavy fwd | `bothrust` | **NOT PACKED** | `heavy_i` |
-| Mizu · ground Heavy back | `staffspin` | **NOT PACKED** | `heavy_i` |
-| Shin · ground Heavy fwd | `ghfwd` | **NOT PACKED** | `hneu` |
-| Shin · ground Heavy back | `ghback` | **NOT PACKED** | `hneu` |
-| Shin · ground Heavy down | `ghdown` | **NOT PACKED** | `hneu` |
-| Shin · ground Heavy up | `ghup` | **NOT PACKED** | `hneu` |
-| Tsubasa · ground Heavy back | `eflick` | **NOT PACKED** | `heavy` |
-| Ember · ground Heavy fwd | `clawrend` | **NOT PACKED** | `eheavy` |
-| Ember · ground Heavy back | `eretreat` | **NOT PACKED** | `eheavy` |
-| Ember · ground Heavy down | `lowrake` | **NOT PACKED** | `eheavy` |
-| Oni · ground Heavy back | `ghback` | **NOT PACKED** | `hfwd` |
-| Oni · ground Heavy down | `ghdown` | **NOT PACKED** | `hfwd` |
-
-Packed and working: Mizu `bolow`/`ristaff`, Tsubasa `rgrush`/`lowtanto`/`ristwin`,
-Shin `srisaa`, Tsubasa `divecut`/`airthrow`, Oni `ghfwd`/`ghup`.
+Twelve of the twenty-two rows. All twelve turned out to be packed on
+`SHADOWCLASH-RECOVERED` and were ported; see §7.4 for what landed and what still needs
+the owner's eye. Kept here because the *shape* of the bug is worth recognising again:
+**the move ran perfectly and only the art fell back**, so nothing in the hitbox, the vx or
+the recovery looked wrong, and no test failed. `check_dir_moves` is the gate that catches
+it — it asserts every named art row exists.
 
 ### 7.2 Inputs that play ONE cell — a held pose, not an animation
 
@@ -1035,7 +1035,7 @@ Special is his 0.133 s parry and is *supposed* to be empty here. Kael's three
 
 ---
 
-### 7.4 What 711 changed, and what is still owed
+### 7.4 What 711 and 714 changed
 
 **FIXED — the two held airborne cells were planted stances.**
 
@@ -1075,23 +1075,44 @@ Five more rows moved in the same window from the co-tenant lane's audit — Exec
 Shin air Heavy neutral now reach `hneu`, Oni reaches `hfwd`/`hup`. **22 of the 270 inputs
 changed between 709 and 711.**
 
-**OWED — the 12 rows are a PORT, and it is the owner's call.**
+**DONE at 714 — the 12 rows were ported.**
 
-Every one of the twelve missing `DIR_MOVES` art rows is packed on `SHADOWCLASH-RECOVERED`:
+Every one of the twelve missing `DIR_MOVES` art rows was packed on
+`SHADOWCLASH-RECOVERED`, so this was a port of already-approved art, not a generation.
+**80 cells appended across five sheets**, raw pixels (the engine keys at draw time, so
+keying on the way in keys twice), pre-existing region `AE=0` on all five.
 
-| fighter | rows on RECOVERED | beats | read |
+| fighter | rows | how | reads against the SHODO look |
 |---|---|---|---|
-| Mizu | `bothrust`, `staffspin` | 7, 7 | same purple, same ink, same silhouette — **cleanest port** |
-| Shin | `ghfwd`, `ghback`, `ghdown`, `ghup` | 6 each | his SHODO cells are smaller; a scale pass is part of the port |
-| Tsubasa | `eflick` | 6 | one row; his other three directionals already work |
-| Ember | `clawrend`, `lowrake`, `eretreat` | 6 each | same hooded claw design — **second-cleanest** |
-| Oni | `ghback`, `ghdown` | 10, 8 | ⚠ **check against the Aug 9 bible first** — his design was rebuilt after the old one was purged, and the RECOVERED sheet may predate that. If it is the superseded Oni, the row does not come across at any price. |
+| Mizu | `bothrust`, `staffspin` | verbatim | same character, same ink — clean |
+| Tsubasa | `eflick` | verbatim | clean |
+| Ember | `clawrend`, `lowrake`, `eretreat` | verbatim | fine at game scale |
+| Oni | `ghback`, `ghdown` | verbatim | fine at game scale; checked against the Aug 9 bible before packing — white mask, red slits, two horns, swords on the back, no purple, no mane. Current founder design, not the purged one. |
+| Shin | `ghfwd`, `ghback`, `ghdown`, `ghup` | **×0.72** | ⚠ **colour break** — his RECOVERED art is a saturated green ninja against SHODO's mossy eroded one, and that reads at any size |
 
-**Nothing has been repointed.** A port appends the cells to the SHODO sheet and points the
-key at them, which changes what the owner sees — rule 3, frames first. Row counts of 6–7
-against SHODO's 8 are fine (the engine collects `1..N`); scale is not — every port needs
-`check_row_scale` + `eye_scale` + `gate_fragments` against the SHODO idle before it packs,
-and the sheets stay append-only.
+**Scale: only Shin, and only because his rulers agree.** On `idle2`/`xidle1` his three
+independent measures land together (√area 0.70/0.74, bbox width 0.67/0.78, bbox height
+0.74/0.71). For Mizu, Tsubasa, Ember and Oni the same three **conflict** — height says
+~1.0 while width says 0.60–0.81, because bbox width is contaminated by weapon angle and
+area by pose, and the eye ruler is unvalidated on every fighter but the Executioner.
+Resampling on a guess throws away pixels you cannot get back, so those four are verbatim.
+
+**Shin's colour was NOT corrected**, deliberately: colour-correcting a packed cell is
+banned here — a 300 px cell has no colour headroom, and the one attempt flattened 1,852 px
+of legitimate armour to black. The fix is the owner's generator redrawing those four rows
+in the shodo treatment, not a homemade approximation. Reverting any row is a JSON edit;
+the cells stay addressable.
+
+**And the dead tracks went with it.** `check_dir_moves` reported 11 silent failures —
+eleven entries still carrying six-stop timing from when those rows were six cells, so the
+tracks had been discarded in silence for their whole life. Deleting them is a proven no-op
+(the probe returns byte-identical rows before and after). The 709 note claiming `8:up`
+keeps its track was stale; `ghup` is eight cells now. **`check_dir_moves` is GREEN for the
+first time: 22 moves, every track matches its cell count, every art row exists, every
+launcher carries an impulse.**
+
+**709 → 714: 34 of 270 inputs draw something different** — 22 air, 12 rows.
+`gate_fragments` CLEAN on all five ported sheets; `check_air_held_poses` 27/27.
 
 Frames for every row: https://claude.ai/code/artifact/5cb6642d-a73a-4b55-99f3-00387768d38d
 
