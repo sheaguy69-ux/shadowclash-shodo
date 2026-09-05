@@ -4998,6 +4998,19 @@
                     return;
                 }
 
+                // ⛔ AND A SWING IS COMMITTED TOO — the same law executeShunshin already
+                // enforces one screen up ("!this.isGrounded || this.stunTimer > 0 ||
+                // this.isAttackingState()"): you do not dash out of a live swing, and you
+                // do not jump out of one either. Measured on :9101 before this line: all
+                // nine fighters, all four tiers, 36 of 36 presses cancelled their own
+                // recovery with W — windows of 0.18s to 0.73s — so every whiffed attack in
+                // the game was free and nothing could be punished on reaction.
+                // ⛔ AND IT SITS HERE, BELOW the wall-jump, ceiling-latch and anchor-release
+                // branches, NOT at the top beside the roll guard. At the top it would also
+                // kill wall escapes during an attack — Exile and Shin throw from a wall
+                // cling (canThrowFromWall) — which is a much bigger change than the punish
+                // hole it closes. Only the ordinary standing/air jump is committed.
+                if (this.isAttackingState()) return;
                 if (this.isGrounded || this.jumpsLeft > 0) {
                     // ⛔ DIRECTION IS CAPTURED AT TAKEOFF, never sampled in the air. Airborne,
                     // facing IS the input direction — see the movement branch, "Airborne keeps
