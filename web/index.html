@@ -11945,7 +11945,8 @@
                     // 6+4+4+4+2 frames each, every fighter, every capture). Off the ground it
                     // falls through to Light exactly as a sheet with no medium row does — and
                     // Light already routes the air row. Grounded behaviour is unchanged.
-                    if (p.isGrounded && F.medium1 !== undefined) {
+                    // Keep a Medium begun airborne on its air row through recovery.
+                    if (!p.attackAir && p.isGrounded && F.medium1 !== undefined) {
                         const md = [];
                         for (let i = 1; F['medium' + i] !== undefined; i++) md.push(F['medium' + i]);
                         return attackFrame(p, md, F, trackFor(p, 'heavy'));
@@ -11958,11 +11959,11 @@
                     // one used to. The wind-up cell is skipped: from the offensive guard
                     // the blade is already out, which is the whole idea of the stance.
                     // SHEET_V 335: FOUR FAST SLICES on the owner's chudan row.
-                    if (p.spec.id === 0 && p.chudan && p.isGrounded && !p.kickKind && F.xcslice1 !== undefined)
+                    if (p.spec.id === 0 && p.chudan && !p.attackAir && p.isGrounded && !p.kickKind && F.xcslice1 !== undefined)
                         return attackFrame(p, [F.xcslice1, F.xcslice2, F.xcslice3,
                                                F.xcslice4, F.xcslice5, F.xcslice6],
                                            F, trackFor(p, 'slices6'));
-                    if (p.spec.id === 0 && p.chudan && p.isGrounded && !p.kickKind && F.xlight3 !== undefined)
+                    if (p.spec.id === 0 && p.chudan && !p.attackAir && p.isGrounded && !p.kickKind && F.xlight3 !== undefined)
                         return attackFrame(p, [F.xlight2, F.xlight3, F.xlight4, F.xlight3,
                                                F.xlight2, F.xlight3, F.xlight4],
                                            F, trackFor(p, 'slices'));
@@ -12898,12 +12899,14 @@
                     if (p.spec.id === 8 && p.whipAnim && F.whip1 !== undefined)
                         return attackFrame(p, [F.whip1, F.whip2, F.whip3,
                                                F.whip4, F.whip5, F.whip6], F, trackFor(p, 'special'));
-                    // LAST RESORT, AND ONLY OFF THE GROUND. specialCells() ends on the
+                    // LAST RESORT FOR AIR ATTACKS, INCLUDING THEIR LANDING RECOVERY.
+                    // Intentional landing phases and specific specials already returned above.
+                    // specialCells() ends on the
                     // standing special1..8 / espec / bspec / xtsuki rows — exile's special1
                     // stands in a pale ground blob, oni's special1 is planted — so an air
                     // Special that matched no specific branch above finished on a ground
                     // frame. Every drawn airborne special still wins: they are all above.
-                    if (!p.isGrounded) {
+                    if (p.attackAir || !p.isGrounded) {
                         const ac = airAttackCells(F);
                         if (ac) return attackFrame(p, ac, F, trackFor(p, 'special'));
                     }
