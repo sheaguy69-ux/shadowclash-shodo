@@ -1694,7 +1694,8 @@
         // rewriting the append-only sprite sheets or softening their original pixels.
         // Character afterimages, clones, and decoys use the same grouped path too.
         const SHODO_DISPLAY_SCALE = 1.75;
-        const shodoScratch = document.createElement('canvas');
+        // ponytail: retain 64 recent outlined cells; profile before enlarging this working set.
+        const shodoFrameCache = new Map();
         const shodoCellCache = new Map();
         function keyedShodoCell(img, sx, sy, sw, sh) {
             const key = `${img.currentSrc || img.src}|${sx}|${sy}|${sw}|${sh}`;
@@ -1776,19 +1777,22 @@
             const kx = sw / Math.abs(dw), ky = sh / Math.abs(dh);
             const pad = Math.ceil(5 * Math.max(kx, ky));
             const tw = sw + pad * 2, th = sh + pad * 2;
-            if (shodoScratch.width < tw) shodoScratch.width = tw;
-            if (shodoScratch.height < th) shodoScratch.height = th;
-            const g = shodoScratch.getContext('2d');
-            g.filter = 'none';
-            g.clearRect(0, 0, tw, th);
-            g.filter = `drop-shadow(${-1.55 * kx}px ${-0.06 * ky}px 0 #080604) `
+            const key = `${img.currentSrc || img.src}|${sx}|${sy}|${sw}|${sh}|${dw}|${dh}`;
+            let outlined = shodoFrameCache.get(key);
+            if (!outlined) {
+                outlined = document.createElement('canvas');
+                outlined.width = tw; outlined.height = th;
+                const g = outlined.getContext('2d');
+                g.filter = `drop-shadow(${-1.55 * kx}px ${-0.06 * ky}px 0 #080604) `
                      + `drop-shadow(${1.95 * kx}px ${0.10 * ky}px 0 #080604) `
                      + `drop-shadow(${0.08 * kx}px ${-1.35 * ky}px 0 #080604) `
                      + `drop-shadow(${-0.06 * kx}px ${1.72 * ky}px 0 rgba(8,6,4,0.90))`;
-            g.drawImage(keyedShodoCell(img, sx, sy, sw, sh), 0, 0, sw, sh, pad, pad, sw, sh);
-            g.filter = 'none';
+                g.drawImage(keyedShodoCell(img, sx, sy, sw, sh), 0, 0, sw, sh, pad, pad, sw, sh);
+                if (shodoFrameCache.size >= 64) shodoFrameCache.delete(shodoFrameCache.keys().next().value);
+                shodoFrameCache.set(key, outlined);
+            }
             const px = pad / kx, py = pad / ky;
-            ctx.drawImage(shodoScratch, 0, 0, tw, th,
+            ctx.drawImage(outlined, 0, 0, tw, th,
                           dx - px, dy - py, dw + px * 2, dh + py * 2);
         }
 
