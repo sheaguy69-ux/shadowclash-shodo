@@ -3228,7 +3228,25 @@
                 // timer that already exists; no second trail system, no new draw path.
                 // Topped up (not assigned) each frame so it dies ~1 frame after the
                 // speed does, and the chudan strings' longer 0.30 still wins.
-                if (Math.abs(this.vx) >= SPEEDLINE_V) this.speedTrail = Math.max(this.speedTrail, 0.05);
+                // ⛔ THE GATE IS THE FIGHTER'S OWN WALK, NOT A GLOBAL CONSTANT. SPEEDLINE_V
+                // was set to 460 on the comment's claim that "moveSpeed peaks at 350 * 6/6",
+                // but moveSpeed is 350 * speed/6 and the roster runs to speed 10 — so Exile
+                // walks at 583, Shin 525 and Ember 467, all ABOVE the line. The three fastest
+                // fighters shed after-images while STROLLING, which is the opposite of the
+                // "only burst speeds smear" rule the constant exists to express.
+                // Comparing against this fighter's own top walk restores that rule for every
+                // stat: a dash (800), a wall-jump launch, a wire yank or a knockback slide all
+                // exceed their own walk and still smear; ordinary movement never does.
+                // BOTH tests, and both are needed. SPEEDLINE_V stays the floor so the burst
+                // speeds the comment names still smear for EVERY fighter — a wall-jump launch
+                // (480) and Shin's wire yank (560) sit between the slowest and fastest walks,
+                // so raising the floor per-fighter would silence them on exactly the fast
+                // cast they were written for. The second test is what kills the walking
+                // trail: ordinary movement CANNOT exceed this fighter's own walk top, so
+                // anything above it is a dash, a launch, a reel or a knockback slide.
+                const walkTop = 350 * (this.curSpeed / 6);
+                if (Math.abs(this.vx) >= SPEEDLINE_V && Math.abs(this.vx) > walkTop * 1.02)
+                    this.speedTrail = Math.max(this.speedTrail, 0.05);
 
                 // SPEED TRAIL: the chudan strings shed after-images while standing still,
                 // where the slide's trail only fires while he travels. Same ghost pool,
@@ -10409,7 +10427,7 @@
         // the skeleton doll mid-fight (exactly what the owner saw on his phone after the
         // #40 art drop). The width check catches any mismatch that still slips through
         // and retries once with a hard cache-buster.
-        const SHEET_V = 709;   // 709: DIRECTIONS. Owner: "characters directions still havent
+        const SHEET_V = 710;   // (710: AUDIT #1 — THE THREE FASTEST FIGHTERS SHED AFTER-IMAGES WHILE WALKING. SPEEDLINE_V is 460 and its own comment justifies that as sitting 'ABOVE the fastest walk (moveSpeed peaks at 350 * 6/6)'. moveSpeed is 350 * speed/6 and the roster runs to speed 10, so the real walk tops are Exile 583, Shin 525, Ember 467 — all at or above the line. Ordinary strolling tripped the burst-only trail. Fixed with BOTH tests, because either alone is wrong: the 460 floor STAYS so the burst speeds the comment names still smear for every fighter (a wall-jump launch at 480 and Shin's wire yank at 560 sit between the slowest and fastest walks, so a per-fighter floor would silence them on exactly the fast cast they were written for), and a second test kills the walking trail — ordinary movement cannot exceed a fighter's own walk top, so anything above it is a dash, launch, reel or knockback. Where a burst now reads clean for Shin or Exile that is CORRECT: 480 is slower than they walk. Verified: all nine walk clean, dash 800 smears for all nine.) 709: DIRECTIONS. Owner: "characters directions still havent
         // been corrected." He was right and my facing audit answered the wrong question — it
         // checked which way the HEAD points (249 rows, all clean, and still clean) and never
         // asked whether a DIRECTIONAL MOVE reaches its own art. Driving all nine fighters
