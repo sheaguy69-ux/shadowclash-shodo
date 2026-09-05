@@ -28,6 +28,15 @@ if (path.resolve(who.tree) !== path.resolve(process.cwd())) {
   process.exit(1);
 }
 spawnSync('pkill', ['-f', `remote-debugging-port=${dbg}`], { stdio: 'ignore' });
+// ⛔ WAIT FOR IT TO ACTUALLY BE GONE. pkill returns immediately; the old Chrome is still
+// listening on the debug port for a moment, so back-to-back runs attached to the DYING
+// page and died mid-sweep with "Execution context was destroyed" — which reads exactly
+// like an engine crash and is not one. Cost a bisect to find out.
+for (let i = 0; i < 60; i++) {
+  const still = spawnSync('pgrep', ['-f', `remote-debugging-port=${dbg}`], { encoding: 'utf8' });
+  if (!still.stdout || !still.stdout.trim()) break;
+  await new Promise(r => setTimeout(r, 100));
+}
 const chrome = spawn('/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
   ['--headless=new', '--disable-gpu', '--no-first-run', `--remote-debugging-port=${dbg}`,
    `--user-data-dir=${profile}`, `http://127.0.0.1:${port}/`], { stdio: 'ignore' });
@@ -70,7 +79,17 @@ const out = await ev(String.raw`(async()=>{
 
  // P1 keys, straight out of fireCombatKey: W jump, F light, G heavy, H special.
  const PRESS = { Light:'KeyF', Heavy:'KeyG', Special:'KeyH' };
- const HOLD  = { neutral:[], fwd:['KeyD'], back:['KeyA'], down:['KeyS'], up:['KeyW'] };
+ // ⛔ THE DIAGONALS ARE NOT DECORATION. getInputAxis() is nonzero on up-fwd and
+ // down-back, so a branch that tests the axis without !down && !up EATS a diagonal
+ // belonging to a move filed below it. Five cardinals can never see that class of bug:
+ // it only exists where two directions are held at once.
+ const HOLD  = { neutral:[], fwd:['KeyD'], back:['KeyA'], down:['KeyS'], up:['KeyW'],
+                 upfwd:['KeyW','KeyD'], upback:['KeyW','KeyA'],
+                 downfwd:['KeyS','KeyD'], downback:['KeyS','KeyA'] };
+
+ // DIRS=upfwd,back  narrows the sweep — used to bisect which press kills the page.
+ const ONLY = ${JSON.stringify(process.env.DIRS ? process.env.DIRS.split(',') : null)};
+ if (ONLY) for (const k of Object.keys(HOLD)) if (!ONLY.includes(k)) delete HOLD[k];
 
  const results = {};
  for (const idx of picks) {
@@ -90,17 +109,29 @@ const out = await ev(String.raw`(async()=>{
        for (const k in keys) keys[k] = false;
        const p = player1;
        p.x = 200; p.facing = 1;
+       // ⛔ y TOO. Without it a press that ends airborne (the chain anchor) leaves the
+       // NEXT press starting in mid-air with isGrounded lied back to true, and its dy
+       // measures from the wrong floor.
+       p.y = GROUND_Y - p.height;
        p.isGrounded = true; p.attackAir = false; p.vy = 0;
        p.state = STATE.IDLE; p.attackT = 0; p.lock = 0; p.recoveryTimer = 0;
        p.stunTimer = 0; p.rollTimer = 0; p.rollRecover = 0; p.sayaLock = 0;
        p.chainComboTier = 0; p.dashTimer = 0; p.chakra = 100; p.stamina = 100;
        p._lt = p._ht = -1e9;
        p.wireBind = 0; p.wireConv = null;
+       // MODE2=1 drives the SECOND stance/mode, where several fighters have a whole
+       // replacement branch set. Those branches are unreachable with the mode off, so a
+       // cardinal-or-diagonal sweep that never toggles it is blind to half the routing.
+       if (${JSON.stringify(!!process.env.MODE2)}) {
+         if (p.spec.id === 6) { p.karma = 100; p.cracked = true; }
+         if (p.spec.id === 2) p.kageNui = true;
+         if (p.spec.id === 1) p.hanbo = true;
+       }
        if (player2) { player2.x = 290; player2.isGrounded = true; }
        for (const k of held) keys[k] = true;
 
        const before = p.kageActs.length;
-       const st0 = p.state;
+       const st0 = p.state, x0 = p.x, y0 = p.y;
        let err = null;
        // ⛔ THE REAL FUNNEL. Not executeAttack — fireCombatKey, the one every keyboard,
        // touch and mouse press goes through, early returns and all.
@@ -122,7 +153,8 @@ const out = await ev(String.raw`(async()=>{
            drew = [...fams].filter(f=>!['idle','stand','run_clean'].includes(f)).join(',') || '-';
          }
        } catch(e) {}
-       rows.push({ tier, dir, code, box, state: st1, drew, acted: box>0 || moved, err });
+       rows.push({ tier, dir, code, box, state: st1, drew, acted: box>0 || moved, err,
+                   gnd: !!p.isGrounded, dx: Math.round(p.x-x0), dy: Math.round(p.y-y0) });
        for (const k in keys) keys[k] = false;
      }
    }
@@ -141,6 +173,12 @@ for (const [key, r] of Object.entries(out.results)) {
   const [who, mode] = key.split('|');
   if (r.fatal) { rows.push({ who, mode, fatal: r.fatal }); continue; }
   for (const x of r.rows) rows.push({ who, mode, ...x });
+}
+if (process.argv.includes('--raw')) {
+  for (const r of rows.filter(x => x.mode === 'versus' && !x.fatal))
+    console.log(`${r.who.padEnd(11)} ${(r.dir+'+'+r.tier).padEnd(17)} box=${String(r.box).padEnd(2)}`
+      + ` ${String(r.state).padEnd(15)} gnd=${r.gnd?'Y':'n'} dx=${String(r.dx).padStart(4)}`
+      + ` dy=${String(r.dy).padStart(4)} drew=${r.drew}${r.err ? ' ERR='+r.err : ''}`);
 }
 const dead = rows.filter(r => !r.fatal && !r.acted);
 const fatals = rows.filter(r => r.fatal);
@@ -170,6 +208,49 @@ if (eaten.length) {
   for (const e of eaten) console.log(`     ${e}`);
   console.log('     A training hotkey that reuses a combat key returns before the attack');
   console.log('     dispatch. P1 owns W/F/G/H/C/V; P2 owns ArrowUp/I/O/P/M/K.\n');
+}
+
+// ---- DIAGONAL STEAL -------------------------------------------------------
+// A diagonal holds a vertical AND a horizontal at once. If the diagonal behaves
+// EXACTLY like its horizontal half while its vertical half does something else,
+// the vertical was ignored: some branch tested getInputAxis() without !down && !up
+// and ate a press that belonged to a move filed below it. That is a whole move the
+// player cannot reach, and no cardinal-only sweep can see it.
+// ⛔ NO ART IN THIS FINGERPRINT. Exile's Iai cross draws `gsback,glback` on Back+Special
+// and `light` on UpBack+Special — different cells, but the SAME move: both travel 784px
+// in one frame. Fingerprinting on art called that two moves and hid the steal. What a
+// move IS is what it does: the state it enters, where it puts you, what it spawns.
+const fp = r => r && !r.fatal ? `${r.state}|${r.gnd}|${r.box}|${r.dx}|${r.dy}` : null;
+const at = (who, dir, tier) =>
+  fp(rows.find(r => r.who === who && r.mode === 'versus' && r.dir === dir && r.tier === tier));
+const DIAG = { upfwd: ['up', 'fwd'], upback: ['up', 'back'],
+               downfwd: ['down', 'fwd'], downback: ['down', 'back'] };
+const steals = [], hshadow = [];
+for (const who of [...new Set(rows.map(r => r.who))]) {
+  for (const tier of ['Light', 'Heavy', 'Special']) {
+    for (const [d, [v, h]] of Object.entries(DIAG)) {
+      const fd = at(who, d, tier), fv = at(who, v, tier), fh = at(who, h, tier);
+      if (!fd || !fv || !fh) continue;
+      // the vertical move is real and distinct, yet the diagonal played the horizontal
+      if (fd === fh && fv !== fh) steals.push({ who, d, tier, v, h });
+      else if (fd === fv && fh !== fv) hshadow.push({ who, d, tier, v, h });
+    }
+  }
+}
+if (steals.length) {
+  console.log(`  ⛔ DIAGONAL STEAL (${steals.length}) — the vertical half of the input is ignored,`);
+  console.log('     so the move on that vertical is UNREACHABLE while a direction is held:\n');
+  for (const s2 of steals)
+    console.log(`     ${s2.who.padEnd(12)} ${(s2.d + '+' + s2.tier).padEnd(18)} played ${s2.h}+${s2.tier}`
+                + `  — ${s2.v}+${s2.tier} never runs`);
+  console.log('');
+} else console.log('  ✓ no diagonal steals — every diagonal reaches its own move\n');
+if (hshadow.length) {
+  console.log(`  · vertical wins the diagonal (${hshadow.length}) — normal where the vertical move is`);
+  console.log('    the more specific one; listed so the choice is visible, not a defect:');
+  for (const s2 of hshadow)
+    console.log(`     ${s2.who.padEnd(12)} ${(s2.d + '+' + s2.tier).padEnd(18)} played ${s2.v}+${s2.tier}`);
+  console.log('');
 }
 
 // ---- SHARED FRAMES: two different inputs playing the same animation ----

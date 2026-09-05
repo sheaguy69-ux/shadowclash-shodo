@@ -7433,7 +7433,10 @@
                         this.spawnHitbox(110, 30, 9, 0.12, 60, { delay: 0.44, trip: true, tier: 'ATTACK_SPECIAL' });
                         return;
                     }
-                    if (axis === -this.facing && this.isGrounded) {
+                    // ⛔ !down && !up — the CRACKED row has the same hole the calm row had.
+                    // Measured with the mode forced on: UpBack+Special landed here and set
+                    // PARRY_STANCE, so his Up+Special never came out inside the mode at all.
+                    if (axis === -this.facing && !down && !up && this.isGrounded) {
                         // CRACKED REFLECT — he OFFERS his face. A caught hit answers
                         // with the same burst the Zen version uses (takeDamage); the
                         // madness is the wider window and the offer itself.
@@ -7515,7 +7518,13 @@
                 // NOTHING. An input that looks like a real move and does nothing is worse
                 // than an empty one. In the air this now falls through to the heli spin,
                 // which genuinely works up there.
-                if (specId === 7 && axis === -this.facing && this.isGrounded) {
+                // ⛔ !down && !up, or the CROSS EATS BOTH BACK DIAGONALS. Measured on
+                // 9101: UpBack+Special and DownBack+Special each travelled 784px — the
+                // full-arena Iai — while Up+Special's chain anchor (which lives BELOW
+                // this branch) and the heli spin never ran at all. axis is nonzero on a
+                // diagonal, so back+up still reads as back. Her forward grapple two
+                // screens up already carries this guard; this only makes the pair match.
+                if (specId === 7 && axis === -this.facing && !down && !up && this.isGrounded) {
                     this.executeIaijutsu();
                     return;
                 }
@@ -7695,7 +7704,12 @@
                     // Priced at KAGE_ZIP_COST, not KAGE_COST: it is a reposition, not a cast.
                     // `!this.tether` keeps the reel-in — the wire is already out, and yanking
                     // yourself along it has to beat a repositioning tool that would drop it.
-                    if (axis === this.facing && this.isGrounded && !this.tether) {
+                    // ⛔ !down && !up. In the Kage-Nui stance BOTH forward diagonals fell in
+                    // here: UpFwd and DownFwd+Special each vanished-stepped instead of
+                    // reaching his up and down specials. The stance branches are invisible to
+                    // any sweep that does not turn the stance on, which is why they outlived
+                    // the guard added to his calm row.
+                    if (axis === this.facing && !down && !up && this.isGrounded && !this.tether) {
                         if (this.stamina < KAGE_ZIP_COST) return;   // the stance eats the press
                         this.stamina -= KAGE_ZIP_COST;
                         this.chakraCd = CHAKRA_SPEND_STALL;
@@ -7742,7 +7756,12 @@
                     sfx('shuriken');   // a fan release is a projectile zip, not a swing
                     return;
                 }
-                if (specId === 2 && axis === this.facing && this.isGrounded) {
+                // ⛔ !down && !up. UpFwd+Special threw the wire shuriken and his rising
+                // special (srisaa) never came out — while UpBack+Special reached it fine,
+                // so the same input was live on one diagonal and dead on the other. down
+                // is already claimed by the branch above; naming it here keeps the guard
+                // whole rather than relying on that ordering to stay put.
+                if (specId === 2 && axis === this.facing && !down && !up && this.isGrounded) {
                     // WIRE SHURIKEN — slower, wired; on hit it YANKS them TO you.
                     this.projectiles.push({ x: this.x + this.facing * 15, y: this.y + this.height / 2,
                                             vx: this.facing * 300, vy: 0, kind: 'wire' });
@@ -8096,7 +8115,10 @@
                     screenShakeAmount = Math.max(screenShakeAmount, 6);
                     return;
                 }
-                if (specId === 6 && axis === this.facing && this.isGrounded) {
+                // ⛔ !down && !up — the same asymmetry the monk had: UpFwd+Special fired
+                // this forward special (3 boxes) while UpBack+Special correctly reached
+                // his Up+Special. One diagonal answered, the other did not.
+                if (specId === 6 && axis === this.facing && !down && !up && this.isGrounded) {
                     // PRAYER ORBIT — the cyclone his card promises: bead-wrapped palms
                     // out, an ARMORED spinning advance that carries him half a screen
                     // forward. Three rolling contacts, not one plant — this is how the
@@ -10427,7 +10449,7 @@
         // the skeleton doll mid-fight (exactly what the owner saw on his phone after the
         // #40 art drop). The width check catches any mismatch that still slips through
         // and retries once with a hard cache-buster.
-        const SHEET_V = 711;   // (711: AUDIT #5 AND #6 — air normals stopped swapping to ground art on landing, and the air-heavy directional map is reachable. #5: THREE branches served airborne attacks off the LIVE isGrounded instead of the press-time attackAir latch — the ground-light dirCells gate, the airAttackCells light fallback and the air1..3 tail — so touching down before recovery ended handed the rest of the swing to the grounded row. Measured across all nine: aneu -> light on six, aneu -> xnuki on Executioner, kxcut -> kdual on Kael. All three now read attackAir and every fighter holds its air art through the landing (aneu -> aneu, kxcut -> kxcut). #6: airAttackCells() returns aneu/bair/kxcut — the generic AIR LIGHT row — and it was answering the HEAVY case before the hfwd/hback/hup/hdown/hneu map was ever read, so that map was unreachable for every fighter without a kxcut row. Reordered: the directional map runs first, the generic row is the fallback. Oni now reaches hfwd and Executioner/Shin reach hneu where before all four directions drew aneu. ⛔ MOKURAI'S mstrike IS NOT PACKED ON THIS SHEET — the audit called it shadowed dead and the branch order was indeed wrong, but on the Shodo sheet the row does not exist at all, so his air heavy still draws bair. That is art owed, not routing. The fighters still showing aneu on fwd/back/up have no hfwd/hback/hup packed either — also art owed, listed rather than faked.) (710: AUDIT #1 — THE THREE FASTEST FIGHTERS SHED AFTER-IMAGES WHILE WALKING. SPEEDLINE_V is 460 and its own comment justifies that as sitting 'ABOVE the fastest walk (moveSpeed peaks at 350 * 6/6)'. moveSpeed is 350 * speed/6 and the roster runs to speed 10, so the real walk tops are Exile 583, Shin 525, Ember 467 — all at or above the line. Ordinary strolling tripped the burst-only trail. Fixed with BOTH tests, because either alone is wrong: the 460 floor STAYS so the burst speeds the comment names still smear for every fighter (a wall-jump launch at 480 and Shin's wire yank at 560 sit between the slowest and fastest walks, so a per-fighter floor would silence them on exactly the fast cast they were written for), and a second test kills the walking trail — ordinary movement cannot exceed a fighter's own walk top, so anything above it is a dash, launch, reel or knockback. Where a burst now reads clean for Shin or Exile that is CORRECT: 480 is slower than they walk. Verified: all nine walk clean, dash 800 smears for all nine.) 709: DIRECTIONS. Owner: "characters directions still havent
+        const SHEET_V = 712;   // (712: DIAGONAL STEALS — five inputs that reached the wrong move. A branch testing getInputAxis() without !down && !up matches on a DIAGONAL too, so it swallows a press belonging to a move filed below it. The file states this law at the grapple ('axis === facing is TRUE on up-forward and down-forward') and it had been applied to some branches and not their siblings. Measured, not read: tools/drive_real_input.mjs now presses the four diagonals as well as the five cardinals (54 presses a fighter, both modes) and fingerprints each press by BEHAVIOUR — state, grounded, hitbox count, dx, dy — never by art, because Exile's Iai cross draws gsback+glback on Back+Special and 'light' on UpBack+Special while both travel the same 784px: fingerprinting on cells called one move two and hid the steal completely. FIXED: exile back+Special (UpBack and DownBack each fired the full-arena Iai instead of the chain anchor and Serpent's Tongue), shin fwd+Special (UpFwd threw the wire shuriken; his rising srisaa never came out, while UpBack reached it — live on one diagonal, dead on the other), mokurai fwd+Special (same asymmetry), and the two that only exist inside a second mode and so had outlived every previous sweep: mokurai CRACKED back+Special (UpBack set PARRY_STANCE) and shin KAGE-NUI fwd+Special (BOTH forward diagonals vanish-stepped). NOT FIXED, deliberately: mokurai upback+Heavy still plays the palm blast — that branch reads up/down to AIM the projectile, so the diagonal is the aim, not a theft. Verified: nine fighters x two modes x 54 presses, zero dead inputs, zero steals. (711: AUDIT #5 AND #6 — air normals stopped swapping to ground art on landing, and the air-heavy directional map is reachable. #5: THREE branches served airborne attacks off the LIVE isGrounded instead of the press-time attackAir latch — the ground-light dirCells gate, the airAttackCells light fallback and the air1..3 tail — so touching down before recovery ended handed the rest of the swing to the grounded row. Measured across all nine: aneu -> light on six, aneu -> xnuki on Executioner, kxcut -> kdual on Kael. All three now read attackAir and every fighter holds its air art through the landing (aneu -> aneu, kxcut -> kxcut). #6: airAttackCells() returns aneu/bair/kxcut — the generic AIR LIGHT row — and it was answering the HEAVY case before the hfwd/hback/hup/hdown/hneu map was ever read, so that map was unreachable for every fighter without a kxcut row. Reordered: the directional map runs first, the generic row is the fallback. Oni now reaches hfwd and Executioner/Shin reach hneu where before all four directions drew aneu. ⛔ MOKURAI'S mstrike IS NOT PACKED ON THIS SHEET — the audit called it shadowed dead and the branch order was indeed wrong, but on the Shodo sheet the row does not exist at all, so his air heavy still draws bair. That is art owed, not routing. The fighters still showing aneu on fwd/back/up have no hfwd/hback/hup packed either — also art owed, listed rather than faked.) (710: AUDIT #1 — THE THREE FASTEST FIGHTERS SHED AFTER-IMAGES WHILE WALKING. SPEEDLINE_V is 460 and its own comment justifies that as sitting 'ABOVE the fastest walk (moveSpeed peaks at 350 * 6/6)'. moveSpeed is 350 * speed/6 and the roster runs to speed 10, so the real walk tops are Exile 583, Shin 525, Ember 467 — all at or above the line. Ordinary strolling tripped the burst-only trail. Fixed with BOTH tests, because either alone is wrong: the 460 floor STAYS so the burst speeds the comment names still smear for every fighter (a wall-jump launch at 480 and Shin's wire yank at 560 sit between the slowest and fastest walks, so a per-fighter floor would silence them on exactly the fast cast they were written for), and a second test kills the walking trail — ordinary movement cannot exceed a fighter's own walk top, so anything above it is a dash, launch, reel or knockback. Where a burst now reads clean for Shin or Exile that is CORRECT: 480 is slower than they walk. Verified: all nine walk clean, dash 800 smears for all nine.) 709: DIRECTIONS. Owner: "characters directions still havent
         // been corrected." He was right and my facing audit answered the wrong question — it
         // checked which way the HEAD points (249 rows, all clean, and still clean) and never
         // asked whether a DIRECTIONAL MOVE reaches its own art. Driving all nine fighters
