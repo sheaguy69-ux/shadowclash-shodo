@@ -10427,7 +10427,7 @@
         // the skeleton doll mid-fight (exactly what the owner saw on his phone after the
         // #40 art drop). The width check catches any mismatch that still slips through
         // and retries once with a hard cache-buster.
-        const SHEET_V = 710;   // (710: AUDIT #1 — THE THREE FASTEST FIGHTERS SHED AFTER-IMAGES WHILE WALKING. SPEEDLINE_V is 460 and its own comment justifies that as sitting 'ABOVE the fastest walk (moveSpeed peaks at 350 * 6/6)'. moveSpeed is 350 * speed/6 and the roster runs to speed 10, so the real walk tops are Exile 583, Shin 525, Ember 467 — all at or above the line. Ordinary strolling tripped the burst-only trail. Fixed with BOTH tests, because either alone is wrong: the 460 floor STAYS so the burst speeds the comment names still smear for every fighter (a wall-jump launch at 480 and Shin's wire yank at 560 sit between the slowest and fastest walks, so a per-fighter floor would silence them on exactly the fast cast they were written for), and a second test kills the walking trail — ordinary movement cannot exceed a fighter's own walk top, so anything above it is a dash, launch, reel or knockback. Where a burst now reads clean for Shin or Exile that is CORRECT: 480 is slower than they walk. Verified: all nine walk clean, dash 800 smears for all nine.) 709: DIRECTIONS. Owner: "characters directions still havent
+        const SHEET_V = 711;   // (711: AUDIT #5 AND #6 — air normals stopped swapping to ground art on landing, and the air-heavy directional map is reachable. #5: THREE branches served airborne attacks off the LIVE isGrounded instead of the press-time attackAir latch — the ground-light dirCells gate, the airAttackCells light fallback and the air1..3 tail — so touching down before recovery ended handed the rest of the swing to the grounded row. Measured across all nine: aneu -> light on six, aneu -> xnuki on Executioner, kxcut -> kdual on Kael. All three now read attackAir and every fighter holds its air art through the landing (aneu -> aneu, kxcut -> kxcut). #6: airAttackCells() returns aneu/bair/kxcut — the generic AIR LIGHT row — and it was answering the HEAVY case before the hfwd/hback/hup/hdown/hneu map was ever read, so that map was unreachable for every fighter without a kxcut row. Reordered: the directional map runs first, the generic row is the fallback. Oni now reaches hfwd and Executioner/Shin reach hneu where before all four directions drew aneu. ⛔ MOKURAI'S mstrike IS NOT PACKED ON THIS SHEET — the audit called it shadowed dead and the branch order was indeed wrong, but on the Shodo sheet the row does not exist at all, so his air heavy still draws bair. That is art owed, not routing. The fighters still showing aneu on fwd/back/up have no hfwd/hback/hup packed either — also art owed, listed rather than faked.) (710: AUDIT #1 — THE THREE FASTEST FIGHTERS SHED AFTER-IMAGES WHILE WALKING. SPEEDLINE_V is 460 and its own comment justifies that as sitting 'ABOVE the fastest walk (moveSpeed peaks at 350 * 6/6)'. moveSpeed is 350 * speed/6 and the roster runs to speed 10, so the real walk tops are Exile 583, Shin 525, Ember 467 — all at or above the line. Ordinary strolling tripped the burst-only trail. Fixed with BOTH tests, because either alone is wrong: the 460 floor STAYS so the burst speeds the comment names still smear for every fighter (a wall-jump launch at 480 and Shin's wire yank at 560 sit between the slowest and fastest walks, so a per-fighter floor would silence them on exactly the fast cast they were written for), and a second test kills the walking trail — ordinary movement cannot exceed a fighter's own walk top, so anything above it is a dash, launch, reel or knockback. Where a burst now reads clean for Shin or Exile that is CORRECT: 480 is slower than they walk. Verified: all nine walk clean, dash 800 smears for all nine.) 709: DIRECTIONS. Owner: "characters directions still havent
         // been corrected." He was right and my facing audit answered the wrong question — it
         // checked which way the HEAD points (249 rows, all clean, and still clean) and never
         // asked whether a DIRECTIONAL MOVE reaches its own art. Driving all nine fighters
@@ -10809,6 +10809,28 @@
                 return a;
             }
             return null;
+        }
+
+        // ONE AIRBORNE POSE off that same row, by beat (1-based, clamped).
+        // Two places need a single HELD cell rather than a played row — the air up-poke
+        // and the meteor's hang/plunge — and both of them ended their `??` chain on
+        // light3, fall2 or ajump4. Cropped and LOOKED at, those are planted standing
+        // stances on eight of the nine sheets (fall/fall2/ajump4 are the same cell on
+        // five of them), so the poke and the plunge were drawing a fighter standing on
+        // the floor while he was in the sky. That is the owner's own complaint —
+        // "ain't no ground frames when they in the air" — and 707 fixed it everywhere
+        // except these two held cells, because neither of them plays a row.
+        // ⛔ MEASURED OFF THE ART, NOT THE ALPHA. Every cell is packed foot-anchored, so
+        // "lowest ink vs footY" reads 3-5px on the whole roster and cannot tell a jump
+        // from an idle. The verdict here came from rendering all 18 through the runtime
+        // keyer and looking at them.
+        // ponytail: one shared beat per use, not a per-fighter map. Beat 3 is weapon-up
+        // on eight of nine air rows (kael's kxcut peaks a beat earlier); if the owner
+        // wants a specific pose per fighter, this is where the map goes.
+        function airPose(F, beat) {
+            const a = airAttackCells(F);
+            if (!a || !a.length) return undefined;
+            return a[Math.min(Math.max(beat, 1), a.length) - 1];
         }
 
         function runCells(F) {
@@ -12037,7 +12059,10 @@
                     }
                     if (p.airUpAnim && F.airkick2 !== undefined && F.air3 !== undefined)
                         return attackFrame(p, [F.air1, F.air2, F.air3], F);
-                    if (p.airUpAnim) return F.upatk3 ?? F.air2 ?? F.light3 ?? F.light1;
+                    // The skyward cell — off his AIR row, because `light3` (six fighters),
+                    // `upatk3` (mokurai, a kneeling pose) and `ajump4` (kael, executioner)
+                    // are all planted. See airPose.
+                    if (p.airUpAnim) return airPose(F, 3) ?? F.upatk3 ?? F.air2 ?? F.light3 ?? F.light1;
                     // EXILE's grounded UP-FLICK: three drawn beats of its own (chamber ->
                     // sickle snapped straight up -> back to guard). It borrowed upatk3, the
                     // Up Reach cell — a 420ms committal chain throw standing in for a 160ms
@@ -12183,7 +12208,14 @@
                             return attackFrame(p, [F[row + '1'], F[row + '2']],
                                                F, trackFor(p, 'light'));
                     }
-                    if (p.isGrounded) {
+                    // ⛔ !attackAir, NOT isGrounded (audit #5). attackAir is latched when the
+                    // button is pressed; isGrounded is live. A light started in the air whose
+                    // fighter touches down before recovery ends flipped this test true and
+                    // handed the rest of the move to the GROUND row — measured as aneu -> light
+                    // on six fighters and kxcut -> kdual on Kael, the swing changing art
+                    // mid-swing. The latch is what every air branch below already reads, so
+                    // this is the one test that disagreed with them.
+                    if (!p.attackAir) {
                         const gl = dirCells(p, F, { fwd: 'glfwd', back: 'glback', down: 'gldown',
                                                     up: 'glup', neutral: 'glneu' });
                         if (gl) return attackFrame(p, gl, F, trackFor(p, 'light'));
@@ -12212,12 +12244,20 @@
                     // and the picker's last resort drew him STANDING (89 frames measured across
                     // Light and Medium). airAttackCells hands him his kxcut, which is the
                     // jumping X-cut his own sheet names.
-                    if (!p.isGrounded) {
+                    // ⛔ attackAir, NOT !isGrounded (audit #5). This is the branch that
+                    // actually serves the airborne Light for eight of nine — aneu, bair or
+                    // Kael's kxcut — and it was the live-gated one, so touching down before
+                    // recovery ended dropped straight past it into the grounded rows below:
+                    // measured aneu -> light on six fighters, aneu -> xnuki on Executioner and
+                    // kxcut -> kdual on Kael, the picture changing mid-swing.
+                    if (p.attackAir) {
                         const an = airAttackCells(F);
                         if (an) return attackFrame(p, an, F, trackFor(p, 'light'));
                     }
                     // aerial slash: airborne normals get their own sequence (owner order)
-                    if (!p.isGrounded && F.air3 !== undefined)
+                    // attackAir, not !isGrounded — landing mid-swing must not snap him to
+                    // standing art while the move is still running (audit #5).
+                    if (p.attackAir && F.air3 !== undefined)
                         return attackFrame(p, [F.air1, F.air2, F.air3], F);
                     // EMBER light = the PLANTED alternating claw barrage (elight1..5): hunch
                     // chamber -> right rake -> through -> left rake -> recover, one claw out at
@@ -12398,7 +12438,13 @@
                     }
                     if (p.slamPhase && F.hdown3 !== undefined)
                         return p.slamPhase === 1 ? F.hdown2 : F.hdown3;
-                    if (p.slamPhase) return F.kstomp ?? F.fall2 ?? F.fall;
+                    // Still ONE committed pose per phase — that part of the design stands —
+                    // but an AIRBORNE one: beat 1 is the tuck for the hang, beat 4 the
+                    // committed drive for the plunge. Oni is untouched; his drawn dive row
+                    // returns above. See airPose.
+                    if (p.slamPhase)
+                        return airPose(F, p.slamPhase === 1 ? 1 : 4)
+                               ?? F.kstomp ?? F.fall2 ?? F.fall;
                     // EXILE UP REACH — five drawn beats (plant -> whip -> the chain VERTICAL
                     // and taut -> fall -> catch). It used to draw upatk3, ONE cell, for a
                     // 420ms move, and shared that cell with her 160ms up-flick: two different
@@ -12539,14 +12585,32 @@
                     // ⛔ KAEL IS EXCLUDED BY F.kxcut1. His JUMPING X-CUT is his air heavy and
                     // owns its own timing track ('xcut'); its branch is below this one, so
                     // catching him here would draw the same cells on the wrong track.
-                    if (!p.isGrounded && F.kxcut1 === undefined) {
-                        const ac = airAttackCells(F);
-                        if (ac) return attackFrame(p, ac, F, trackFor(p, 'heavy'));
-                    }
+                    // ⛔ THE DIRECTIONAL MAP RUNS FIRST, AND THE GENERIC ROW IS THE FALLBACK.
+                    // These two were the other way round, so airAttackCells() — which returns
+                    // aneu/bair/kxcut, the generic AIR LIGHT row — answered every airborne
+                    // heavy before the hfwd/hback/hup/hdown/hneu map was ever read. The map
+                    // was unreachable for every fighter whose sheet has an air row and no
+                    // kxcut1, and Mokurai's air heavy drew `bair`, his air LIGHT cells, while
+                    // the mstrike1..5 row written for it sat dead in heavyCells() at the very
+                    // bottom of this switch. Same branch-order trap this file keeps teaching.
                     if (p.attackAir) {
                         const c = dirCells(p, F, { fwd: 'hfwd', back: 'hback', up: 'hup',
                                                    down: 'hdown', neutral: 'hneu' });
                         if (c) return attackFrame(p, c, F, trackFor(p, 'heavy'));
+                    }
+                    // MOKURAI'S AIRBORNE FIST DRIVE — its own row, above the generic fallback
+                    // or bair swallows it exactly as before.
+                    if (p.attackAir && p.spec.name === 'Mokurai' && F.mstrike1 !== undefined) {
+                        const ms = [];
+                        for (let i = 1; F['mstrike' + i] !== undefined; i++) ms.push(F['mstrike' + i]);
+                        return attackFrame(p, ms, F, trackFor(p, 'heavy'));
+                    }
+                    // ⛔ attackAir, NOT !isGrounded. Captured at press time, so touching down
+                    // mid-swing cannot swap the fighter to standing art before recovery ends —
+                    // the same latch every branch above already uses.
+                    if (p.attackAir && F.kxcut1 === undefined) {
+                        const ac = airAttackCells(F);
+                        if (ac) return attackFrame(p, ac, F, trackFor(p, 'heavy'));
                     }
                     // JUMPING X-CUT — his air heavy. air1..3 is the one generic set every
                     // early fighter shares; this is the move his own sheet names.
