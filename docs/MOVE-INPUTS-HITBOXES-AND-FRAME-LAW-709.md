@@ -5,13 +5,13 @@
 | | |
 |---|---|
 | Tree | `/Users/anthonyguy/SHADOWCLASH.1.0*2/SHODO-EDITION` (served on **:9101**) |
-| SHEET_V | **709** |
-| HEAD | `1429501 dirs(709): two fighters' heavy attacks were their idle pose` |
+| SHEET_V | measured at **709**, re-measured and updated at **711** |
+| HEAD | `0f5d796 test(air): the two HELD airborne cells get a runnable gate` |
 | Written | 2026-09-05 |
 | Engine | one file — `web/index.html`, 20,284 lines |
 | Sheets | `web/assets/sprites/<fighter>.png` + `<fighter>.json` |
 
-**Nothing below is quoted from a design doc.** Every move table in §5 was produced by
+**Nothing below is quoted from a design doc.** Every move table in §5 was produced at SHEET_V 711 by
 pressing the input on a real `Player` object in a real headless match and reading back
 what actually drew and what hitbox actually spawned:
 
@@ -956,8 +956,10 @@ symptom go away — the sweep reports what it REACHED, nothing more.
 
 The move **runs** — the box spawns, the vx applies, the recovery is right. Only the
 **art** falls back to a generic row, because the row the table names was never packed.
-**13 of the 22 `DIR_MOVES` art rows do not exist.** This is ART OWED, not a routing bug:
-do NOT rewrite the table to point at the fallback row — that would delete the request.
+**12 of the 22 `DIR_MOVES` art rows are not on the SHODO sheets — and all twelve are packed on
+`SHADOWCLASH-RECOVERED`.** This is a PORT, not an art gap: the SHODO sheets were rebuilt and
+these directional rows never came across. Do NOT rewrite the table to point at the fallback
+row — that would delete the request. See §7.4.
 
 | input | table's art | on the sheet? | what actually drew |
 |---|---|---|---|
@@ -978,6 +980,8 @@ Packed and working: Mizu `bolow`/`ristaff`, Tsubasa `rgrush`/`lowtanto`/`ristwin
 Shin `srisaa`, Tsubasa `divecut`/`airthrow`, Oni `ghfwd`/`ghup`.
 
 ### 7.2 Inputs that play ONE cell — a held pose, not an animation
+
+**FIXED at 711 for the airborne ones.** See §7.4.
 
 | input | draws | cells |
 |---|---|---|
@@ -1003,11 +1007,10 @@ Shin `srisaa`, Tsubasa `divecut`/`airthrow`, Oni `ghfwd`/`ghup`.
 | Oni · air Light up | `light` | 1 |
 | Oni · air Heavy down | `dive` | 1 |
 
-The pattern is roster-wide and identical on nearly every fighter: **air Light + Up**
-and **air Heavy + Down**. Two suspects, and they are different problems —
-air-up has no drawn anti-air, and air-down is the meteor/dive, which on most
-sheets is landing on a jump or fall cell instead of a dive row. Oni is the only
-fighter with a real `dive` row and even his plays one cell.
+The pattern is roster-wide: **air Light + Up** and **air Heavy + Down**. The count of
+one-cell holds is unchanged at 711 and that is correct — the fix was never about the
+count. Both are *supposed* to hold one cell (an up-poke and a committed plunge). What
+was wrong was WHICH cell. See §7.4.
 
 ### 7.3 Inputs with no box, no projectile and no field
 
@@ -1032,12 +1035,75 @@ Special is his 0.133 s parry and is *supposed* to be empty here. Kael's three
 
 ---
 
+### 7.4 What 711 changed, and what is still owed
+
+**FIXED — the two held airborne cells were planted stances.**
+
+The air up-poke and the meteor's hang and plunge are the only two things in the game that
+**hold one cell** instead of playing a row, which is exactly why the 707 air sweep never
+reached them: it walked rows. Their `??` chains ended on `light3` (six fighters), `upatk3`
+(Mokurai, a kneeling pose), `ajump4` (Kael, Executioner) and `fall2` — and `fall`, `fall2`
+and `ajump4` are the SAME cell on five sheets. Rendered through the runtime keyer and
+looked at, every one of them is a **planted standing stance**. Up+Light in the sky drew a
+man standing on the floor, and so did every meteor plunge but Oni's.
+
+⛔ **The alpha cannot tell you this.** Every cell is packed foot-anchored, so "lowest ink
+versus `footY`" reads 3–5 px for all eighteen and calls an idle and a jump the same thing.
+The verdict came from rendering them. This is why `eye_scale` is invalid on packed cells
+and why bbox height is banned as a ruler — the same trap, one function along.
+
+| input | 709 drew | 711 draws |
+|---|---|---|
+| air Light + Up · six fighters | `light3` *(a ground light)* | air row beat 3 |
+| air Light + Up · Kael, Executioner | `ajump4` / `fall2` | `kxcut3` / `aneu3` |
+| air Light + Up · Mokurai | `upatk3` *(kneeling)* | `bair3` |
+| meteor hang · eight fighters | `fall2` / `ajump4` / `bjump4` / `xjump4` | air row beat 1 |
+| meteor plunge · eight fighters | `fall2` / `ajump4` / `bjump4` / `xjump4` | air row beat 4 |
+| meteor · Oni | `dive1` / `dive3` | unchanged — his drawn dive row wins |
+
+Still **one committed pose per phase** — that part of the meteor's design is untouched.
+Only which cell. One shared helper, `airPose(F, beat)`, next to `airAttackCells`; a
+`ponytail:` comment marks the one shared beat per use as the deliberate simplification and
+names the upgrade path (a per-fighter beat map) if the owner wants specific poses.
+
+Gated by **`tools/check_air_held_poses.mjs`** — 27 assertions, all nine fighters, each held
+cell asserted to be a member of `airAttackCells()` or of a drawn dive row. Driven through
+`executeAttack`, not hand-set: `spriteFrameIndex` returns `xidle` for a Player that is not
+actually mid-move, so a synthetic `slamPhase` proves nothing.
+
+Five more rows moved in the same window from the co-tenant lane's audit — Executioner and
+Shin air Heavy neutral now reach `hneu`, Oni reaches `hfwd`/`hup`. **22 of the 270 inputs
+changed between 709 and 711.**
+
+**OWED — the 12 rows are a PORT, and it is the owner's call.**
+
+Every one of the twelve missing `DIR_MOVES` art rows is packed on `SHADOWCLASH-RECOVERED`:
+
+| fighter | rows on RECOVERED | beats | read |
+|---|---|---|---|
+| Mizu | `bothrust`, `staffspin` | 7, 7 | same purple, same ink, same silhouette — **cleanest port** |
+| Shin | `ghfwd`, `ghback`, `ghdown`, `ghup` | 6 each | his SHODO cells are smaller; a scale pass is part of the port |
+| Tsubasa | `eflick` | 6 | one row; his other three directionals already work |
+| Ember | `clawrend`, `lowrake`, `eretreat` | 6 each | same hooded claw design — **second-cleanest** |
+| Oni | `ghback`, `ghdown` | 10, 8 | ⚠ **check against the Aug 9 bible first** — his design was rebuilt after the old one was purged, and the RECOVERED sheet may predate that. If it is the superseded Oni, the row does not come across at any price. |
+
+**Nothing has been repointed.** A port appends the cells to the SHODO sheet and points the
+key at them, which changes what the owner sees — rule 3, frames first. Row counts of 6–7
+against SHODO's 8 are fine (the engine collects `1..N`); scale is not — every port needs
+`check_row_scale` + `eye_scale` + `gate_fragments` against the SHODO idle before it packs,
+and the sheets stay append-only.
+
+Frames for every row: https://claude.ai/code/artifact/5cb6642d-a73a-4b55-99f3-00387768d38d
+
+---
+
 ## 8. Reproduce everything in this document
 
 ```bash
 python3 tools/serve.py 9101 web            # if :9101 is not already up
 curl -s 127.0.0.1:9101/whoami              # confirm tree + SHEET_V before trusting anything
-PORT=9101 node tools/moveset_probe.mjs     # all nine fighters, 30 inputs each
+PORT=9101 node tools/moveset_probe.mjs          # all nine fighters, 30 inputs each
+PORT=9101 node tools/check_air_held_poses.mjs   # the 27 held-pose assertions
 node tools/movelist.mjs --name oni         # one fighter, verbose
 node tools/check_dir_moves.mjs             # DIR_MOVES / DIR_SPECIALS routing
 node tools/check_air_no_ground.mjs         # no ground frame plays in the air
