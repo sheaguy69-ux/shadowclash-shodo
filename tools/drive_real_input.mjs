@@ -19,12 +19,12 @@ import path from 'node:path';
 
 const NAME = (process.argv.includes('--name')
   ? process.argv[process.argv.indexOf('--name') + 1] : 'oni').toLowerCase();
-const port = +(process.env.PORT || 9100), dbg = 9368;
+const port = +(process.env.PORT || 9101), dbg = 9368;
 const profile = await mkdtemp(path.join(tmpdir(), 'ri-'));
 const who = await fetch(`http://127.0.0.1:${port}/whoami`).then(r => r.json()).catch(() => null);
-if (!who) { console.error(`no server on :${port} — python3 tools/serve.py 9100 web`); process.exit(1); }
+if (!who) { console.error(`no server on :${port} — python3 tools/serve.py ${port} web`); process.exit(1); }
 if (path.resolve(who.tree) !== path.resolve(process.cwd())) {
-  console.error(`:9100 is serving ${who.tree}\nrebind: kill ${who.pid} && python3 tools/serve.py 9100 web`);
+  console.error(`:${port} is serving ${who.tree}; run against this tree's server`);
   process.exit(1);
 }
 spawnSync('pkill', ['-f', `remote-debugging-port=${dbg}`], { stdio: 'ignore' });
@@ -63,22 +63,27 @@ const ev = x => new Promise((res, rej) => {
 }).then(r => { if (r.exceptionDetails) throw new Error(r.exceptionDetails.exception?.description || r.exceptionDetails.text); return r.result.value; });
 
 const ALLF = process.argv.includes('--all');
-const out = await ev(String.raw`(async()=>{
+let out;
+try {
+  out = await ev(String.raw`(async()=>{
  const process_all=${ALLF};
  const NM=${JSON.stringify(NAME)};
  for(let i=0;i<400;i++){
    if(typeof NINJA_ROSTER!=='undefined' && typeof startNewGame==='function'
       && typeof fireCombatKey==='function' && typeof SPRITES!=='undefined'
-      && SPRITES[NM] && SPRITES[NM].ready) break;
+      && NINJA_ROSTER.every(s => SPRITES[s.name.toLowerCase()]?.ready)) break;
    await new Promise(r=>setTimeout(r,50));
  }
+ if (typeof NINJA_ROSTER === 'undefined' || typeof SPRITES === 'undefined'
+     || !NINJA_ROSTER.every(s => SPRITES[s.name.toLowerCase()]?.ready))
+   return {fatal:'roster sheets did not become ready'};
  const ALL = process_all;
  const picks = ALL ? NINJA_ROSTER.map((_,i)=>i)
                    : [NINJA_ROSTER.findIndex(s=>s.name.toLowerCase()===NM)];
  if(picks[0]<0) return {fatal:'not on the roster: '+NM};
 
- // P1 keys, straight out of fireCombatKey: W jump, F light, G heavy, H special.
- const PRESS = { Light:'KeyF', Heavy:'KeyG', Special:'KeyH' };
+ // P1 keys, straight out of fireCombatKey: W jump, F/J/G/H attacks.
+ const PRESS = { Light:'KeyF', Medium:'KeyJ', Heavy:'KeyG', Special:'KeyH' };
  // ⛔ THE DIAGONALS ARE NOT DECORATION. getInputAxis() is nonzero on up-fwd and
  // down-back, so a branch that tests the axis without !down && !up EATS a diagonal
  // belonging to a move filed below it. Five cardinals can never see that class of bug:
@@ -107,6 +112,8 @@ const out = await ev(String.raw`(async()=>{
      for (const [dir, held] of Object.entries(HOLD)) {
        // a clean fighter every press — no carried recovery, no stale chain
        for (const k in keys) keys[k] = false;
+       startNewGame();
+       roundIntroTimer = 0; paused = false; hitstopRemaining = 0;
        const p = player1;
        p.x = 200; p.facing = 1;
        // ⛔ y TOO. Without it a press that ends airborne (the chain anchor) leaves the
@@ -129,6 +136,12 @@ const out = await ev(String.raw`(async()=>{
        }
        if (player2) { player2.x = 290; player2.isGrounded = true; }
        for (const k of held) keys[k] = true;
+       // W keydown jumps before the attack keydown; merely holding W invents a
+       // grounded up-attack. Keep this assertion so the harness cannot regress silently.
+       if (held.includes('KeyW')) {
+         fireCombatKey('KeyW');
+         if (p.isGrounded) throw new Error(who + ': Up did not jump');
+       }
 
        const before = p.kageActs.length;
        const st0 = p.state, x0 = p.x, y0 = p.y;
@@ -152,7 +165,7 @@ const out = await ev(String.raw`(async()=>{
            }
            drew = [...fams].filter(f=>!['idle','stand','run_clean'].includes(f)).join(',') || '-';
          }
-       } catch(e) {}
+       } catch(e) { err = e.message.slice(0,70); }
        rows.push({ tier, dir, code, box, state: st1, drew, acted: box>0 || moved, err,
                    gnd: !!p.isGrounded, dx: Math.round(p.x-x0), dy: Math.round(p.y-y0) });
        for (const k in keys) keys[k] = false;
@@ -163,7 +176,9 @@ const out = await ev(String.raw`(async()=>{
  }
  return { results, all: ALL };
 })()`);
-ws.close(); chrome.kill('SIGKILL');
+} finally {
+  ws.close(); chrome.kill('SIGKILL');
+}
 
 if (out.fatal) { console.error(out.fatal); process.exit(2); }
 
@@ -182,6 +197,8 @@ if (process.argv.includes('--raw')) {
 }
 const dead = rows.filter(r => !r.fatal && !r.acted);
 const fatals = rows.filter(r => r.fatal);
+const errors = rows.filter(r => r.err);
+for (const r of [...fatals, ...errors]) console.error(r.who, r.mode, r.dir, r.tier, r.fatal || r.err);
 
 console.log('\n  REAL-KEY AUDIT — every press through fireCombatKey, both modes\n');
 console.log(`  ${rows.filter(r=>!r.fatal).length} presses driven across ` +
@@ -227,8 +244,9 @@ const DIAG = { upfwd: ['up', 'fwd'], upback: ['up', 'back'],
                downfwd: ['down', 'fwd'], downback: ['down', 'back'] };
 const steals = [], hshadow = [];
 for (const who of [...new Set(rows.map(r => r.who))]) {
-  for (const tier of ['Light', 'Heavy', 'Special']) {
+  for (const tier of ['Light', 'Medium', 'Heavy', 'Special']) {
     for (const [d, [v, h]] of Object.entries(DIAG)) {
+      if (v === 'up') continue; // Up jumps: comparing it with a grounded horizontal is invalid.
       const fd = at(who, d, tier), fv = at(who, v, tier), fh = at(who, h, tier);
       if (!fd || !fv || !fh) continue;
       // the vertical move is real and distinct, yet the diagonal played the horizontal
@@ -244,7 +262,7 @@ if (steals.length) {
     console.log(`     ${s2.who.padEnd(12)} ${(s2.d + '+' + s2.tier).padEnd(18)} played ${s2.h}+${s2.tier}`
                 + `  — ${s2.v}+${s2.tier} never runs`);
   console.log('');
-} else console.log('  ✓ no diagonal steals — every diagonal reaches its own move\n');
+} else console.log('  ✓ no down-diagonal steals detected (Up combinations start airborne)\n');
 if (hshadow.length) {
   console.log(`  · vertical wins the diagonal (${hshadow.length}) — normal where the vertical move is`);
   console.log('    the more specific one; listed so the choice is visible, not a defect:');
@@ -270,6 +288,6 @@ for (const who of [...new Set(rows.map(r => r.who))]) {
 }
 if (!shareCount) console.log('     none');
 
-const bad = dead.length + fatals.length;
-console.log(`\n  ${bad ? bad + ' dead' : 'no dead inputs'} \u00b7 ${shareCount} shared-animation collision(s)`);
+const bad = dead.length + fatals.length + errors.length;
+console.log(`\n  ${bad ? bad + ' failures (dead inputs or errors)' : 'no dead inputs or errors'} \u00b7 ${shareCount} shared-animation collision(s)`);
 process.exit(bad ? 1 : 0);
