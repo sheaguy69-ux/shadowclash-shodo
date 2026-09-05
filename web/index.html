@@ -2710,8 +2710,8 @@
                 if (keys[prefix + "left"]) axis -= 1;
                 if (keys[prefix + "right"]) axis += 1;
                 if (this.usesRawKeys() && this.isP1) {
-                    if (handMode) return handAxis;     // webcam hand-follow drives P1
-                    if (mouseMode) return mouseAxis;   // cursor-follow drives P1
+                    if (handMode && !this.isCpuDriven()) return handAxis;
+                    if (mouseMode && !this.isCpuDriven()) return mouseAxis;
                     if (keys['KeyA']) axis -= 1;
                     if (keys['KeyD']) axis += 1;
                 } else if (this.usesRawKeys()) {
@@ -3031,9 +3031,10 @@
             }
 
             isCpuDriven() {
-                // mirrors the cpuThink call sites: WATCH gives BOTH fighters a brain,
-                // every other mode only ever drives P2.
-                return gameMode === 'watch' || spectate || (!this.isP1 && gameMode !== '2p');
+                // Watched teams/brawl also run brain 0, just like WATCH and spectate.
+                return gameMode === 'watch' || spectate
+                    || ((gameMode === 'teams' || gameMode === 'brawl') && teamsSeat === 2)
+                    || (!this.isP1 && gameMode !== '2p');
             }
 
             isDownPressed() {
@@ -14661,7 +14662,7 @@
 
         // per-frame: steer P1 toward the cursor + edge-triggered jump
         function mouseControl() {
-            if (!mouseMode || !matchActive || !player1) { mouseAxis = 0; return; }
+            if (!mouseMode || !matchActive || !player1 || player1.isCpuDriven()) { mouseAxis = 0; return; }
             const cx = player1.x + player1.width / 2;
             const dx = mouseCX - cx;
             mouseAxis = Math.abs(dx) > MOUSE_DEADZONE ? Math.sign(dx) : 0;
@@ -14738,6 +14739,7 @@
         }
 
         function onHandResults(res) {
+            if (player1 && player1.isCpuDriven()) return;
             const lms = res.multiHandLandmarks;
             if (!lms || !lms.length) {
                 // hand(s) lost: release every held input or crouch/guard stick ON
@@ -14917,7 +14919,7 @@
 
         // per-frame: walk toward where the hand is pointing
         function handControl() {
-            if (!handMode || !matchActive || !player1 || handTargetX === null) { handAxis = 0; return; }
+            if (!handMode || !matchActive || !player1 || player1.isCpuDriven() || handTargetX === null) { handAxis = 0; return; }
             const dx = handTargetX - (player1.x + player1.width / 2);
             handAxis = Math.abs(dx) > 40 ? Math.sign(dx) : 0;
         }
@@ -17038,6 +17040,7 @@
                     : { KeyA: [player1, -1], KeyD: [player1, 1] };
                 if (TAPS[e.code]) {
                     const [p, dir] = TAPS[e.code];
+                    if (p === player1 && p.isCpuDriven()) return;
                     const tnow = performance.now();
                     // ⛔ GUARD + DIRECTION = ROLL, in ONE press. This is the input the owner
                     // actually asked for ("like a Smash roll"), and Smash's is exactly this:
@@ -17219,7 +17222,7 @@
         // Focus loss eats the keyup: a key physically held when the tab blurs stays
         // logically DOWN forever (fighter walks/blocks/crouches on return). Flush all
         // held keys on blur / tab-hide so nothing sticks.
-        const releaseAllKeys = () => { for (const k in keys) keys[k] = false; };
+        const releaseAllKeys = () => { for (const k in keys) keys[k] = false; physKeys.clear(); };
         window.addEventListener('blur', releaseAllKeys);
         document.addEventListener('visibilitychange', () => { if (document.hidden) releaseAllKeys(); });
 
@@ -17236,6 +17239,8 @@
             if (!btn) return;
             btn.addEventListener('touchstart', (e) => {
                 e.preventDefault();
+                const owner = keyString.startsWith('p1_') ? player1 : player2;
+                if (owner && (owner === player1 ? owner.isCpuDriven() : !isP2Human())) return;
                 keys[keyString] = true;
 
                 // Fire instant behaviors
@@ -17287,6 +17292,8 @@
             const clear = () => DIRS.forEach(d => keys[prefix + d] = false);
             const steer = (t) => {
                 clear();
+                const owner = prefix === 'p1_' ? player1 : player2;
+                if (owner && (owner === player1 ? owner.isCpuDriven() : !isP2Human())) return null;
                 const el = document.elementFromPoint(t.clientX, t.clientY);
                 const btn = el && el.closest('[data-dir]');
                 if (!btn || !pad.contains(btn)) return null;
@@ -18319,11 +18326,11 @@
             // bare-hand attacks still trade normally; projectiles keep their own rules.
             for (let ai = a.hitboxes.length - 1; ai >= 0; ai--) {
                 const ah = a.hitboxes[ai];
-                if (!ah.canClash) continue;
+                if (!ah.canClash || ah.delay > 0) continue;
                 const ax = a.x + ah.ox, ay = a.y + ah.oy;
                 for (let bi = b.hitboxes.length - 1; bi >= 0; bi--) {
                     const bh = b.hitboxes[bi];
-                    if (!bh.canClash) continue;
+                    if (!bh.canClash || bh.delay > 0) continue;
                     const bx = b.x + bh.ox, by = b.y + bh.oy;
                     if (ax >= bx + bh.w || ax + ah.w <= bx || ay >= by + bh.h || ay + ah.h <= by) continue;
 

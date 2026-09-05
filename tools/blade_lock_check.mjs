@@ -16,6 +16,7 @@
 //
 // Run: node tools/blade_lock_check.mjs
 import { readFileSync } from 'fs';
+import { runInNewContext } from 'node:vm';
 
 const src = readFileSync(new URL('../web/index.html', import.meta.url), 'utf8');
 
@@ -475,6 +476,21 @@ ok(exceptions.length === 0,
    `every steel pair is also a bind pair (${shadowed} steel combos, ${exceptions.length} exceptions` +
    `${exceptions.length ? ': ' + exceptions.join(' ') : ''}) — so the old steel-only block below` +
    ' the bind branch is unreachable and was deleted');
+
+// Windup boxes exist immediately but cannot touch another weapon yet.
+for (const [delayA, delayB, want] of [[0.2, 0, false], [0, 0.2, false], [0.2, 0.2, false], [0, 0, true]]) {
+    const a = mkPlayer('a', 100), b = mkPlayer('b', 100);
+    a.hitboxes = [{ ox: 0, oy: 0, w: 40, h: 30, delay: delayA, duration: 0.1, canClash: true }];
+    b.hitboxes = [{ ox: 0, oy: 0, w: 40, h: 30, delay: delayB, duration: 0.1, canClash: true }];
+    let binds = 0;
+    const hit = runInNewContext(lift('processWeaponClash') + '; processWeaponClash(a, b)', {
+        a, b, bladeOnBlade: () => true, woodInvolved: () => false, weaponBind: () => true,
+        clashCd: 0, CLASH_COOLDOWN: 1, enterBladeLock: () => binds++,
+    });
+    ok(hit === want && binds === Number(want)
+       && a.hitboxes.length === Number(!want) && b.hitboxes.length === Number(!want),
+       `clash waits for BOTH startups: delays ${delayA}/${delayB}`, `clashed=${hit}`);
+}
 
 console.log(`\n  ${pass} passed, ${fail} failed\n`);
 process.exit(fail ? 1 : 0);

@@ -59,6 +59,7 @@ const out = await ev(String.raw`(async()=>{
    if (up && NINJA_ROSTER.every(s2 => { const m = SPRITES[s2.name.toLowerCase()]; return m && m.ready; })) break;
    await new Promise(r=>setTimeout(r,50));
  }
+ dismissTitle();
  // Every key fireCombatKey routes for a seat, with the seat it is supposed to drive.
  const P1KEYS = ['KeyW','KeyF','KeyJ','KeyG','KeyH','KeyC','KeyV'];
  const P2KEYS = ['ArrowUp','KeyI','KeyU','KeyO','KeyP','KeyM','KeyK'];
@@ -70,6 +71,8 @@ const out = await ev(String.raw`(async()=>{
    { mode:'watch',    spec:false, seat:0 },
    { mode:'versus',   spec:true,  seat:0 },
    { mode:'teams',    spec:false, seat:2 },
+   { mode:'brawl',    spec:false, seat:2 },
+   { mode:'teams',    spec:false, seat:0 },
  ];
  const rows = [];
  for (const c of CASES) {
@@ -79,14 +82,16 @@ const out = await ev(String.raw`(async()=>{
   try { startNewGame(); } catch(e) { rows.push({...c, key:'-', err:e.message.slice(0,70)}); continue; }
   roundIntroTimer = 0; paused = false; hitstopRemaining = 0;
   for (const [seat, KEYS] of [[1, P1KEYS], [2, P2KEYS]]) {
-    const p = seat === 1 ? player1 : player2;
+    let p = seat === 1 ? player1 : player2;
     if (!p) continue;
     // ⛔ THE AUTHORITY IS isP2Human(), NOT isCpuDriven(). In TRAINING the dummy is also
     // the sparring partner (owner: "play two controls don't work in training mode"), so
     // P2 is CPU-driven AND legitimately human-controllable at the same time. Asking
     // isCpuDriven() alone called that deliberate behaviour a leak.
-    const allowed = seat === 2 ? !!isP2Human() : !p.isCpuDriven();
+    const allowed = seat === 2 ? !!isP2Human() : !(c.spec || c.mode === 'watch' || (['teams','brawl'].includes(c.mode) && c.seat === 2));
     for (const code of KEYS) {
+      startNewGame(); roundIntroTimer = 0; paused = false; hitstopRemaining = 0;
+      p = seat === 1 ? player1 : player2;
       for (const k in keys) keys[k] = false;
       p.x = seat === 1 ? 200 : 400; p.isGrounded = true; p.vy = 0; p.attackAir = false;
       p.state = STATE.IDLE; p.attackT = 0; p.lock = 0; p.recoveryTimer = 0;
@@ -100,12 +105,88 @@ const out = await ev(String.raw`(async()=>{
     }
   }
  }
+ // Real event listeners and alternate controls bypass fireCombatKey for movement.
+ // Expected ownership comes from the selected mode, not the helper under test.
+ for (const c of CASES) {
+  const allowed = !(c.spec || c.mode === 'watch' || (['teams','brawl'].includes(c.mode) && c.seat === 2));
+  for (const source of ['keyboard dash', 'touch dash', 'mouse jump', 'hand jump', 'mouse steering', 'hand steering']) {
+   gameMode = c.mode; spectate = c.spec; teamsSeat = c.seat;
+   startNewGame(); roundIntroTimer = 0; paused = false; hitstopRemaining = 0;
+   cutscene = null;
+   for (const id of ['title-screen','character-selection','game-over-screen','pause-screen'])
+    document.getElementById(id).classList.add('hidden');
+   for (const k in keys) keys[k] = false;
+   physKeys.clear();
+   const p = player1;
+   p.x = 200; p.y = GROUND_Y - p.height; p.isGrounded = true;
+   p.vy = 0; p.state = STATE.IDLE; p.stamina = 100;
+   p._tapT = 0; p._tapDir = 0;
+   let err = null;
+   try {
+    if (source === 'keyboard dash') {
+     for (let n=0;n<2;n++) {
+      window.dispatchEvent(new KeyboardEvent('keydown', {code:'KeyD'}));
+      window.dispatchEvent(new KeyboardEvent('keyup', {code:'KeyD'}));
+     }
+    } else if (source === 'touch dash') {
+     document.getElementById('touch-controls').classList.remove('hidden');
+     const pad = document.getElementById('pad-p1');
+     pad.scrollIntoView({block:'center'});
+     const r = pad.querySelector('[data-dir="right"]').getBoundingClientRect();
+     const touch = {identifier:1, clientX:r.x+r.width/2, clientY:r.y+r.height/2};
+     if (document.elementFromPoint(touch.clientX,touch.clientY)?.closest('[data-dir]')?.dataset.dir !== 'right')
+      throw new Error('touch setup: right button not exposed');
+     for (let n=0;n<2;n++) {
+      for (const type of ['touchstart','touchend']) {
+       const event = new Event(type, {bubbles:true,cancelable:true});
+       Object.defineProperty(event,'changedTouches',{value:[touch]});
+       pad.dispatchEvent(event);
+      }
+     }
+    } else if (source.endsWith('steering')) {
+     keys.KeyD = true; // the CPU's own rightward input must survive a stale pointer mode
+     mouseMode = source === 'mouse steering'; handMode = !mouseMode;
+     mouseAxis = handAxis = -1;
+    } else if (source === 'mouse jump') {
+     mouseMode = true; mouseWasAbove = false; mouseCX = 500; mouseCY = p.y-100;
+     mouseControl();
+    } else {
+     handWasHigh = false;
+     const lm = Array.from({length:21},()=>({x:0.5,y:0.2,z:0}));
+     onHandResults({multiHandLandmarks:[lm]});
+    }
+   } catch(e) { err=e.message; }
+   const acted = source.endsWith('steering') ? p.getInputAxis() === -1 : p.dashTimer > 0 || !p.isGrounded;
+   if (!allowed && source.endsWith('steering') && p.getInputAxis() !== 1) err = 'pointer mode suppressed CPU steering';
+   if (allowed && !acted && !err) err = 'human movement stopped working';
+   rows.push({mode:c.mode,spec:c.spec,seat:c.seat,side:1,code:source,allowed,acted,err});
+   mouseMode = handMode = false; mouseWasAbove = handWasHigh = false;
+   handTargetX = null;
+  }
+  gameMode=c.mode; spectate=c.spec; teamsSeat=c.seat; startNewGame();
+  const p2Allowed = !c.spec && (['2p','training'].includes(c.mode) || (['teams','brawl'].includes(c.mode) && c.seat === 0));
+  keys.p2_poof=false;
+  const guard=document.getElementById('btn-t-p2-poof');
+  guard.dispatchEvent(new Event('touchstart',{bubbles:true,cancelable:true}));
+  const held=!!keys.p2_poof;
+  guard.dispatchEvent(new Event('touchend',{bubbles:true,cancelable:true}));
+  rows.push({mode:c.mode,spec:c.spec,seat:c.seat,side:2,code:'touch guard',allowed:p2Allowed,acted:held,
+    err:p2Allowed && !held ? 'human P2 touch guard stopped working' : null});
+ }
+ // Losing focus must release the physical registry too, otherwise the watch-mode
+ // cleanup treats later CPU key residue as a real held human key.
+ gameMode='versus'; spectate=false; startNewGame(); roundIntroTimer=0;
+ window.dispatchEvent(new KeyboardEvent('keydown',{code:'KeyD'}));
+ window.dispatchEvent(new Event('blur'));
+ rows.push({mode:'versus',spec:false,seat:0,side:1,code:'blur release',allowed:true,acted:false,
+   err: keys.KeyD || physKeys.has('KeyD') ? 'focus loss left KeyD registered as held' : null});
  return rows;
 })()`);
 ws.close(); chrome.kill('SIGKILL');
 
 console.log('\n  SEAT GATE — a human key must not drive a CPU body\n');
 const errs = out.filter(r => r.err);
+for (const r of errs) console.error(r.mode, r.code, r.err);
 const leaks = out.filter(r => !r.allowed && r.acted);
 const byCase = {};
 for (const r of out) {
