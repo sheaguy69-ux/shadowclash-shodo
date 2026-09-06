@@ -181,5 +181,15 @@
       "frameRate": 16,
       "damage": 13
     }
+  },
+  "mirror": {
+    "247": true,
+    "248": true,
+    "249": true,
+    "250": true,
+    "251": true,
+    "252": true,
+    "253": true,
+    "254": true
   }
 }

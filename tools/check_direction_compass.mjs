@@ -1,0 +1,93 @@
+#!/usr/bin/env node
+// Review all nine fighters using real DOM inputs and consecutive live-loop captures.
+import {mkdir,writeFile,mkdtemp} from 'node:fs/promises';
+import { spawn, spawnSync } from 'node:child_process';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
+
+const port = +(process.env.PORT || 9101), dbg = 9385;
+const who = await fetch(`http://127.0.0.1:${port}/whoami`).then(r => r.json()).catch(() => null);
+if (!who) { console.error(`no server on :${port}`); process.exit(1); }
+if (path.resolve(who.tree) !== path.resolve(process.cwd())) {
+  console.error(`:${port} serves ${who.tree} — rebind before trusting this`); process.exit(1);
+}
+spawnSync('pkill', ['-f', `remote-debugging-port=${dbg}`], { stdio: 'ignore' });
+for (let i = 0; i < 60; i++) {
+  const s = spawnSync('pgrep', ['-f', `remote-debugging-port=${dbg}`], { encoding: 'utf8' });
+  if (!s.stdout || !s.stdout.trim()) break;
+  await new Promise(r => setTimeout(r, 100));
+}
+const profile = await mkdtemp(path.join(tmpdir(), 'sg-'));
+const chrome = spawn('/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+  ['--headless=new', '--disable-background-timer-throttling', '--disable-renderer-backgrounding', '--disable-gpu', '--no-first-run', `--remote-debugging-port=${dbg}`,
+   `--user-data-dir=${profile}`, `http://127.0.0.1:${port}/`], { stdio: 'ignore' });
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+let page = null;
+for (let i = 0; i < 100 && !page; i++) {
+  try {
+    const l = await fetch(`http://127.0.0.1:${dbg}/json/list`).then(r => r.json());
+    page = l.find(t => t.type === 'page' && t.url.includes(String(port)));
+  } catch {}
+  if (!page) await sleep(100);
+}
+if (!page) { console.error('chrome never came up'); process.exit(1); }
+const ws = new WebSocket(page.webSocketDebuggerUrl);
+await new Promise(r => ws.addEventListener('open', r, { once: true }));
+let id = 1; const pend = new Map();
+ws.addEventListener('message', e => {
+  const m = JSON.parse(e.data);
+  if (m.id && pend.has(m.id)) { const p = pend.get(m.id); pend.delete(m.id); m.error ? p.rej(new Error(m.error.message)) : p.res(m.result); }
+});
+const ev = x => new Promise((res, rej) => {
+  const n = id++; pend.set(n, { res, rej });
+  ws.send(JSON.stringify({ id: n, method: 'Runtime.evaluate', params: { expression: x, awaitPromise: true, returnByValue: true } }));
+}).then(r => { if (r.exceptionDetails) throw new Error(r.exceptionDetails.exception?.description || r.exceptionDetails.text); return r.result.value; });
+
+
+let ready=false;
+for(let i=0;i<600&&!ready;i++){ready=await ev("typeof NINJA_ROSTER!=='undefined' && NINJA_ROSTER.every(s=>SPRITES[s.name.toLowerCase()]?.ready)").catch(()=>false);if(!ready)await sleep(50);}
+const root=path.resolve(process.env.OUT||'media/direction-review-20260905');await mkdir(root,{recursive:true});
+const results=[];
+try{
+ if(!ready)throw new Error('sheets unavailable');
+ for(let id=0;id<9;id++){
+ const out=await ev(`(async()=>{
+ const rightAuthored={"ember": [247, 248, 249, 250, 251, 252, 253, 254], "kael": [6, 7, 8, 9, 10, 11, 12, 13, 19, 20, 21, 22, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 135, 136, 191, 192], "mokurai": [98, 99, 100, 101, 186, 281, 282, 283, 284, 285, 286, 287, 288, 289, 290, 291, 292, 293, 294, 295, 324, 325, 326, 327, 328, 329, 330, 331], "mizu": [102], "shin": [339], "exile": [313]};
+ const rows=[],shots=[],errors=[];window.onerror=(m)=>errors.push(String(m));let g=null,lastSign=0;
+ const original=drawShodoFrame;
+ drawShodoFrame=function(...args){if(args[0]===g)lastSign=Math.sign(g.getTransform().a);return original(...args);};
+ const key=(code,v)=>window.dispatchEvent(new KeyboardEvent(v?'keydown':'keyup',{code,bubbles:true}));
+ const wait=()=>new Promise(r=>requestAnimationFrame(r));
+ const reset=(side)=>{dismissTitle();stagePick='bamboo';gameMode='2p';cpuMode=false;spectate=false;p1Pick=${id};p2Pick=${id===0?1:0};startNewGame();roundIntroTimer=0;paused=false;cutscene=null;for(const k in keys)keys[k]=false;physKeys.clear();player1.x=side===1?200:600;player2.x=side===1?600:200;for(const p of [player1,player2]){p.y=GROUND_Y-p.height;p.isGrounded=true;}};
+ const take=(label,side)=>{const p=player1,man=SPRITES[p.spec.name.toLowerCase()];const c=document.createElement('canvas');c.width=c.height=480;g=c.getContext('2d');g.fillStyle='#e6e0d5';g.fillRect(0,0,480,480);g.save();g.translate(240-p.x-p.width/2,400-p.y-p.height);g.strokeStyle='#916b40';g.lineWidth=2;if(label.startsWith('wall')){const wx=side===-1?10:canvas.width-10;g.beginPath();g.moveTo(wx,0);g.lineTo(wx,GROUND_Y);g.stroke();}drawSprite(g,p);g.restore();const idx=p.drawCell;
+ if(label.startsWith('run-')){const phase=p.animPhase,cells=runCells(man.frames);for(let i=0;i<cells.length;i++){p.animPhase=i+0.01;if(spriteFrameIndexRaw(p,man.frames)!==cells[i])throw new Error('run cycle plays backwards');}p.animPhase=phase;}
+ const row={name:p.spec.name,label,side,facing:p.facing,vx:p.vx,wallDir:p.wallDir,ground:p.isGrounded,state:p.state,cell:idx,keys:Object.keys(man.frames).filter(k=>man.frames[k]===idx),scaleX:lastSign,wallFacing:lastSign*((rightAuthored[p.spec.name.toLowerCase()]||[]).includes(idx)?1:-1),visualFacing:lastSign*((rightAuthored[p.spec.name.toLowerCase()]||[]).includes(idx)?1:-1)};if(p.spec.id===2&&label==='run-away'){
+ const tape=p.kageTape,timer=p.kageTapeT;p.kageTape=[];p.kageTapeT=0;p.recordKageTape(1/60);const echo={played:animClock};p.updateKageEcho(0,echo);
+ if(echo.drawMirror!==p.drawMirror||echo.facing!==p.facing)throw new Error('echo lost visual/combat facing separation');p.kageTape=tape;p.kageTapeT=timer;row.echoMirrorPassed=true;
+ }rows.push(row);shots.push({canvas:c,row});};
+ try{for(const side of [1,-1]){
+ reset(side);for(let i=0;i<3;i++)await wait();take('idle',side);
+ key('KeyS',true);for(let i=0;i<5;i++){await wait();take('crouch',side);}key('KeyS',false);for(let i=0;i<3;i++)await wait();key('KeyC',true);for(let i=0;i<20;i++)await wait();for(let i=0;i<5;i++){await wait();take('guard',side);}key('KeyC',false);for(let i=0;i<3;i++)await wait();
+ key(side===1?'KeyD':'KeyA',true);for(let i=0;i<5;i++){await wait();take('run-toward',side);}key(side===1?'KeyD':'KeyA',false);
+ key(side===1?'KeyA':'KeyD',true);for(let i=0;i<5;i++){await wait();take('run-away',side);}key(side===1?'KeyA':'KeyD',false);
+ for(let i=0;i<3;i++)await wait();take('stop',side);
+ player2.x=player1.x-side*180;for(let i=0;i<3;i++)await wait();take('crossup',-side);
+ // Establish contact using real physics and held input, not a forced wallDir.
+ player1.x=side===-1?11:canvas.width-11-player1.width;player1.y=GROUND_Y-player1.height-200;player1.vy=0;player1.isGrounded=false;
+ key(side===-1?'KeyA':'KeyD',true);
+ for(let i=0;i<6;i++){await wait();take('wall-cling',side);}
+ key('KeyG',true);key('KeyG',false);for(let i=0;i<5;i++){await wait();take('wall-heavy',side);}
+ key(side===-1?'KeyA':'KeyD',false);for(let i=0;i<5;i++){await wait();take('wall-attack-release',side);}
+ reset(side);player1.x=side===-1?11:canvas.width-11-player1.width;player1.y=GROUND_Y-player1.height-200;player1.vy=0;player1.isGrounded=false;key(side===-1?'KeyA':'KeyD',true);for(let i=0;i<6;i++)await wait();key(side===-1?'KeyA':'KeyD',false);for(let i=0;i<5;i++){await wait();take('wall-release',side);}key(side===-1?'KeyA':'KeyD',true);for(let i=0;i<6;i++)await wait();key('KeyW',true);key('KeyW',false);for(let i=0;i<5;i++){await wait();take('wall-jump',side);}
+ }}finally{drawShodoFrame=original;}
+ const strips=[];for(const side of [1,-1])for(const label of ['idle','crouch','guard','run-toward','run-away','stop','crossup','wall-cling','wall-heavy','wall-release','wall-attack-release','wall-jump']){
+ const frames=shots.filter(s=>s.row.side===side&&s.row.label===label);const c=document.createElement('canvas');c.width=frames.length*240;c.height=270;const x=c.getContext('2d');x.fillStyle='#e6e0d5';x.fillRect(0,0,c.width,c.height);frames.forEach((s,i)=>{x.drawImage(s.canvas,i*240,30,240,240);x.fillStyle='#111';x.font='12px sans-serif';x.fillText(s.row.cell+' '+s.row.state,i*240+5,18);});strips.push({label,side,png:c.toDataURL('image/png').split(',')[1]});}
+ return {name:player1.spec.name,rows,strips,errors};
+ })()`);
+ const dir=path.join(root,out.name.toLowerCase());await mkdir(dir,{recursive:true});for(const s of out.strips){await writeFile(path.join(dir,s.label+'-'+s.side+'.png'),Buffer.from(s.png,'base64'));delete s.png;}
+ const failures=out.rows.filter(r=>r.label.startsWith('run-')?r.visualFacing!==Math.sign(r.vx):['idle','stop','crossup','crouch','guard'].includes(r.label)?(r.facing!==r.side||r.visualFacing!==r.side):r.label==='wall-cling'&&r.state==='WALL_CLING'?r.wallFacing!==r.side:r.label==='wall-cling'&&r.wallDir!==0?r.visualFacing!==r.side:r.label==='wall-release'?(r.state==='WALL_CLING'?r.wallFacing!==r.side:r.visualFacing!==-r.side):r.label==='wall-heavy'&&r.state==='ATTACK_HEAVY'?r.visualFacing!==-r.side:r.label==='wall-jump'?(r.facing!==-r.side||Math.sign(r.vx)!==-r.side||r.visualFacing!==-r.side):false);
+ for(const side of [1,-1]){if(!out.rows.some(r=>r.label==='wall-cling'&&r.side===side&&r.wallDir===side&&r.state==='WALL_CLING'))failures.push({side,reason:'no wall contact'});if(!out.rows.some(r=>r.label==='wall-heavy'&&r.side===side&&r.state==='ATTACK_HEAVY'))failures.push({side,reason:'wall attack did not start'});}
+ failures.push(...out.errors.map(error=>({error})));results.push({name:out.name,failures});await writeFile(path.join(dir,'trace.json'),JSON.stringify(out,null,2));console.log(out.name+': '+failures.length+' direction failures');
+ }
+}finally{ws.close();chrome.kill('SIGKILL');}
+await writeFile(path.join(root,'summary.json'),JSON.stringify(results,null,2));if(results.some(r=>r.failures.length))process.exitCode=1;

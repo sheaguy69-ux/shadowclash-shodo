@@ -4784,7 +4784,7 @@
                 for (const s of this.kageTape) { if (s.t <= start) head = s; else break; }
                 this.clone = { kage: true, x: head.x, y: head.y, facing: head.facing,
                                t: KAGEKAMI_LIFE, animT: 0, atkCd: 0,
-                               cell: head.cell, cells: [head.cell],
+                               cell: head.cell, cells: [head.cell], drawMirror: head.drawMirror,
                                // ⛔ THE REPLAY FLOOR IS THE ECHO'S OWN START, NOT NOW.
                                // Set to animClock and the shadow can only ever replay
                                // swings thrown AFTER the cast — which silently deletes
@@ -4807,7 +4807,7 @@
                 if (this.kageTapeT > 0) return;
                 this.kageTapeT = KAGEKAMI_HZ;
                 this.kageTape.push({ t: animClock, x: this.x, y: this.y,
-                                     facing: this.facing, cell: this.drawCell });
+                                     facing: this.facing, cell: this.drawCell, drawMirror: this.drawMirror });
                 while (this.kageTape.length > 2 && this.kageTape[1].t <= animClock - KAGEKAMI_TAPE)
                     this.kageTape.shift();
                 while (this.kageActs.length && this.kageActs[0].t <= animClock - KAGEKAMI_TAPE)
@@ -4823,7 +4823,7 @@
                 const want = animClock - KAGEKAMI_DELAY;
                 while (this.kageTape.length > 1 && this.kageTape[1].t <= want) this.kageTape.shift();
                 const s = this.kageTape[0];
-                if (s) { c.x = s.x; c.y = s.y; c.facing = s.facing; c.cell = s.cell; }
+                if (s) { c.x = s.x; c.y = s.y; c.facing = s.facing; c.cell = s.cell; c.drawMirror = s.drawMirror; }
                 for (const a of this.kageActs) {
                     if (a.fired || a.t > want || a.t <= c.played) continue;
                     a.fired = true;
@@ -4990,6 +4990,8 @@
                     return;
                 }
                 if (this.wallDir !== 0) {
+                    // The kick-off replaces a dash into the wall, not its outward impulse.
+                    this.dashTimer = 0;
                     this.vx = -this.wallDir * WALL_KICK;
                     this.vy = -WALL_LIFT;
                     this.facing = -this.wallDir;
@@ -10456,7 +10458,8 @@
         // the skeleton doll mid-fight (exactly what the owner saw on his phone after the
         // #40 art drop). The width check catches any mismatch that still slips through
         // and retries once with a hard cache-buster.
-        const SHEET_V = 714;   // (714: THE TWELVE DIRECTIONAL ROWS WERE NEVER MISSING — THEY WERE ON THE OTHER TREE. DIR_MOVES names 22 art rows and only 10 were packed here, so mizu's fwd/back heavy drew heavy_i, shin's four drew hneu, tsubasa's back drew heavy, ember's three drew eheavy and oni's back/down drew hfwd — the moves ran, only the art fell back. Every one of the twelve is packed on SHADOWCLASH-RECOVERED: the SHODO sheets were rebuilt and these rows never came across, so this is a PORT of already-approved art, not a generation and not a substitution. Appended 80 cells across five sheets, raw pixels (the engine keys at draw time, so keying on the way in keys twice), originals byte-identical at AE=0 cropped to each sheet's own pre-port width. SCALE: only shin is resampled, at 0.72. His three independent rulers agree (sqrt-area 0.70/0.74, bbox width 0.67/0.78, bbox height 0.74/0.71 on idle2 and xidle1); for mizu, tsubasa, ember and oni they CONFLICT — height says ~1.0 while width says 0.60-0.81, because bbox width is contaminated by weapon angle and the eye ruler is unvalidated on every fighter but the executioner — so those four are copied verbatim rather than resampled on a guess. ⛔ STYLE: nine of the twelve are a VISIBLE TREATMENT BREAK and are owner-gated per row. mizu and tsubasa read as the same character in the same ink; shin's RECOVERED art is a saturated green ninja against SHODO's mossy eroded one, ember's eye is GREEN there and white here, and oni is the correct Aug-9 canon design — white mask, red slits, two horns, swords on back, no purple, no mane — but rendered glossy against SHODO's grain. Reverting any row is a JSON edit; the cells stay addressable.) 713:    // (713: SEAT GATE FOR P1. Every P2 branch in fireCombatKey asks isP2Human(); the P1 branches asked nothing at all. So wherever cpuThink drives player1 — WATCH, where both fighters get a brain, and the spectate modifier — a human's W/F/J/G/H/C/V still fired his jump, all four attacks, kawarimi, stance and the throw pairing ON TOP of the brain, and the keyup KeyW cut the CPU's jump short (its P2 sibling already asked isP2Human(); P1's never did). Measured in the new tools/check_seat_gate.mjs: 84 presses across six mode/spectate/seat combinations, watch P1 and versus+spectate P1 each responded to 2 of 7 keys; now 0. The gate sits BELOW the blade-lock mash block, which is deliberately written to eat a CPU body's press without scoring from it, and cpuThink calls executeAttack directly rather than the funnel, so the brain is untouched. TRAINING IS NOT AFFECTED and that is the point of using the right authority: P2 there is CPU-driven AND legitimately human-controllable (owner: "play two controls don't work in training mode"), so the check asserts against isP2Human() for seat 2 and isCpuDriven() for seat 1 — asking isCpuDriven() for both called that deliberate behaviour a leak. Pre-existing and untouched: check_dir_moves still fails on 12 owner-gated art rows; it fails identically at 712. (712: DIAGONAL STEALS — five inputs that reached the wrong move. A branch testing getInputAxis() without !down && !up matches on a DIAGONAL too, so it swallows a press belonging to a move filed below it. The file states this law at the grapple ('axis === facing is TRUE on up-forward and down-forward') and it had been applied to some branches and not their siblings. Measured, not read: tools/drive_real_input.mjs now presses the four diagonals as well as the five cardinals (54 presses a fighter, both modes) and fingerprints each press by BEHAVIOUR — state, grounded, hitbox count, dx, dy — never by art, because Exile's Iai cross draws gsback+glback on Back+Special and 'light' on UpBack+Special while both travel the same 784px: fingerprinting on cells called one move two and hid the steal completely. FIXED: exile back+Special (UpBack and DownBack each fired the full-arena Iai instead of the chain anchor and Serpent's Tongue), shin fwd+Special (UpFwd threw the wire shuriken; his rising srisaa never came out, while UpBack reached it — live on one diagonal, dead on the other), mokurai fwd+Special (same asymmetry), and the two that only exist inside a second mode and so had outlived every previous sweep: mokurai CRACKED back+Special (UpBack set PARRY_STANCE) and shin KAGE-NUI fwd+Special (BOTH forward diagonals vanish-stepped). NOT FIXED, deliberately: mokurai upback+Heavy still plays the palm blast — that branch reads up/down to AIM the projectile, so the diagonal is the aim, not a theft. Verified: nine fighters x two modes x 54 presses, zero dead inputs, zero steals. (711: AUDIT #5 AND #6 — air normals stopped swapping to ground art on landing, and the air-heavy directional map is reachable. #5: THREE branches served airborne attacks off the LIVE isGrounded instead of the press-time attackAir latch — the ground-light dirCells gate, the airAttackCells light fallback and the air1..3 tail — so touching down before recovery ended handed the rest of the swing to the grounded row. Measured across all nine: aneu -> light on six, aneu -> xnuki on Executioner, kxcut -> kdual on Kael. All three now read attackAir and every fighter holds its air art through the landing (aneu -> aneu, kxcut -> kxcut). #6: airAttackCells() returns aneu/bair/kxcut — the generic AIR LIGHT row — and it was answering the HEAVY case before the hfwd/hback/hup/hdown/hneu map was ever read, so that map was unreachable for every fighter without a kxcut row. Reordered: the directional map runs first, the generic row is the fallback. Oni now reaches hfwd and Executioner/Shin reach hneu where before all four directions drew aneu. ⛔ MOKURAI'S mstrike IS NOT PACKED ON THIS SHEET — the audit called it shadowed dead and the branch order was indeed wrong, but on the Shodo sheet the row does not exist at all, so his air heavy still draws bair. That is art owed, not routing. The fighters still showing aneu on fwd/back/up have no hfwd/hback/hup packed either — also art owed, listed rather than faked.) (710: AUDIT #1 — THE THREE FASTEST FIGHTERS SHED AFTER-IMAGES WHILE WALKING. SPEEDLINE_V is 460 and its own comment justifies that as sitting 'ABOVE the fastest walk (moveSpeed peaks at 350 * 6/6)'. moveSpeed is 350 * speed/6 and the roster runs to speed 10, so the real walk tops are Exile 583, Shin 525, Ember 467 — all at or above the line. Ordinary strolling tripped the burst-only trail. Fixed with BOTH tests, because either alone is wrong: the 460 floor STAYS so the burst speeds the comment names still smear for every fighter (a wall-jump launch at 480 and Shin's wire yank at 560 sit between the slowest and fastest walks, so a per-fighter floor would silence them on exactly the fast cast they were written for), and a second test kills the walking trail — ordinary movement cannot exceed a fighter's own walk top, so anything above it is a dash, launch, reel or knockback. Where a burst now reads clean for Shin or Exile that is CORRECT: 480 is slower than they walk. Verified: all nine walk clean, dash 800 smears for all nine.) 709: DIRECTIONS. Owner: "characters directions still havent
+        // 715: Correct authored run, wall-grip and wall-jump orientation via mirror metadata.
+        const SHEET_V = 715;   // (714: THE TWELVE DIRECTIONAL ROWS WERE NEVER MISSING — THEY WERE ON THE OTHER TREE. DIR_MOVES names 22 art rows and only 10 were packed here, so mizu's fwd/back heavy drew heavy_i, shin's four drew hneu, tsubasa's back drew heavy, ember's three drew eheavy and oni's back/down drew hfwd — the moves ran, only the art fell back. Every one of the twelve is packed on SHADOWCLASH-RECOVERED: the SHODO sheets were rebuilt and these rows never came across, so this is a PORT of already-approved art, not a generation and not a substitution. Appended 80 cells across five sheets, raw pixels (the engine keys at draw time, so keying on the way in keys twice), originals byte-identical at AE=0 cropped to each sheet's own pre-port width. SCALE: only shin is resampled, at 0.72. His three independent rulers agree (sqrt-area 0.70/0.74, bbox width 0.67/0.78, bbox height 0.74/0.71 on idle2 and xidle1); for mizu, tsubasa, ember and oni they CONFLICT — height says ~1.0 while width says 0.60-0.81, because bbox width is contaminated by weapon angle and the eye ruler is unvalidated on every fighter but the executioner — so those four are copied verbatim rather than resampled on a guess. ⛔ STYLE: nine of the twelve are a VISIBLE TREATMENT BREAK and are owner-gated per row. mizu and tsubasa read as the same character in the same ink; shin's RECOVERED art is a saturated green ninja against SHODO's mossy eroded one, ember's eye is GREEN there and white here, and oni is the correct Aug-9 canon design — white mask, red slits, two horns, swords on back, no purple, no mane — but rendered glossy against SHODO's grain. Reverting any row is a JSON edit; the cells stay addressable.) 713:    // (713: SEAT GATE FOR P1. Every P2 branch in fireCombatKey asks isP2Human(); the P1 branches asked nothing at all. So wherever cpuThink drives player1 — WATCH, where both fighters get a brain, and the spectate modifier — a human's W/F/J/G/H/C/V still fired his jump, all four attacks, kawarimi, stance and the throw pairing ON TOP of the brain, and the keyup KeyW cut the CPU's jump short (its P2 sibling already asked isP2Human(); P1's never did). Measured in the new tools/check_seat_gate.mjs: 84 presses across six mode/spectate/seat combinations, watch P1 and versus+spectate P1 each responded to 2 of 7 keys; now 0. The gate sits BELOW the blade-lock mash block, which is deliberately written to eat a CPU body's press without scoring from it, and cpuThink calls executeAttack directly rather than the funnel, so the brain is untouched. TRAINING IS NOT AFFECTED and that is the point of using the right authority: P2 there is CPU-driven AND legitimately human-controllable (owner: "play two controls don't work in training mode"), so the check asserts against isP2Human() for seat 2 and isCpuDriven() for seat 1 — asking isCpuDriven() for both called that deliberate behaviour a leak. Pre-existing and untouched: check_dir_moves still fails on 12 owner-gated art rows; it fails identically at 712. (712: DIAGONAL STEALS — five inputs that reached the wrong move. A branch testing getInputAxis() without !down && !up matches on a DIAGONAL too, so it swallows a press belonging to a move filed below it. The file states this law at the grapple ('axis === facing is TRUE on up-forward and down-forward') and it had been applied to some branches and not their siblings. Measured, not read: tools/drive_real_input.mjs now presses the four diagonals as well as the five cardinals (54 presses a fighter, both modes) and fingerprints each press by BEHAVIOUR — state, grounded, hitbox count, dx, dy — never by art, because Exile's Iai cross draws gsback+glback on Back+Special and 'light' on UpBack+Special while both travel the same 784px: fingerprinting on cells called one move two and hid the steal completely. FIXED: exile back+Special (UpBack and DownBack each fired the full-arena Iai instead of the chain anchor and Serpent's Tongue), shin fwd+Special (UpFwd threw the wire shuriken; his rising srisaa never came out, while UpBack reached it — live on one diagonal, dead on the other), mokurai fwd+Special (same asymmetry), and the two that only exist inside a second mode and so had outlived every previous sweep: mokurai CRACKED back+Special (UpBack set PARRY_STANCE) and shin KAGE-NUI fwd+Special (BOTH forward diagonals vanish-stepped). NOT FIXED, deliberately: mokurai upback+Heavy still plays the palm blast — that branch reads up/down to AIM the projectile, so the diagonal is the aim, not a theft. Verified: nine fighters x two modes x 54 presses, zero dead inputs, zero steals. (711: AUDIT #5 AND #6 — air normals stopped swapping to ground art on landing, and the air-heavy directional map is reachable. #5: THREE branches served airborne attacks off the LIVE isGrounded instead of the press-time attackAir latch — the ground-light dirCells gate, the airAttackCells light fallback and the air1..3 tail — so touching down before recovery ended handed the rest of the swing to the grounded row. Measured across all nine: aneu -> light on six, aneu -> xnuki on Executioner, kxcut -> kdual on Kael. All three now read attackAir and every fighter holds its air art through the landing (aneu -> aneu, kxcut -> kxcut). #6: airAttackCells() returns aneu/bair/kxcut — the generic AIR LIGHT row — and it was answering the HEAVY case before the hfwd/hback/hup/hdown/hneu map was ever read, so that map was unreachable for every fighter without a kxcut row. Reordered: the directional map runs first, the generic row is the fallback. Oni now reaches hfwd and Executioner/Shin reach hneu where before all four directions drew aneu. ⛔ MOKURAI'S mstrike IS NOT PACKED ON THIS SHEET — the audit called it shadowed dead and the branch order was indeed wrong, but on the Shodo sheet the row does not exist at all, so his air heavy still draws bair. That is art owed, not routing. The fighters still showing aneu on fwd/back/up have no hfwd/hback/hup packed either — also art owed, listed rather than faked.) (710: AUDIT #1 — THE THREE FASTEST FIGHTERS SHED AFTER-IMAGES WHILE WALKING. SPEEDLINE_V is 460 and its own comment justifies that as sitting 'ABOVE the fastest walk (moveSpeed peaks at 350 * 6/6)'. moveSpeed is 350 * speed/6 and the roster runs to speed 10, so the real walk tops are Exile 583, Shin 525, Ember 467 — all at or above the line. Ordinary strolling tripped the burst-only trail. Fixed with BOTH tests, because either alone is wrong: the 460 floor STAYS so the burst speeds the comment names still smear for every fighter (a wall-jump launch at 480 and Shin's wire yank at 560 sit between the slowest and fastest walks, so a per-fighter floor would silence them on exactly the fast cast they were written for), and a second test kills the walking trail — ordinary movement cannot exceed a fighter's own walk top, so anything above it is a dash, launch, reel or knockback. Where a burst now reads clean for Shin or Exile that is CORRECT: 480 is slower than they walk. Verified: all nine walk clean, dash 800 smears for all nine.) 709: DIRECTIONS. Owner: "characters directions still havent
         // been corrected." He was right and my facing audit answered the wrong question — it
         // checked which way the HEAD points (249 rows, all clean, and still clean) and never
         // asked whether a DIRECTIONAL MOVE reaches its own art. Driving all nine fighters
@@ -11744,11 +11747,8 @@
                     // (his earlier "revert" was the cache-skeleton bug, not this art).
                     const run = runCells(F);
                     const idx = Math.floor(p.animPhase) % run.length;
-                    // Backpedal (auto-face means you can move away while facing the
-                    // opponent): play the cycle in reverse so the legs step backward
-                    // instead of moonwalking.
-                    return (p.vx !== 0 && Math.sign(p.vx) !== p.facing)
-                        ? run[run.length - 1 - idx] : run[idx];
+                    // Both travel directions use forward stride order; the renderer turns the body.
+                    return run[idx];
                 }
                 case STATE.WALL_CLING:
                     // MOKURAI WALL CLING — catch, then slide. He drew his BLOCK pose on a wall.
@@ -13539,7 +13539,7 @@
                 const ci = c.cell !== undefined ? c.cell
                          : c.cells[Math.floor(c.animT * 8) % c.cells.length];
                 ctx.translate(c.x + p.width / 2, c.y + p.height);
-                ctx.scale(-c.facing, 1);
+                ctx.scale(c.drawMirror ?? -c.facing, 1);
                 if (man.mirror && man.mirror[ci]) ctx.scale(-1, 1);   // the clone mirrors a mirror-listed cell back to canon facing
                 drawShodoFrame(ctx, man.img, ci * fw, 0, fw, fh,
                                -fw * S / 2, -anchorFor(ci), fw * S, fh * S);
@@ -13548,48 +13548,15 @@
 
             ctx.save();
             ctx.translate(p.x + p.width / 2 + p.facing * lunge, p.y + p.height);
-            // Sprite sheets are authored facing LEFT, but the engine convention is
-            // facing=1 => RIGHT (matches the doll + hitbox side). Negate so facing=1
-            // mirrors the left-drawn art to face right, toward the opponent.
-            //
-            // ⛔ EXCEPT ON A WALL, WHERE THE WALL DECIDES, NOT THE OPPONENT (owner: "he
-            // clings to the wall from the back, and his hands and feet, which have the tools
-            // to cling, face the Earth... I tried both sides, left wall and right wall, and
-            // still wrong"). He was right that BOTH sides were broken, and the cause is two
-            // individually correct rules fighting:
-            //   * gameplay sets `facing = -wallDir` on contact, so he faces AWAY from the
-            //     wall — correct, that is the direction he launches;
-            //   * the art is then mirrored by that same facing, which swings his CLAWS away
-            //     from the wall too. The one part of him that must point INTO the wall is the
-            //     only part being turned away from it.
-            // Derived, not guessed: packed art grips to the LEFT, so sx=+1 keeps the claws
-            // left and sx=-1 puts them right. They must land on the wall side, so
-            // sx = -wallDir; and since facing = -wallDir, that is sx = +p.facing — the exact
-            // INVERSE of the normal rule, which is why BOTH walls read wrong, not one.
-            // Gameplay facing is untouched: he still launches correctly and the hitbox side
-            // is unchanged. Only the mirror on these frames moves.
-            // ⛔ OR, NOT AND — and no `wallRunning`. The old test was
-            //     `wallDir !== 0 && (state === WALL_CLING || wallRunning)`
-            // and it dropped out on all THREE edges of a cling, measured on Executioner
-            // (probe: settled cling draws sx=+1):
-            //   * CONTACT frame  state=JUMP, sx=-1  — `state` is written at the TOP of
-            //     applyPhysics from LAST frame's wallDir and `wallDir` at the BOTTOM of
-            //     the same function, so the pair is one frame out of phase on every
-            //     transition and `&&` fails while they disagree.
-            //   * ATTACKING on the wall  state=ATTACK_HEAVY, sx=-1 for 21 of 24 frames —
-            //     applyPhysics only assigns WALL_CLING `if (!isAttackingState())`, while
-            //     wallDir stays set, so every wall Heavy and the 0.6s chain-anchor cast
-            //     rendered mirrored the opposite way from the cling either side of it.
-            //   * RELEASE frame  wallDir already 0 but state still WALL_CLING, sx=-1 —
-            //     the cling CELL is still what the picker returns, drawn inverted.
-            // Each clause alone fixes a different subset; the union is what holds the sign
-            // steady, because either input on its own is sufficient evidence of "this body
-            // is oriented to the wall, not to the opponent".
-            // `wallRunning` is gone rather than kept: applyPhysics force-clears it to false
-            // every airborne tick (the Aug-17 "cling holds, no slide" ruling), so it was a
-            // term that could never be true — dead conditions are what made this subtle.
-            const onWall = p.wallDir !== 0 || p.state === STATE.WALL_CLING;
-            ctx.scale(onWall ? p.facing : -p.facing, 1);
+            // Cling art grips the wall; ordinary attacks face out into the arena.
+            // Keep the contact/release frame covered while physics updates wallDir/state.
+            const onWall = !p.isGrounded && !p.isAttackingState()
+                && (p.wallDir !== 0 || p.state === STATE.WALL_CLING);
+            // Runs face travel. Gameplay facing stays opponent-relative for attack inputs.
+            const drawFacing = p.state === STATE.RUN && Math.abs(p.vx) > 1
+                ? Math.sign(p.vx) : p.facing;
+            p.drawMirror = onWall ? p.facing : -drawFacing;
+            ctx.scale(p.drawMirror, 1);
             // ⛔ CELLS AUTHORED THE WRONG WAY ROUND (owner, Aug 6 2026: "any character
             // facing backward, correct it"). The whole roster is authored FACING LEFT and
             // the line above mirrors it toward the opponent — so a cell that was drawn

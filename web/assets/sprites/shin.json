@@ -208,5 +208,8 @@
   "etiquette": {
     "reiho": "Bow of respect before and after engagement.",
     "zanshin": "State of relaxed alertness preserved after delivering a strike; never drop guard immediately."
+  },
+  "mirror": {
+    "339": true
   }
 }
