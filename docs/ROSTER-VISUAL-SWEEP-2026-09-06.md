@@ -39,3 +39,31 @@ Corrected independently viewed authoring directions across related families. Shi
 Verification: nine-sheet geometry,882 compass samples plus explicit authored-direction fixtures,36 wall visibility cases,96 live transitions across four fighters. Both normal and alternate-mode input sweeps drive648 presses each with no dead inputs/errors. Additional real forward-input filmstrips cover Shin/Oni/Exile; Oni wire binds and three follow-up paths captured with controlled bind setup and actual key events. The old wire driver has five stale expected-family assertions (including neutral conversion now explicitly slice); its actual bind/damage checks pass. Exile forward Special legitimately enters grapple JUMP, outside the generic capture's attack-state expectation; the consecutive strip shows a complete visible body.
 
 Full sweep continues. Anthony specifically rejected the run poses for repeating the same leading leg. New Exile/Oni alternating-stride studies are review-only and not part of723. Earlier run cleanup/cadence checks did not establish correct leg alternation; do not treat those checks as proof of natural gait.
+
+
+## Exile alternating run — SHEET_V724
+
+Used Anthony's shared ninja-run reference (https://share.google/W29qLbvX8375sIq1T) for low forward posture, trailing arms and footwork; current game sprites remain the identity and proportion references. Four new run cells397–400 replace only run_clean aliases. They alternate contact, passing, opposite contact and opposite passing. Both arms trail behind; one sickle, chain and weight remain present. Original397-cell RGBA prefix, dash/attack aliases, travel speed and cycle duration are unchanged. The existing four-frame run path handles playback.
+
+Built-in imagegen only. Repeated identical-hop drafts and slim-leg Oni restores were rejected. Diagnostic red/blue legs established anatomical alternation; selected costume restorations preserve near/far shading and baggy trousers. Source boards are copied to `media/roster-sweep-20260906/run-alternation/exile-baggy-{a,b}.png`, selected beatsA1/A2/B3/B4. Uniform source registration0.375/0.37982 compensates the second board's measured head-scale difference; after calibration the four relative head scales are1.0000/1.0015/0.9980/1.0020. No pose-bbox height flattening or runtime stretch. FootAdj5/1/6/1 registers each planted sole.
+
+Pre-pack contacts, native48×64 review, twelve-dimension grades and source hashes are in `run-alternation/{green-ready,qc724.json,packed724.json,silhouette-48x64.png}` under that media folder. Prompts/reference observations: `reference-prompts.json`.
+
+| QC dimension | Cell397 | Cell398 | Cell399 | Cell400 |
+|---|---|---|---|---|
+| Identity | KEEP | KEEP | KEEP | KEEP |
+| Weapon discipline | KEEP | KEEP | KEEP | KEEP |
+| Palette | KEEP | KEEP | KEEP | KEEP |
+| Pose | KEEP | KEEP | KEEP | KEEP |
+| Thumbnail silhouette | KEEP | KEEP | KEEP | KEEP |
+| Size registration | KEEP after source calibration | KEEP | KEEP after source calibration | KEEP |
+| Motion path | KEEP | KEEP | KEEP | KEEP |
+| Smear | N/A | N/A | N/A | N/A |
+| Cartoon physics | KEEP: low compact stride | KEEP: passing | KEEP: opposite stride | KEEP: passing |
+| Frame alignment | Planted sole verified | Planted sole verified | Planted sole verified | Planted sole verified |
+| Background/edges | KEEP | KEEP | KEEP | KEEP |
+| Sheet integrity | KEEP | KEEP | KEEP | KEEP |
+
+Verification: all nine sheet dimensions,36 wall cases,18 actual run/idle loops and882 compass samples plus authored-facing fixtures pass. Installed Exile left/right consecutive filmstrips reviewed in `run-alternation/live724/`. The run test now checks actual visible pixels as well as selected cell indices: an isolated preview assembly failure exposed that an index-only check could pass an invisible sprite. The production sheets never received that failed preview.
+
+Oni's new run is still unfinished and unchanged in724; its current generated candidate has thin shins and weak leg-depth continuity. Remaining attack-edge repairs from723 are also still pending. This is an Exile checkpoint, not completion of the full roster sweep. No user CPU-tab interruption, paid external API, reset credit, push or deployment.

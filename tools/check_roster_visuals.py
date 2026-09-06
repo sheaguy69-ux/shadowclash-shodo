@@ -47,11 +47,15 @@ async def main():
                             await new Promise(resolve=>{function tick(){
                                 const idx=spriteFrameIndex(p,m.frames);trace.push({frame,ms:performance.now()-began,idx,state:p.state,vx:p.vx,x:p.x,phase:p.animPhase});
                                 const shot=document.createElement('canvas');shot.width=230;shot.height=240;const sg=shot.getContext('2d');sg.fillStyle='#83b7c0';sg.fillRect(0,0,230,240);sg.save();sg.translate(115-p.x-p.width/2,220-GROUND_Y);drawSprite(sg,p);sg.restore();snaps.push(shot);
+                                const pixels=sg.getImageData(0,0,230,240).data;let visibleInk=0;
+                                for(let i=0;i<pixels.length;i+=4)if(pixels[i]!==131||pixels[i+1]!==183||pixels[i+2]!==192)visibleInk++;
+                                trace[trace.length-1].visibleInk=visibleInk;
                                 if(frame===2)key(side>0?'KeyD':'KeyA',true);
                                 if(frame===56)key(side>0?'KeyD':'KeyA',false);
                                 if(++frame<67)requestAnimationFrame(tick);else resolve();
                             }requestAnimationFrame(tick);});paused=true;key('KeyA',false);key('KeyD',false);
                             const active=trace.filter(t=>t.state===STATE.RUN&&Math.abs(t.vx)>100),failures=[];
+                            if(trace.some(t=>t.visibleInk<100))failures.push('live loop contains an invisible body');
                             if(new Set(active.map(t=>t.idx)).size!==run.length)failures.push('live run omitted stride cells');
                             for(let i=1;i<active.length;i++){const step=(run.indexOf(active[i].idx)-run.indexOf(active[i-1].idx)+run.length)%run.length;if(step>1)failures.push('skipped '+step+' cells at '+active[i].frame);}
                             const board=document.createElement('canvas');board.width=10*230;board.height=7*260;const bg=board.getContext('2d');bg.fillStyle='#83b7c0';bg.fillRect(0,0,board.width,board.height);
