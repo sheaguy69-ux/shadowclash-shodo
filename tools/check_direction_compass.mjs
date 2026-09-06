@@ -53,9 +53,11 @@ try{
  for(let id=0;id<9;id++){
  const out=await ev(`(async()=>{
  const rightAuthored={"ember": [247, 248, 249, 250, 251, 252, 253, 254], "kael": [6, 7, 8, 9, 10, 11, 12, 13, 19, 20, 21, 22, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 135, 136, 191, 192], "mokurai": [98, 99, 100, 101, 186, 281, 282, 283, 284, 285, 286, 287, 288, 289, 290, 291, 292, 293, 294, 295, 324, 325, 326, 327, 328, 329, 330, 331, 355, 356, 357, 358, 359, 360, 361, 362], "mizu": [102], "shin": [339], "exile": [313]};
- // Independently viewed right-authored ground families (source recovery 722).
- const groundRight={mokurai:[371,372,373,374,375,376,377,378],exile:[377,378,379,380,381,382,383,384],oni:[427,428,578,579,580,581,582,583],tsubasa:[314,315,316,319,320,321,355,356]};
+ // Independently viewed right-authored ground families (source recovery 722–723).
+ const groundRight={"mokurai":[371,372,373,374,375,376,377,378,379,380,381,382,383,384,385,386],"exile":[377,378,379,380,381,382,383,384,252,138,139,140,393,394,395,253,254,154,155,156,396,158,159,160],"oni":[584,585,578,579,580,581,582,583,362,363,364,365,589,590,368,369,232,233,234,591,592,329,238,239,386,593,388,389,390,391,392,393,586,587,588,378,379,380,594,595,596,384,385],"tsubasa":[314,315,316,319,320,321,355,356],"shin":[222,378,224,225,226]};
  for(const [name,cells] of Object.entries(groundRight))for(const cell of cells)if(!SPRITES[name].mirror?.[cell])throw Error(name+' ground attack faces backward: '+cell);
+ // Shin's source returns to a left-authored crouch before and after its rightward release.
+ for(const cell of [220,221,227])if(SPRITES.shin.mirror?.[cell])throw Error('Shin ready/settle faces backward: '+cell);
  const rows=[],shots=[],errors=[];window.onerror=(m)=>errors.push(String(m));let g=null,lastSign=0;
  const original=drawShodoFrame;
  drawShodoFrame=function(...args){if(args[0]===g)lastSign=Math.sign(g.getTransform().a);return original(...args);};
