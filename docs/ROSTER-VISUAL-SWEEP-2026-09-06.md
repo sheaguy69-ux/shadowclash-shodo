@@ -19,3 +19,13 @@ Mizu follow-up: four attack-tier live captures (24 transitions) pass in `mizu-li
 Appended46 Oni and55 Exile cells. Original502/322-cell RGBA prefixes are unchanged. Repointed every alias of each restored pose, preserving source direction and uniform source scale. Oni idle/guard/hurt/getup/light/low sweep/run and Exile light/heavy/guard/hurt/jump/getup/slide/low sweep/run are restored from reconstructed sources; Exile run uses the inspected built-in background-cleanup candidates. No animation timing changed. Per-cell registration, source mappings, rejected candidates and12-dimension review are in media/roster-sweep-20260906/{packed721.json,qc721.json,QC721.md}.
 
 36 wall visibility cases,18 real run loops and9 sheet geometry checks pass. Both repaired live run strips reviewed: complete bodies throughout, full Exile sickle/chain/weight, original shared Shodo contour. Exile passes9,006 independent picker cases and five real jump arcs after updating the inspected flight-cell fixture. More clipped attacks across the roster remain under repair; this is not the end of the full sweep.
+
+## Further source recovery — SHEET_V722
+
+Appended101 reviewed cells across six fighters: Mokurai32, Oni36, Exile16, Executioner11, Tsubasa4, Kael2. Recovers cut heads, limbs, weapons and crouch/landing silhouettes from the original art. Kael's two hood repairs replace only709/714 missing cloth pixels from the aligned original sources; all pixels outside those masks are unchanged. Current pose order and source-family scale are retained. Original atlas prefixes are RGBA-identical.
+
+Pre-pack grades, hashes, selected beats and mappings: `media/roster-sweep-20260906/more/{QC722.md,qc722.json,packed722.json}`. Rejected panel-border and source-clipped candidates are excluded. Remaining source cuts still need repair; this is an interim checkpoint.
+
+Live review found right-authored attack families with missing mirror metadata: Mokurai palm Light, Exile shoulder throw, Tsubasa forward normal and Oni forward spearhand. Corrected the entire active family, including unreplaced sibling cells, and added independent fixtures. Mokurai guard's test fixture also now recognizes its eight appended right-authored cells.
+
+Checks: nine-sheet geometry,882 compass samples plus32 ground-family mirror fixtures,36 wall-visibility cases,Exile9,006 picker cases and five real jump arcs. Four fighters pass all four attack tiers/96 live transitions in `live722-final/`; additional real directional-input captures cover Oni/Tsubasa forward Light and Kael forward Heavy/down Special. No combat timing, damage, physics, shared Shodo rendering or visible CPU-browser changes.
