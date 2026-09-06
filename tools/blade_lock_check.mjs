@@ -35,6 +35,9 @@ const consts = ['LOCK_DUR', 'LOCK_MARGIN', 'LOCK_SEP', 'LOCK_CPU_RATE', 'LOCK_MI
     return `const ${n} = ${m[1]};`;
 }).join('\n');
 
+const clearArtMethod = src.match(/\n(\s*)clearMoveArt\(\) \{[\s\S]*?\n\1\}/)[0];
+const clearArt = new Function('return ({' + clearArtMethod + '}).clearMoveArt')();
+
 const STATE = { IDLE: 'IDLE', STUNNED: 'STUNNED', BLADE_LOCK: 'BLADE_LOCK', ATTACK_HEAVY: 'ATTACK_HEAVY' };
 
 // enterBladeLock reads each fighter's own measured reach out of the loaded sheet manifest
@@ -51,6 +54,7 @@ function mkPlayer(name, x, specName = 'kael') {
              hitboxes: [], state: STATE.IDLE, stunTimer: 0, recoveryTimer: 0, staggerMeter: 0,
              dashTimer: 0, lockT: 0, lockMash: 0, lockCpuT: 0,
              pendingSlash: null, pendingChainStarter: null, attackHasConnected: false,
+             fxSched: [], clearMoveArt: clearArt,
              isCpuDriven() { return this === player2 && p2Cpu; },
              // Minimal mirror of Player.takeDamage — just the effects the lock payout
              // depends on: the loser takes the hit, is stunned, and is knocked away
@@ -66,10 +70,13 @@ function mkPlayer(name, x, specName = 'kael') {
 
 const harness = `
 ${consts}
+${lift('bladeLockFrame')}
+${lift('cancelBladeLock')}
+${lift('fitBladeLockPair')}
 ${lift('updateBladeLock')}
 ${lift('resolveBladeLock')}
 ${lift('enterBladeLock')}
-return { updateBladeLock, resolveBladeLock, enterBladeLock, LOCK_DUR, LOCK_MARGIN, LOCK_SEP, LOCK_MIN_HOLD };
+return { updateBladeLock, resolveBladeLock, enterBladeLock, cancelBladeLock, bladeLockFrame, LOCK_DUR, LOCK_MARGIN, LOCK_SEP, LOCK_MIN_HOLD };
 `;
 
 let player1, player2;
@@ -77,6 +84,7 @@ const api = new Function('STATE', 'sfx', 'createSparks', 'createSmokePuff', 'spa
     'get_player1', 'get_player2', 'setShake', 'setFlash', 'setHitstop', 'get_SPRITES', 'isP2Human', 'spawnStrike', `
     Object.defineProperty(globalThis, 'SPRITES', { get: get_SPRITES, configurable: true });
     const screenShakeHolder = {};
+    const createBladeSparks = createSparks;
     let screenShakeAmount = 0, flashAmount = 0, hitstopRemaining = 0, cpuTier = 1;
     Object.defineProperty(globalThis, 'player1', { get: get_player1, configurable: true });
     Object.defineProperty(globalThis, 'player2', { get: get_player2, configurable: true });
@@ -241,7 +249,7 @@ const mats = new Function(`${matSrc}
              woodInvolved };`)();
 
 const F = (id, fistMode = false) => ({ spec: { id }, fistMode });
-const KAEL = F(0), SHIN = F(2), MIZU = F(1), BUDDHA = F(6), ONI = F(7), ONI_FIST = F(7, true);
+const KAEL = F(0), SHIN = F(2), MIZU = F(1), BUDDHA = F(6), ONI = F(8), ONI_FIST = F(8, true);
 const box = (mat) => ({ canClash: true, mat });
 const bare = { canClash: true };
 
@@ -262,14 +270,14 @@ ok(!mats.bladeOnBlade(KAEL, KAEL, box('chain'), bare), 'a chain cannot bind a bl
 ok(!mats.bladeless('chain'), 'chain still catches light — it is not bladeless');
 
 // nothing else moved
-ok(mats.bladeOnBlade(KAEL, ONI, bare, bare), "oni's iron club still binds a katana");
+ok(mats.bladeOnBlade(KAEL, ONI, bare, bare), "oni's armed claws still bind a katana");
 ok(!mats.bladeOnBlade(KAEL, BUDDHA, bare, bare), 'flesh never binds');
 ok(!mats.bladeOnBlade(KAEL, MIZU, bare, bare), 'a wooden bo does not bind steel');
 ok(mats.woodInvolved(KAEL, MIZU, bare, bare), "but the bo still reads as wood for the clash sound");
 ok(!mats.bladeOnBlade(KAEL, KAEL, { canClash: false }, bare), 'a kick never binds, whatever is held');
 // a flesh-material box on an armed fighter — the case that lets oni have both forms
 ok(!mats.bladeOnBlade(ONI, KAEL, box('flesh'), bare),
-   'a FLESH hitbox on an armed fighter does not bind (oni claw form)');
+   'a FLESH hitbox on an armed fighter does not bind (oni bare fist)');
 
 // ---------------------------------------------------------------------------------
 // STRUCTURAL GUARD — every chain strike must declare mat:'chain'.
@@ -316,38 +324,37 @@ ok(untagged.length === 0,
 // moment, which looks like a slightly-wrong animation, not like a bug.
 console.log('\nFRAME ROUTING — lockN cells to beats\n');
 
-// same slicing the router does: last two are win/lose, the rest is catch + strain loop
-const routeBeats = (n) => {
-    const all = Array.from({length: n}, (_, i) => i + 1);
-    const held = all.length > 2 ? all.slice(0, -2) : all;
-    return {
-        win:  all[all.length - 2],
-        lose: all[all.length - 1],
-        catch_: held[0],
-        loop: held.length > 2 ? held.slice(1) : held,
-    };
-};
-
-{
-    const r = routeBeats(6);
-    ok(r.win === 5 && r.lose === 6, 'six cells: 5 is WIN, 6 is LOSE');
-    ok(r.catch_ === 1, 'six cells: cell 1 is the catch');
-    ok(r.loop.join() === '2,3,4', `six cells: the held loop is 2,3,4 (got ${r.loop.join()})`);
+// Exercise the SHIPPING router, including the first loop transition and form-2 priority.
+for (const n of [6, 9, 10, 12]) {
+    const F = Object.fromEntries(Array.from({length:n}, (_, i) => ['lock' + (i + 1), i + 1]));
+    const p = { state: STATE.BLADE_LOCK, lockT: api.LOCK_DUR };
+    const frame = elapsed => { p.lockT = api.LOCK_DUR - elapsed; return api.bladeLockFrame(p, F); };
+    ok(frame(0) === 1 && frame(0.08) === 1, `${n} cells: catch is shown first`);
+    ok(frame(0.10) === 2 && frame(0.17) === 2, `${n} cells: settle is shown before straining`);
+    const strain = Array.from({length:n-4}, (_, i) => frame(0.181 + i / 12));
+    ok(strain.join() === Array.from({length:n-4}, (_, i) => i + 3).join(),
+       `${n} cells: every strain pose plays in order, no catch/outcomes repeat`);
+    p.lockOutcome = 'win'; p.lockOutcomeT = 0.1; p.state = STATE.IDLE;
+    ok(api.bladeLockFrame(p, F) === n-1, `${n} cells: IDLE winner renders win`);
+    p.lockOutcome = 'lose'; p.state = STATE.STUNNED;
+    ok(api.bladeLockFrame(p, F) === n, `${n} cells: stunned loser renders lose`);
+    p.lockOutcomeT = 0;
+    ok(api.bladeLockFrame(p, F) === undefined, `${n} cells: expired outcome releases the normal router`);
+}
+for (const n of [0, 1, 2]) {
+    const F = Object.fromEntries(Array.from({length:n}, (_, i) => ['lock' + (i + 1), i + 1]));
+    const p = {state: STATE.BLADE_LOCK, lockT: 0.4};
+    ok(api.bladeLockFrame(p, F) === (n || undefined), `${n} cells: partial sheet stays defined or falls back`);
 }
 {
-    // three extra in-between strain cells
-    const r = routeBeats(9);
-    ok(r.win === 8 && r.lose === 9, 'nine cells: 8 is WIN, 9 is LOSE — still the last two');
-    ok(r.catch_ === 1, 'nine cells: cell 1 is still the catch');
-    ok(r.loop.join() === '2,3,4,5,6,7',
-       `nine cells: every in-between joins the loop (got ${r.loop.join()})`);
-    ok(!r.loop.includes(8) && !r.loop.includes(9),
-       'the win/lose cells are NEVER part of the held loop');
-}
-{
-    // a sheet with only the two outcome cells and no strain must not crash or loop them
-    const r = routeBeats(2);
-    ok(r.loop.join() === '1,2', 'two cells: degenerate but defined, no empty loop');
+    // A second-form idle can no longer claim the winner before his outcome is drawn.
+    const F = {lock1:10, lock2:11, lock3:12, lock4:13, lock5:14, lock6:15};
+    const p = {state:STATE.IDLE, lockT:0, lockOutcome:'win', lockOutcomeT:.1};
+    const route = runInNewContext(lift('spriteFrameIndexRaw') + '; spriteFrameIndexRaw(p,F)', {
+        p,F,bladeLockFrame:api.bladeLockFrame,
+        shinF2Frame:()=>999,tsubasaF2Frame:()=>998,mizuF2Frame:()=>997,
+    });
+    ok(route === 14, 'real sprite router draws the win before form-2 idle');
 }
 
 // ---------------------------------------------------------------------------------
@@ -432,7 +439,7 @@ ok(!mats.weaponBind(SHIN, KAEL, bare, bare), "shin's fists never bind");
 ok(mats.weaponBind(SHIN, KAEL, box('steel'), bare), 'shin WITH A KUNAI still binds');
 ok(!mats.weaponBind(KAEL, KAEL, box('chain'), bare), "exile's chain still never binds");
 ok(!mats.weaponBind(ONI, KAEL, box('flesh'), bare), "oni's fist form still never binds");
-ok(mats.weaponBind(ONI, MIZU, bare, bare), "oni's iron kanabo binds a wooden bo");
+ok(mats.weaponBind(ONI, MIZU, bare, bare), "oni's armed claws bind a wooden bo");
 ok(!mats.weaponBind(KAEL, KAEL, { canClash: false }, bare), 'a kick still never binds');
 
 
@@ -491,6 +498,115 @@ for (const [delayA, delayB, want] of [[0.2, 0, false], [0, 0.2, false], [0.2, 0.
        && a.hitboxes.length === Number(!want) && b.hitboxes.length === Number(!want),
        `clash waits for BOTH startups: delays ${delayA}/${delayB}`, `clashed=${hit}`);
 }
+
+// ---- BOUNDARIES, INTERRUPTION, INPUT AND CPU CLOCKS -----------------------
+console.log('\nBIND INTEGRITY — walls, cancellation, input and clocks\n');
+for (const [x1,x2] of [[10,30],[1140,1160],[30,10],[1160,1140]]) {
+    const [a,b] = fresh(x1,x2, {kael:{lockReach:58},mizu:{lockReach:44}});
+    api.enterBladeLock(a,b);
+    ok(Math.abs(sep(a,b)-102)<.001 && Math.min(a.x,b.x)>=10
+       && Math.max(a.x+a.width,b.x+b.width)<=1190, `wall entry ${x1}/${x2} keeps measured spacing inside arena`);
+    a.lockMash = 8;
+    api.resolveBladeLock(a,b);
+    const gap = Math.max(a.x,b.x) - Math.min(a.x+a.width,b.x+b.width);
+    ok(Math.abs(gap-8)<.001 && Math.min(a.x,b.x)>=10
+       && Math.max(a.x+a.width,b.x+b.width)<=1190, `wall win ${x1}/${x2} crosses without overlap`);
+    ok(a.facing === Math.sign(b.x-a.x) && b.facing === -a.facing, 'both face each other after cross-up');
+}
+{
+    const [a,b] = fresh();
+    a.thrustSlide = 1; a.speedTrail = 1; a.fxQueue = [{t:.2}]; a.fxSched.push({t:.3});
+    a.attackAnim={dur:500}; a.moveArt='old'; a.bufferedAttack={ttl:1}; a.recoveryTimer=2;
+    a._lt=99; a._ht=99;
+    api.enterBladeLock(a,b);
+    ok(!a.thrustSlide && !a.speedTrail && !a.fxQueue && !a.fxSched.length && !a.bufferedAttack,
+       'bind cancels pending motion, attack FX and buffered swings');
+    ok(!a.attackAnim && !a.moveArt && !a.recoveryTimer && a._lt < 0 && a._ht < 0,
+       'shared art cancellation removes stale move/recovery/throw pairing');
+    api.cancelBladeLock(a);
+    ok(a.lockT===0 && b.lockT===0 && !a.lockFoe && !b.lockFoe && a.stunTimer===0 && b.stunTimer===0,
+       'cancelling either partner releases the whole bind');
+    ok(!api.updateBladeLock(a,b,.1) && a.hp===150 && b.hp===150, 'cancelled bind cannot pay out later');
+}
+{
+    const [a,b]=fresh(); api.enterBladeLock(a,b); a.lockMash=8;
+    b.takeDamage=function(){this.hp=0;this.state='KO';this.stunTimer=.9;};
+    api.resolveBladeLock(a,b);
+    ok(b.hp===0 && b.state==='KO' && b.stunTimer===.9 && b.lockOutcome==='lose',
+       'winning cut preserves the damage handler KO state and still shows loss art');
+}
+for (const kind of ['hit','air','KO']) {
+    const [a,b]=fresh(); api.enterBladeLock(a,b); a.lockMash=20;
+    if(kind==='hit') { b.state=STATE.STUNNED; b.stunTimer=.7; }
+    if(kind==='air') b.isGrounded=false;
+    if(kind==='KO') { b.hp=0; b.state=STATE.STUNNED; b.stunTimer=1; }
+    api.updateBladeLock(a,b,1/60);
+    ok(!a.lockT && !b.lockT && a.hp===150 && b.hp===(kind==='KO'?0:150), `${kind} cancels without an extra cut`);
+    if(kind!=='air') ok(b.state===STATE.STUNNED && b.stunTimer>0, `${kind} preserves the actual hit/KO state`);
+}
+{
+    // Real training reset, with only unrelated stage/tether presentation stubbed.
+    const [a,b]=fresh(); api.enterBladeLock(a,b);
+    for(const p of [a,b])Object.assign(p,{maxHp:150,ghosts:[],echoTrail:[],kageTape:[],kageActs:[],dropTether(){}});
+    const env={player1:a,player2:b,seedAbyss(){},cancelBladeLock:api.cancelBladeLock,
+               canvas:{width:1200},GROUND_Y:600,STATE,trainingStats:{},clashCd:7};
+    runInNewContext(lift('trainingReset')+'; trainingReset(false);',env);
+    ok(!a.lockT && !b.lockT && !a.lockOutcomeT && !b.lockOutcomeT && env.clashCd===0,
+       'training reset clears the contest, outcome art and cooldown');
+}
+{
+    const takeDamage = src.match(/\n(\s*)takeDamage\([^)]*\) \{[\s\S]*?\n\1\}/)[0];
+    const [a,b]=fresh(); api.enterBladeLock(a,b);
+    b.rollIFrames=()=>false; b.fxSched=[];
+    const env={gameMode:'2p',cancelBladeLock:api.cancelBladeLock,STATE,CRACK_TAKEN:1.2, b,a};
+    // Stop at the first downstream hit bookkeeping; cancellation must already be done.
+    b.grayHoldT=1;
+    Object.defineProperty(b,'grayHoldT',{set(){throw new Error('hit reached');}});
+    let reached=false;
+    try {runInNewContext('const hit=({'+takeDamage+'}).takeDamage; hit.call(b,5,a);',env);}
+    catch(e){reached=e.message==='hit reached';}
+    ok(reached && !a.lockT && !b.lockT, 'real takeDamage cancels the pair at a confirmed hit');
+}
+{
+    // Lift the full combat funnel: mashes must return BEFORE throwing/attack dispatch.
+    const [a,b]=fresh(); api.enterBladeLock(a,b);
+    let throws=0, attacks=0;
+    for(const p of [a,b]) {p.executeThrow=()=>{throws++;return false;};p.executeAttack=()=>attacks++;}
+    const env={player1:a,player2:b,isP2Human:()=>true,performance:{now:()=>500},
+               P1_COMBAT_CODES:['KeyF','KeyG','KeyJ','KeyH'],gameMode:'2p'};
+    runInNewContext(lift('fireCombatKey')+`; for(const key of ['KeyF','KeyG','KeyJ','KeyH','KeyI','KeyO','KeyU','KeyP']) {
+        fireCombatKey(key,500,false); fireCombatKey(key,501,true);
+    }`,env);
+    ok(a.lockMash===4 && b.lockMash===4 && !throws && !attacks && a._lt<0 && b._ht<0,
+       'real mash presses count once, ignore repeats and never arm throw/attack');
+    a.isCpuDriven=()=>true; b.isCpuDriven=()=>true; env.isP2Human=()=>false;
+    runInNewContext(lift('fireCombatKey')+`;fireCombatKey('KeyF',502);fireCombatKey('KeyI',502);`,env);
+    ok(a.lockMash===4 && b.lockMash===4, 'spectator keys cannot boost either CPU');
+}
+for(const wood of [false,true]) {
+    const [a,b]=fresh(); api.enterBladeLock(a,b,wood);a.lockMash=8;api.resolveBladeLock(a,b);
+    ok(sfxLog.filter(k=>k===(wood?'clash_wood':'clash')).length===2
+       && (!wood || !sfxLog.includes('clash')), `${wood?'wood':'metal'} uses its own bind entry/release sound`);
+}
+for(const hz of [30,60,120]) {
+    for(const faster of [0,1]) {
+        const [a,b]=fresh(); a.isCpuDriven=b.isCpuDriven=()=>true;p2Cpu=true;
+        api.enterBladeLock(a,b);
+        ok(a.lockCpuRate>=7.5*1.18*.88 && a.lockCpuRate<=7.5*1.18*1.12,
+           `CPU cadence stays within its tier's bounded effort (${hz}Hz)`);
+        // Reproducible independent rates, swapped across seats: scoring is time-based.
+        a.lockCpuRate=faster===0?9.7:8; b.lockCpuRate=faster===1?9.7:8;
+        a.lockCpuT=b.lockCpuT=0;
+        for(let i=0;i<hz*2 && a.lockT>0;i++)api.updateBladeLock(a,b,1/hz);
+        ok((faster===0?a:b).lockOutcome==='win', `${hz}Hz: either CPU can win from its own cadence`);
+    }
+}
+p2Cpu=false;
+{
+    const p={lockOutcome:'win',lockOutcomeT:.18}; clearArt.call(p);
+    ok(!p.lockOutcome && !p.lockOutcomeT, 'a new move releases old outcome art through the shared clear');
+}
+ok(/const CLASH_COOLDOWN = 10\.0/.test(src), 'owner ten-second cooldown is retained');
 
 console.log(`\n  ${pass} passed, ${fail} failed\n`);
 process.exit(fail ? 1 : 0);

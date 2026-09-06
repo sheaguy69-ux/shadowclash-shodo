@@ -2586,6 +2586,7 @@
                 this.lockT = 0;                // BLADE LOCK: seconds left in the bind
                 this.lockMash = 0;             // presses banked this bind
                 this.lockCpuT = 0;             // CPU mash accumulator
+                this.lockFoe = null;           // the exact partner, for interruption/reset
                 this.tumbleT = 0;              // active ground-tumble clock (renders roll cell)
                 this.tumbleT0 = 1;             // ...and what it started at (tumble progress; never 0, it divides)
                 this.slamPhase = 0;            // METEOR BREAK: 0 none, 1 hang, 2 plunge
@@ -2732,6 +2733,7 @@
             // counter specials, which bypass it — a stale flag here does not throw, it
             // silently draws the WRONG MOVE, which is the hardest kind of bug to see.
             clearMoveArt() {
+                    this.lockOutcome = null; this.lockOutcomeT = 0;
                     // ⛔ THE FORM-2 LATCHES LIVE HERE TOO. f2Air/f2Low (Shin's Kage-Nui,
                     // Tsubasa's sakate) and f2Dash were cleared ONLY at the top of each
                     // Form-2 branch, so any press that skipped that branch — an exempted air
@@ -3758,7 +3760,7 @@
                     // knockback bleeds off instead of ice-skating at constant speed (audit)
                     if (this.isGrounded) this.vx *= Math.max(0, 1 - 6.5 * dt);
                     if (this.stunTimer <= 0) {
-                        this.state = STATE.IDLE;
+                        if (this.lockT <= 0) this.state = STATE.IDLE;
                         this.chainComboTier = 0;
                         this.stunPeak = 0;
                     }
@@ -9555,6 +9557,8 @@
                 // his on-block cancel. processHitboxes reads this flag to decide whether
                 // the attacker gets PAID for the swing, so it is stamped here rather than
                 // duplicated there: one list, one place.
+                if (this.lockT > 0) cancelBladeLock(this);
+                this.lockOutcome = null; this.lockOutcomeT = 0;
                 if (attacker) attacker.hitConfirmed = true;
                 this.grayHoldT = 0;   // any real hit (clean OR chipped) resets the gray-drain clock
                 // ...and from here the hit also INTERRUPTS. fxSched is a timed queue —
@@ -11434,26 +11438,14 @@
         }
 
         function spriteFrameIndexRaw(p, F) {
+            const lockFrame = bladeLockFrame(p, F);
+            if (lockFrame !== undefined) return lockFrame;
             const sf2 = shinF2Frame(p, F);
             if (sf2 !== undefined && sf2 !== null) return sf2;
             const tf2 = tsubasaF2Frame(p, F);
             if (tf2 !== undefined && tf2 !== null) return tf2;
             const mf2 = mizuF2Frame(p, F);
             if (mf2 !== undefined && mf2 !== null) return mf2;
-// ⛔ BLADE LOCK OUTCOME — must be tested BEFORE the state switch. By the time
-            // this runs the winner is already IDLE and the loser STUNNED, and both of those
-            // states have their own cells, so the win/lose cells would be packed and never
-            // rendered once. The last two lockN cells are win then lose.
-            if (p.lockOutcome && p.lockOutcomeT > 0) {
-                const all = [];
-                for (let n = 1; n <= 12; n++) {
-                    const c = F['lock' + n];
-                    if (c === undefined) break;
-                    all.push(c);
-                }
-                if (all.length > 2)
-                    return p.lockOutcome === 'win' ? all[all.length - 2] : all[all.length - 1];
-            }
             // THE DASH CLAW (Oni): two beats — the lunge, then the same lunge on a red
             // connect burst. Held on beat 1 for the first half so the extension reads
             // before the hit does. Placed with the other dash-attack branch below and
@@ -11669,48 +11661,8 @@
                 }
             }
             switch (p.state) {
-                // PLACEHOLDER CELLS until the six real lock cells per fighter exist. The
-                // guard cell is the closest pose the sheets already hold — weapon set,
-                // weight forward — which is exactly why it is also the reference handed to
-                // the generator for lock1. Deliberately ONE held cell: a bind that
-                // animated on borrowed frames would read as finished work and stop anyone
-                // noticing the real cells are still missing.
-                // BLADE LOCK — DATA-DRIVEN, so in-between cells need no code change.
-                //
-                // The owner's plan is to add in-betweens to smooth the strain, so the loop
-                // reads however many `lockN` cells the sheet actually has instead of naming
-                // two. Pack lock1..4 and it plays four; pack lock1..8 and it plays eight;
-                // the engine is not touched either way. That is the whole point — a frame
-                // count is sheet data, not engine logic.
-                //
-                // The BEATS are what stay fixed: cells 1-2 are the catch and the settle,
-                // played once as the bind lands, and everything from 3 up to the win/lose
-                // pair is the strain, looped for as long as the struggle holds. The last two
-                // cells of the set are always win and lose, addressed by resolveBladeLock.
-                case STATE.BLADE_LOCK: {
-                    const strain = [];
-                    for (let n = 1; n <= 12; n++) {
-                        const c = F['lock' + n];
-                        if (c === undefined) break;
-                        strain.push(c);
-                    }
-                    // the last two are WIN and LOSE — not part of the held loop
-                    const held = strain.length > 2 ? strain.slice(0, -2) : strain;
-                    if (held.length) {
-                        // The catch (cell 1) is played once and only while the bind is young,
-                        // then the rest loop. Driven off lockT so it does not depend on a
-                        // separate animation clock that hitstop can freeze out of step.
-                        const elapsed = LOCK_DUR - (p.lockT || 0);
-                        if (held.length > 2 && elapsed < 0.12) return held[0];
-                        const loop = held.length > 2 ? held.slice(1) : held;
-                        return loop[Math.floor(elapsed * 9) % loop.length];
-                    }
-                    // No lock cells packed yet: hold ONE guard cell, deliberately static.
-                    // Animating a borrowed pose would read as finished work and hide the fact
-                    // that the real cells are still missing.
-                    return F.xblkguard !== undefined ? F.xblkguard
-                         : F.block !== undefined ? F.block : F.idle;
-                }
+                case STATE.BLADE_LOCK:
+                    return F.xblkguard ?? F.block ?? F.idle;
                 // Prefer the ninja-sprint cells (torso low, arms swept back) when the
                 // sheet has them; older sheets fall back to the original run cells.
                 // Prefer the 4-frame i2v run cycle (size-consistent, side-profile) when
@@ -16924,9 +16876,15 @@
             // It returns, so nothing below can also read the press as a swing or a
             // throw pairing: a mash of F+G would otherwise arm a throw for the frame
             // the lock ends on.
-            const MASH = { KeyF: player1, KeyG: player1, KeyJ: player1, KeyI: player2, KeyO: player2, KeyU: player2 };
+            const p2Live = isP2Human();
+            const MASH = { KeyF: player1, KeyG: player1, KeyJ: player1, KeyH: player1,
+                           KeyI: player2, KeyO: player2, KeyU: player2, KeyP: player2 };
             const masher = MASH[code];
-            if (masher && masher.lock) {
+            if (masher && masher.lockT > 0) {
+                if (!repeat && (!masher.isCpuDriven() || (masher === player2 && p2Live))) masher.lockMash++;
+                return;
+            }
+            if (masher && masher.lock && code !== 'KeyH' && code !== 'KeyP') {
                 // A CPU-driven body still has the press EATEN (or its brain would swing
                 // straight out of the lock) but does not score from it — its hands are
                 // KIAI_CPU_RATE in updateKiai, and counting both would double-dip.
@@ -16959,7 +16917,6 @@
             // P2 triggers in local 2P and in TRAINING (the dummy is also the
             // sparring partner — owner: "play two controls don't work in training
             // mode"). cpu/watch stay puppet-proof.
-            const p2Live = isP2Human();
             if (p2Live && code === 'KeyI') { player2._lt = now; if (now - (player2._ht || -1e9) < 90 && player2.executeThrow() !== false) return; }
             if (p2Live && code === 'KeyO') { player2._ht = now; if (now - (player2._lt || -1e9) < 90 && player2.executeThrow() !== false) return; }
 
@@ -16990,30 +16947,6 @@
             if (gameMode === 'teams' && code === 'KeyK') { teamSwap(2); return; }
             if (code === 'KeyV') { player1.modeKey(); return; }
             if (p2Live && code === 'KeyK') { player2.modeKey(); return; }
-
-            // BLADE LOCK MASH — intercepted BEFORE the attack triggers, which is the whole
-            // reason the lock can reuse the stunTimer freeze: executeAttack would refuse
-            // while stunned, so the press has to be claimed here or it is swallowed.
-            // Either attack button counts. Requiring a specific one would make the bind a
-            // controls quiz, and the mash is meant to be a struggle, not a lookup.
-            // ⛔ e.repeat IS THE WHOLE FIX: the browser fires keydown continuously while a
-            // key is HELD, so without this a player wins every bind by leaning on one
-            // button — the opposite of a struggle. A mash has to be discrete presses.
-            // ⛔ `repeat`, NOT `e.repeat`. This function has no `e` — it is a plain
-            // function called from pressCombat, the hitstop flush, the mouse, the pad and
-            // the touch pad, none of which have a DOM event. Reading e.repeat here threw
-            // ReferenceError on EVERY attack press during a bind, before lockMash could be
-            // incremented and before the rest of the input frame ran: a human could never
-            // win a blade lock, because his presses did not count and the handler died on
-            // the spot. Caught by fuzzing the live engine (12 throws in 5400 frames).
-            if (player1.lockT > 0 && (code === 'KeyF' || code === 'KeyJ' || code === 'KeyG' || code === 'KeyH')) {
-                if (!repeat) player1.lockMash++;
-                return;
-            }
-            if (p2Live && player2.lockT > 0 && (code === 'KeyI' || code === 'KeyU' || code === 'KeyO' || code === 'KeyP')) {
-                if (!repeat) player2.lockMash++;
-                return;
-            }
 
             // Player 1 Combat Triggers
             if (code === 'KeyW') player1.executeJump();
@@ -17913,6 +17846,8 @@
             // columns, no live rocks — without this, training on the abyss was an
             // infinite fall-KO-reset loop once the seeded slabs drifted (review)
             seedAbyss();
+            cancelBladeLock(player1); cancelBladeLock(player2);
+            clashCd = 0;
             for (const [p, sx] of [[player1, 150], [player2, canvas.width - 150 - player2.width]]) {
                 p.hp = p.maxHp ?? 150; p.stamina = 100; p.staggerMeter = 0;
                 p.ghosts.length = 0;
@@ -17923,7 +17858,8 @@
                 // is exactly the class of stale-reference bug the room reset exists
                 // to prevent. The tape is dropped too: replaying pre-reset positions
                 // would fire boxes across the room from where anybody is standing.
-                p.lock = null; p.weave = null; p.muki = 0; p.gyakute = false;
+                p.lock = null; p.lockOutcome = null; p.lockOutcomeT = 0;
+                p.weave = null; p.muki = 0; p.gyakute = false;
                 p.sayaLock = 0; p.sayaParryCd = 0;
                 p.kageTape.length = 0; p.kageActs.length = 0;
                 p.dropTether();
@@ -17967,11 +17903,6 @@
 
         // ⛔ BLADE LOCK — tuning lives here, next to the clash it replaces.
         //
-        // Placeholder art on purpose: the lock renders each fighter's GUARD cell for the
-        // whole strain. That is the point of shipping the mechanic first — the feel gets
-        // tuned against cells that already exist, so the six real lock cells per fighter
-        // are drawn to a timing that is already known to play well, instead of the timing
-        // being bent afterwards to fit whatever came back.
         const LOCK_DUR = 1.15;       // s — hard cap on the struggle; nobody holds forever
         const LOCK_MARGIN = 6;       // presses ahead needed to break it EARLY
         const LOCK_SEP = 68;   // px between body centres at the bind. ⛔ MUST STAY 2x
@@ -17999,40 +17930,86 @@
         const CLASH_COOLDOWN = 10.0;  // s between blade locks (owner: 5s still too frequent)
         let clashCd = 0;              // time left before the next clash can bind
 
+        function bladeLockFrame(p, F) {
+            if (!(p.lockOutcomeT > 0 && p.lockOutcome) && !(p.lockT > 0 && p.state === STATE.BLADE_LOCK)) return undefined;
+            const cells = [];
+            for (let n = 1; n <= 12 && F['lock' + n] !== undefined; n++) cells.push(F['lock' + n]);
+            if (!cells.length) return undefined;
+            if (p.lockOutcomeT > 0 && p.lockOutcome)
+                return cells.length > 2 ? cells[cells.length - (p.lockOutcome === 'win' ? 2 : 1)] : undefined;
+            const held = cells.length > 2 ? cells.slice(0, -2) : cells;
+            const elapsed = Math.max(0, LOCK_DUR - p.lockT);
+            // Catch, then settle ONCE; only the remaining poses repeat while straining.
+            if (elapsed < 0.09 || held.length === 1) return held[0];
+            if (elapsed < 0.18 || held.length === 2) return held[1];
+            return held[2 + Math.floor((elapsed - 0.18) * 12 + 1e-9) % (held.length - 2)];
+        }
+
+        function cancelBladeLock(p) {
+            if (!p) return;
+            const foe = p.lockFoe;
+            for (const body of [p, foe]) {
+                if (!body || (body !== p && body.lockFoe !== p)) continue;
+                body.lockT = 0; body.lockMash = 0; body.lockCpuT = 0; body.lockCpuRate = 0;
+                body.lockFoe = null; body.lockWood = false;
+                body.lockOutcome = null; body.lockOutcomeT = 0;
+                if (body.state === STATE.BLADE_LOCK) {
+                    body.state = body.hp <= 0 ? STATE.STUNNED : STATE.IDLE;
+                    body.stunTimer = body.hp <= 0 ? Math.max(body.stunTimer, 0.4) : 0;
+                }
+            }
+        }
+
+        function fitBladeLockPair(a, b) {
+            // Move the PAIR at a wall; clamping bodies separately breaks weapon contact.
+            let left = Math.min(a.x, b.x), right = Math.max(a.x + a.width, b.x + b.width);
+            for (const p of [a, b]) {
+                const man = SPRITES[p.spec.name.toLowerCase()];
+                if (!man?.ready) continue;
+                // Reserve the complete lock silhouette, including its release poses.
+                // The 30px collider alone can leave a hood, boot or blade offscreen.
+                for (let n = 1; n <= 12 && man.frames['lock' + n] !== undefined; n++) {
+                    const cell = man.frames['lock' + n], ink = cellInk(man, cell);
+                    const scale = man.scale * SHODO_DISPLAY_SCALE * (p.spec.renderScale || 1) * (man.frameScale?.[cell] ?? 1);
+                    const sign = -p.facing * (man.mirror?.[cell] ? -1 : 1), cx = p.x + p.width / 2;
+                    const x0 = cx + sign * (ink.x0 - man.frameW / 2) * scale;
+                    const x1 = cx + sign * (ink.x1 + 1 - man.frameW / 2) * scale;
+                    left = Math.min(left, x0, x1); right = Math.max(right, x0, x1);
+                }
+            }
+            const lo = 10 - left, hi = canvas.width - 10 - right;
+            const shift = Math.max(lo, Math.min(0, hi));
+            a.x += shift; b.x += shift;
+        }
+
         // Both fighters are frozen for the same span, so the lock is ticked ONCE for the
         // pair from the main loop — not inside Player.update, where it would tick twice per
         // frame and resolve half a frame early for whoever updated second.
         function updateBladeLock(a, b, dt) {
             if (a.lockT <= 0 && b.lockT <= 0) return false;
+            if (a.lockFoe !== b || b.lockFoe !== a || a.hp <= 0 || b.hp <= 0
+                || !a.isGrounded || !b.isGrounded
+                || a.state !== STATE.BLADE_LOCK || b.state !== STATE.BLADE_LOCK) {
+                cancelBladeLock(a); cancelBladeLock(b);
+                return true;
+            }
+            // CPU scoring stops at expiry even when a rendered frame straddles it.
+            const step = Math.min(Math.max(0, dt), a.lockT, b.lockT);
             for (const p of [a, b]) {
-                p.lockT -= dt;
-                p.stunTimer = Math.max(p.stunTimer, Math.max(0, p.lockT));  // hold the freeze
-                if (p.isGrounded) p.vx = 0;                                  // nobody drifts in a bind
-                // CPU side mashes on a clock. P1 is always human; P2 only when it is a
-                // human seat. ⛔ `p2Live` is a const local to the KEYDOWN handler, so this
-                // read was a ReferenceError, not a stale value — thrown every frame of
-                // every blade lock. Measured: 8 CPU-vs-CPU rounds, "p2Live is not defined"
-                // out of gameLoop. isP2Human() is the function that local is built from.
-                // ⛔ P1 IS NOT ALWAYS HUMAN: in WATCH/spectate/teams-seat-2 brain 0 drives
-                // P1 through cpuThink, which presses executeAttack directly and never reaches
-                // the mash intercept in fireCombatKey — so with the old test P1's lockMash
-                // stayed 0 while P2 accumulated on the clock and P2 won every bind. The
-                // CPU-mash clock must run for any CPU-driven body.
+                p.lockT = Math.max(0, p.lockT - step);
+                p.stunTimer = p.lockT;
+                p.vx = 0;
                 const human = !p.isCpuDriven() || (p === player2 && isP2Human());
                 if (!human) {
-                    p.lockCpuT = (p.lockCpuT || 0) + dt;
-                    // ⛔ cpuTierActive, NOT cpuTier: the ladder ramps the ACTIVE tier
-                    // (rampTier) and the menu tier stays static, so a Jonin final boss
-                    // used to mash the blade lock at the tier-1 rate. Every sibling read
-                    // (updateKiai, cpuThink) uses cpuTierActive; this was the lone copy.
-                    const rate = LOCK_CPU_RATE * (1 + 0.18 * (typeof cpuTierActive === 'number' ? cpuTierActive : 1));
-                    while (p.lockCpuT > 1 / rate) { p.lockCpuT -= 1 / rate; p.lockMash++; }
+                    p.lockCpuT += step;
+                    while (p.lockCpuT >= 1 / p.lockCpuRate) {
+                        p.lockCpuT -= 1 / p.lockCpuRate;
+                        p.lockMash++;
+                    }
                 }
             }
-            // EARLY BREAK is what stops this being a slot machine: pull far enough ahead and
-            // the bind opens now, so mashing is rewarded on the frame it is earned.
             const lead = Math.abs(a.lockMash - b.lockMash);
-            const held = LOCK_DUR - Math.max(a.lockT, b.lockT);   // how long the bind has run
+            const held = LOCK_DUR - Math.max(a.lockT, b.lockT);
             if (a.lockT <= 0 || b.lockT <= 0 || (held >= LOCK_MIN_HOLD && lead >= LOCK_MARGIN)) {
                 resolveBladeLock(a, b);
                 return true;
@@ -18042,7 +18019,8 @@
 
         function resolveBladeLock(a, b) {
             const diff = a.lockMash - b.lockMash;
-            for (const p of [a, b]) { p.lockT = 0; p.lockMash = 0; p.lockCpuT = 0; p.stunTimer = 0; }
+            const wood = a.lockWood || b.lockWood;
+            cancelBladeLock(a);
             const cx = (a.x + a.width / 2 + b.x + b.width / 2) / 2;
             // A TIE THROWS BOTH OFF. Handing the win to a default player would make the
             // mechanic decidable by turn order, which is worse than no winner at all.
@@ -18055,8 +18033,8 @@
                     p.lockOutcomeT = 0.32;
                     if (p.isGrounded) p.vx = Math.sign((p.x + p.width / 2) - cx || 1) * 150;
                 }
-                sfx('clash_dull');
-                createSparks(cx, a.y + a.height * 0.45, '#c8d0da');
+                sfx(wood ? 'clash_wood' : 'clash_dull');
+                createSparks(cx, a.y + a.height * 0.45, wood ? '#d8c49c' : '#c8d0da');
                 screenShakeAmount = Math.max(screenShakeAmount, 7);
                 return;
             }
@@ -18068,8 +18046,6 @@
             // the sprite router prefers it while it lasts.
             win.lockOutcome = 'win';
             win.lockOutcomeT = 0.18;
-            lose.lockOutcome = 'lose';
-            lose.lockOutcomeT = 0.46;
             // The winner's blade COMES THROUGH the lock: draw the heavy slash trail (W02)
             // at the bind — the winner is still on his own side, facing the loser — BEFORE
             // the cross-up moves him. Reuses the owner-approved crop; spawnSlash itself
@@ -18086,17 +18062,19 @@
             // The winner lands on the far side of the loser and turns to face back in.
             win.facing = winWasRight ? 1 : -1;
             win.x = winWasRight
-                ? Math.max(10, loseCx - lose.width / 2 - LOCK_CROSS_GAP - win.width)
-                : Math.min(canvas.width - 10 - win.width, loseCx + lose.width / 2 + LOCK_CROSS_GAP);
+                ? loseCx - lose.width / 2 - LOCK_CROSS_GAP - win.width
+                : loseCx + lose.width / 2 + LOCK_CROSS_GAP;
+            lose.facing = -win.facing;
+            fitBladeLockPair(win, lose);
             win.state = STATE.IDLE;
             win.recoveryTimer = Math.max(win.recoveryTimer, 0.12);
             if (win.isGrounded) win.vx = 0;   // planted on the far side, no drift
             createSmokePuff(win.x + win.width / 2, win.y + win.height, 5, 0.5);
             // The lock breaks first (ring + bind-point sparks), then the winner's blade
             // comes through and LANDS.
-            sfx('clash');
-            createSparks(cx, win.y + win.height * 0.45, '#fff7cc');
-            createSparks(cx, win.y + win.height * 0.45, '#ffe9a8', win.facing);
+            sfx(wood ? 'clash_wood' : 'clash');
+            createSparks(cx, win.y + win.height * 0.45, wood ? '#d8c49c' : '#fff7cc');
+            if (!wood) createSparks(cx, win.y + win.height * 0.45, '#ffe9a8', win.facing);
             flashAmount = Math.max(flashAmount, 0.26);
             screenShakeAmount = Math.max(screenShakeAmount, 10);
             hitstopRemaining = Math.max(hitstopRemaining, 90);
@@ -18108,17 +18086,30 @@
             // the loser at the exact moment the winner's blade comes through and lands.
             spawnStrike(lose.x + lose.width / 2, lose.y + lose.height * 0.5, { mirror: win.facing });
             lose.takeDamage(LOCK_DMG, win, { pushback: LOCK_PUSH, tier: STATE.ATTACK_HEAVY });
+            lose.lockOutcome = 'lose';
+            lose.lockOutcomeT = 0.46;
             // The loser ALWAYS leaves the bind opened up: if hyper armor ate the stagger
             // (the armor branch returns without touching state/stun), fall back to a
             // bind-break stun so he can never act straight out of a lost lock.
-            lose.state = STATE.STUNNED;
-            lose.stunTimer = Math.max(lose.stunTimer, 0.4);
+            if (lose.hp > 0) {
+                lose.state = STATE.STUNNED;
+                lose.stunTimer = Math.max(lose.stunTimer, 0.4);
+            }
         }
 
-        // Steel caught steel: HOLD it instead of trading. Only a steel pair binds — a bo
-        // staff or a fist has nothing to catch an edge on, so those keep the old recoil.
-        function enterBladeLock(a, b) {
+        // Rigid weapons caught: steel/iron edges and wooden bo can brace; fists cannot.
+        function enterBladeLock(a, b, wood = false) {
+            const rate = LOCK_CPU_RATE * (1 + 0.18 * (typeof cpuTierActive === 'number' ? cpuTierActive : 1));
             for (const p of [a, b]) {
+                p.clearMoveArt();
+                p.thrustSlide = 0; p.speedTrail = 0; p.fxQueue = null;
+                p.fxSched.length = 0; p.bufferedAttack = null;
+                p.stringStep = 0; p.stringT = 0; p.chainComboTier = 0;
+                p.recoveryTimer = 0; p.recoveryTotal = 0;
+                p._lt = p._ht = -1e9;
+                p.lockOutcome = null; p.lockOutcomeT = 0;
+                p.lockFoe = p === a ? b : a;
+                p.lockWood = wood;
                 p.hitboxes.length = 0;
                 p.pendingSlash = null;
                 p.pendingChainStarter = null;
@@ -18126,8 +18117,10 @@
                 p.state = STATE.BLADE_LOCK;
                 p.lockT = LOCK_DUR;
                 p.lockMash = 0;
-                p.lockCpuT = 0;
-                p.stunTimer = Math.max(p.stunTimer, LOCK_DUR);
+                // Independent, bounded effort per contest; neither CPU seat gets priority.
+                p.lockCpuRate = rate * (0.88 + Math.random() * 0.24);
+                p.lockCpuT = Math.random() / p.lockCpuRate;
+                p.stunTimer = LOCK_DUR;
                 p.vx = 0;
                 p.dashTimer = 0;
             }
@@ -18146,18 +18139,17 @@
             // the claws level and further out. A shared constant makes the shorter-reach
             // fighter's weapon stop short of the contact point.
             //
-            // So if a sheet carries `lockReach` — written by pack_lock_cells.py from the
-            // ACTUAL packed cells, in on-screen px from the body centre to the weapon's
-            // furthest forward point — each fighter is placed at their own reach instead.
+            // A sheet's `lockReach` is the measured WORLD-pixel distance from body centre
+            // to the drawn contact point, including all display scales. Each fighter
+            // stands at that reach; do not multiply the measurement a second time.
             // The art then decides the spacing rather than the art having to match a number.
             // Fighters with no lock cells packed keep LOCK_SEP/2 exactly as before.
             const reach = p => (SPRITES[p.spec.name.toLowerCase()]?.lockReach) || LOCK_SEP / 2;
             const aHalf = reach(a), bHalf = reach(b);
-            a.x = Math.max(10, Math.min(canvas.width - 10 - a.width,
-                  mid + (aLeft ? -aHalf : aHalf) - a.width / 2));
-            b.x = Math.max(10, Math.min(canvas.width - 10 - b.width,
-                  mid + (aLeft ? bHalf : -bHalf) - b.width / 2));
-            sfx('clash');
+            a.x = mid + (aLeft ? -aHalf : aHalf) - a.width / 2;
+            b.x = mid + (aLeft ? bHalf : -bHalf) - b.width / 2;
+            fitBladeLockPair(a, b);
+            sfx(wood ? 'clash_wood' : 'clash');
             screenShakeAmount = Math.max(screenShakeAmount, 9);
             flashAmount = Math.max(flashAmount, 0.3);
         }
@@ -18217,7 +18209,7 @@
                     // tools/blade_lock_check.mjs, which now also pins these guards).
                     if (bindPair && clashCd <= 0 && a.isGrounded && b.isGrounded
                         && !a.lock && !b.lock && a.stunTimer <= 0 && b.stunTimer <= 0) {
-                        enterBladeLock(a, b);
+                        enterBladeLock(a, b, wood);
                         clashCd = CLASH_COOLDOWN;   // no back-to-back binds
                         if (typeof roundBanner !== 'undefined')
                             roundBanner = { text: 'BLADE LOCK — MASH!', until: performance.now() + 800 };
@@ -19870,6 +19862,18 @@
                     ctx.fillStyle = roundWins[s] > i ? (s === 0 ? "#a855f7" : "#f97316") : "rgba(255,255,255,0.15)";
                     ctx.fill();
                 }
+            }
+            if (player1 && player2 && player1.lockT > 0 && player2.lockT > 0) {
+                const w = 176, x = hudW / 2 - w / 2, y = 140;
+                const pressure = Math.max(-1, Math.min(1, (player1.lockMash - player2.lockMash) / LOCK_MARGIN));
+                ctx.fillStyle = 'rgba(10,12,18,0.9)'; ctx.fillRect(x - 6, y - 19, w + 12, 37);
+                ctx.font = 'bold 11px monospace'; ctx.fillStyle = '#e5e7eb';
+                ctx.fillText('BLADE LOCK · TAP ATTACK', hudW / 2, y - 6);
+                ctx.fillStyle = '#475569'; ctx.fillRect(x, y, w, 7);
+                ctx.fillStyle = '#a855f7'; ctx.fillRect(x, y, w * (0.5 + pressure * 0.5), 7);
+                ctx.fillStyle = '#f97316'; ctx.fillRect(x + w * (0.5 + pressure * 0.5), y, w * (0.5 - pressure * 0.5), 7);
+                ctx.fillStyle = '#fff'; ctx.fillRect(x + w / 2 - 1, y - 1, 2, 9);
+                ctx.fillStyle = '#facc15'; ctx.fillRect(x, y + 12, w * Math.max(0, player1.lockT / LOCK_DUR), 2);
             }
             if (roundBanner && performance.now() < roundBanner.until) {
                 ctx.font = "bold 34px monospace";
