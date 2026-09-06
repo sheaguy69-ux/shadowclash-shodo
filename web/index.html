@@ -1371,6 +1371,7 @@
         // Game-feel (HK/Celeste-style): buffer 0.1-0.15s is the standard window;
         // coyote time is deliberately absent — walking off a ledge keeps both jumps,
         // which is already more forgiving than a coyote window.
+        const ATTACK_BUFFER = 0.133;   // game seconds; retries keep the original deadline
         const JUMP_BUFFER = 0.12;      // press jump early -> fires on landing
         const JUMP_CUT = 0.5;          // release jump while rising -> ascent multiplier
         // Chakra economy (design doc Pillar B): every jutsu costs, one shared 100-pt pool
@@ -3170,6 +3171,11 @@
 
             // Central State Machine Updates
             update(dt, opponent) {
+                // Expire even while stunned or locked; retrying never renews a press.
+                if (this.bufferedAttack) {
+                    this.bufferedAttack.ttl -= dt;
+                    if (this.bufferedAttack.ttl <= 0) this.bufferedAttack = null;
+                }
                 if (this.hitFlashT > 0) this.hitFlashT -= dt;   // victim white-flash, holds through hitstop
                 // how long the blade-lock outcome cell (win / lose) stays on screen after the
                 // bind resolves — see resolveBladeLock
@@ -3854,14 +3860,11 @@
                 // lunge/jump-in momentum slid through recovery on a settle sprite)
                 if (this.isGrounded && (this.isAttackingState() || this.recoveryTimer > 0) && this.dashTimer <= 0 && this.rollTimer <= 0)
                     this.vx *= Math.max(0, 1 - 12 * dt);
-                if (this.bufferedAttack) {
-                    this.bufferedAttack.ttl -= dt;
-                    if (this.bufferedAttack.ttl <= 0) this.bufferedAttack = null;
-                    else if (this.stunTimer <= 0 && this.dashTimer <= 0 && this.rollTimer <= 0) {
-                        const ba = this.bufferedAttack;
-                        this.bufferedAttack = null;
-                        this.executeAttack(ba.type, ba.dir);   // re-buffers itself if still early; the buffered direction survives
-                    }
+                if (this.bufferedAttack && this.stunTimer <= 0 && this.dashTimer <= 0
+                    && this.rollTimer <= 0 && this.rollRecover <= 0 && this.sayaLock <= 0) {
+                    const ba = this.bufferedAttack;
+                    this.bufferedAttack = null;
+                    this.executeAttack(ba.type, ba.dir, ba);
                 }
                 const _runCells = runCells(SPRITES[this.spec.name.toLowerCase()]?.frames ?? {}).length;
                 const _prevPhase = this.animPhase;
@@ -5069,16 +5072,9 @@
             // fresh object, and a press that only buffers touches nothing — so floors run
             // exactly when THIS press authored an animation, never on a buffered no-op
             // (which would re-floor the in-flight move and stomp recoveryTotal mid-swing).
-            executeAttack(type, dir = null) {
+            executeAttack(type, dir = null, input = null) {
                 const animBefore = this.attackAnim;
-                // ⛔ CLEARED AT THE FUNNEL, NOT DEEP IN THE BODY. The directional specials
-                // are a zoo of early `return`s, so a flag assigned further down is simply
-                // skipped by them — it then keeps whatever the LAST move set, which is how
-                // the thrust star kept firing on the floor sweep and the overhead cleave
-                // after one neutral thrust. This wrapper is the one line every return
-                // passes through, so clearing here cannot be dodged.
-                this.tsukiAnim = false;
-                this._executeAttack(type, dir);
+                this._executeAttack(type, dir, input);
                 if (this.attackAnim && this.attackAnim !== animBefore && this.isAttackingState()) {
                     this.floorCommitment();
                     // Remember the FULL recovery so the sprite can settle across it
@@ -5086,26 +5082,25 @@
                     this.recoveryTotal = this.recoveryTimer;
                 }
             }
-            _executeAttack(type, dir = null) {
-                if (this.stunTimer > 0 || this.vanishTimer > 0 || this.grabbedBy || this.throwTimer > 0) return; // no attacking while vanished/grabbed
-                if (this.lock) return;   // item 5: both hands are on the blade lock
-                // THE SWITCH IS 7 FRAMES WITH HIS HANDS BUSY (item 8). Same contract as
-                // a stance change you can swing through is not a cost, and the whole
-                // point of the grip is that it costs.
-                if (this.sayaLock > 0) return;
-                if (this.rollTimer > 0 || this.rollRecover > 0) return; // a roll is committed — and so is its tail
+            _executeAttack(type, dir = null, input = null) {
+                if (this.vanishTimer > 0 || this.grabbedBy || this.throwTimer > 0 || this.lock) return;
+                // Capture the full stick once, including diagonals. All move dispatch below
+                // reads this snapshot, so releasing a buffered command cannot change its move.
+                input ??= { type, dir: dir !== null ? dir : heldDir(this),
+                            axis: this.getInputAxis() * this.facing,
+                            up: this.isUpPressed(), down: this.isDownPressed(), ttl: ATTACK_BUFFER };
+                const pressDir = input.dir, pressAxis = input.axis * this.facing;
+                const pressUp = input.up, pressDown = input.down;
+                if (this.stunTimer > 0 || this.sayaLock > 0 || this.rollTimer > 0 || this.rollRecover > 0) {
+                    this.bufferedAttack = input;
+                    return;
+                }
                 // TAG MODE: one attack per fighter — the FIRST press chooses it,
                 // every other attack button is dead for the match.
                 if (gameMode === 'tag') {
                     if (!this.tagLock) this.tagLock = type;
                     else if (type !== this.tagLock) return;
                 }
-                // ⛔ CAPTURE THE STICK ONCE, ABOVE THE BUFFER GATES. A press that buffers
-                // must keep the direction the player actually input, not re-read the stick
-                // ~8 frames later after it may already be released (the one-signature-steals-
-                // another class). The same capture feeds attackDir below — a stick cannot
-                // change between these two points in one synchronous call.
-                const pressDir = dir !== null ? dir : heldDir(this);
                 // ⛔ THE BUFFER GATE LIVES ABOVE EVERY MUTATION. It used to sit below the
                 // direction capture, the smoke-charge spend, the Up-attack latches AND
                 // clearMoveArt — so a press that only BUFFERED still overwrote the
@@ -5117,7 +5112,7 @@
                 // recovery tail buffers instead of firing instantly (audit: kicks and
                 // kawarimi-reappear were infinitely cancelable)
                 if (this.chainComboTier === 0 && this.recoveryTimer > 0.05 && !this.attackHasConnected) {
-                    this.bufferedAttack = { type, dir: pressDir, ttl: 0.133 };
+                    this.bufferedAttack = input;
                     return;
                 }
                 // Companion gate, MID-CHAIN: the same decision the combo-hierarchy block
@@ -5140,10 +5135,12 @@
                                        && this.state === STATE.ATTACK_LIGHT && this.stringT > 0
                                        && this.stringStep + 1 < lightBeats(this).length);
                     if (!canCancel) {
-                        this.bufferedAttack = { type, dir: pressDir, ttl: 0.133 };
+                        this.bufferedAttack = input;
                         return;
                     }
                 }
+                this.bufferedAttack = null;
+                this.tsukiAnim = false;   // only an admitted move may clear the active thrust
                 // ⛔ THE DIRECTION AND THE FEET ARE READ AT PRESS TIME, NEVER AT DRAW TIME.
                 // A draw branch that calls heldDir() reads the stick as it is NOW, which is
                 // a different thing three cel-frames later, and it got both answers wrong:
@@ -5314,7 +5311,7 @@
                 // overhead, because triggerSpecialAction has no id-0 back branch to fall
                 // to. Two thirds of a lift is a worse state than either end of it.
                 if (type === STATE.ATTACK_SPECIAL && this.spec.id === 0 && this.isGrounded
-                    && this.getInputAxis() === -this.facing && !this.isDownPressed() && !this.isUpPressed()) {
+                    && pressAxis === -this.facing && !pressDown && !pressUp) {
                     type = STATE.ATTACK_HEAVY;
                 }
                 // ON A WALL: Light throws. Free of chakra and of the chain combo (a wall
@@ -5475,7 +5472,7 @@
                 // 420ms 200px throw; this is the 160ms answer for a jump-in that is
                 // ALREADY on top of her. Short box, no launch, no chakra. Same
                 // jump-priority resolution as the launcher above, since Up is the jump key.
-                if (type === STATE.ATTACK_LIGHT && this.spec.id === 7 && this.isUpPressed()
+                if (type === STATE.ATTACK_LIGHT && this.spec.id === 7 && pressUp
                     && (this.isGrounded || this.vy < -180) && this.recoveryTimer <= 0) {
                     // ⛔ clearMoveArt, not just kickKind: a stale airUpAnim from a previous
                     // air up-poke is tested BEFORE upAtkAnim in the frame picker, so it
@@ -5514,8 +5511,8 @@
                 if (type === STATE.ATTACK_LIGHT && this.isGrounded
                     && !(this.spec.id === 2 && this.kageNui)
                     && this.chainComboTier === 0 && this.recoveryTimer <= 0) {
-                    const axis = this.getInputAxis();
-                    const kick = this.isDownPressed() ? 'sweep'
+                    const axis = pressAxis;
+                    const kick = pressDown ? 'sweep'
                         : axis === this.facing ? 'push'
                         : axis === -this.facing ? 'heel' : null;
                     // ⛔ A FIGHTER WHO DREW THE DIRECTION KEEPS IT. The kick tier is the
@@ -5552,7 +5549,7 @@
                 // rising hard) — both press orders (hold-Up then Heavy, or W then G
                 // inside the rise) produce the launcher, never a lost input.
                 if (type === STATE.ATTACK_HEAVY && this.spec.name === 'Ember'
-                    && this.isUpPressed() && (this.isGrounded || this.vy < -180)) {
+                    && pressUp && (this.isGrounded || this.vy < -180)) {
                     this.upAtkPending = true;
                 }
                 // EXILE UP REACH — Up + Heavy on the ground hurls the fundo STRAIGHT UP.
@@ -5569,18 +5566,18 @@
                 // jump that has only just left the floor (still rising hard) makes both
                 // press orders produce the move instead of eating the input.
                 if (type === STATE.ATTACK_HEAVY && this.spec.id === 7
-                    && this.isUpPressed() && (this.isGrounded || this.vy < -180)) {
+                    && pressUp && (this.isGrounded || this.vy < -180)) {
                     this.upAtkPending = true;
                 }
                 // MOKURAI BELL RINGER latch — his own anti-air (canon_palm, cell 44).
                 if (type === STATE.ATTACK_HEAVY && this.spec.id === 6
-                    && this.isUpPressed() && (this.isGrounded || this.vy < -180)) {
+                    && pressUp && (this.isGrounded || this.vy < -180)) {
                     this.upAtkPending = true;
                 }
                 // EXECUTIONER GYAKU KESA latch — Up+Heavy rising counter cut (owner
                 // kenjutsu spec): waki-kamae hide -> explosive low-to-high arc -> juggle.
                 if (type === STATE.ATTACK_HEAVY && this.spec.id === 0
-                    && this.isUpPressed() && (this.isGrounded || this.vy < -180)) {
+                    && pressUp && (this.isGrounded || this.vy < -180)) {
                     this.upAtkPending = true;
                 }
 
@@ -5641,7 +5638,7 @@
                 // branch that catches this state never runs, and this whole feature is art
                 // that was packed and unreachable for exactly that kind of mistake.
                 if (this.spec.id === 8 && this.wireBind > 0 && this.wireBindFoe) {
-                    const ax = this.getInputAxis();
+                    const ax = pressAxis;
                     // ⛔ THE UNDIRECTED FOLLOW-UP IS THE SLICE. Owner ruling, Aug 13 2026:
                     // "it was supposed to bring people in. He sliced them. …make it like
                     // the red razor sharp wire cut them and he come with a slice." The wire
@@ -5718,7 +5715,7 @@
                 // the point-blank binder, where the long shot is the ranged one.
                 if (this.spec.id === 8 && type === STATE.ATTACK_SPECIAL
                     && this.isGrounded && !this.attackAir
-                    && this.getInputAxis() === 0 && !this.isDownPressed() && !this.isUpPressed()
+                    && pressAxis === 0 && !pressDown && !pressUp
                     && this.opponent && Math.abs(this.x - this.opponent.x) <= WHIP_RANGE
                     && SPRITES.oni && SPRITES.oni.frames.whip1 !== undefined) {
                     this.state = STATE.ATTACK_SPECIAL;
@@ -5764,7 +5761,7 @@
                 // slower to arrive, same ATTACK_SPECIAL tier so it opens a bind.
                 if (this.spec.id === 8 && type === STATE.ATTACK_SPECIAL
                     && this.isGrounded && !this.attackAir
-                    && this.getInputAxis() === 0 && !this.isDownPressed() && !this.isUpPressed()) {
+                    && pressAxis === 0 && !pressDown && !pressUp) {
                     this.state = STATE.ATTACK_SPECIAL;
                     this.attackT = 0;
                     this.moveArt = null;
@@ -5808,8 +5805,8 @@
                 // keeps re-teaching: a branch under one that catches the state never runs.
                 if (this.spec.id === 1 && type === STATE.ATTACK_SPECIAL
                     && this.isGrounded && !this.attackAir
-                    && this.getInputAxis() === this.facing
-                    && !this.isDownPressed() && !this.isUpPressed()
+                    && pressAxis === this.facing
+                    && !pressDown && !pressUp
                     && SPRITES.mizu && SPRITES.mizu.frames.gsfwd1 !== undefined) {
                     // STAFF RUSH: crouch, step, one long horizontal thrust (cells 4-5).
                     // Reach is the staff's, so it is the longest grounded poke she has.
@@ -5828,7 +5825,7 @@
                     return;
                 }
                 if (this.spec.id === 1 && type === STATE.ATTACK_SPECIAL
-                    && this.isGrounded && !this.attackAir && this.isDownPressed()
+                    && this.isGrounded && !this.attackAir && pressDown
                     && SPRITES.mizu && SPRITES.mizu.frames.gsdown1 !== undefined) {
                     // LOW DRIVE: staff overhead, a water arc, then a GROUND SLAM that throws
                     // debris (cell 4 is the impact) into a low sweep. So: low, trips, and the
@@ -5865,8 +5862,8 @@
                 // presses put him under KAGE_COST so the wire could not be cast at all.
                 if (this.spec.id === 2 && type === STATE.ATTACK_SPECIAL && !this.kageNui
                     && this.isGrounded && !this.attackAir
-                    && this.getInputAxis() === this.facing
-                    && !this.isDownPressed() && !this.isUpPressed()
+                    && pressAxis === this.facing
+                    && !pressDown && !pressUp
                     && SPRITES.shin && SPRITES.shin.frames.gsfwd1 !== undefined) {
                     if (this.windedTimer > 0) return;                       // too exhausted to mold chakra
                     if (this.stamina < SPECIAL_COST[this.spec.id]) return;
@@ -5915,8 +5912,8 @@
                 // PHANTOM_RANGE to come out at all.
                 if (this.spec.id === 8 && type === STATE.ATTACK_SPECIAL
                     && this.isGrounded && !this.attackAir
-                    && this.getInputAxis() === this.facing
-                    && !this.isDownPressed() && !this.isUpPressed()) {
+                    && pressAxis === this.facing
+                    && !pressDown && !pressUp) {
                     const foe = this.opponent;
                     const close = foe && Math.abs(this.x - foe.x) <= PHANTOM_RANGE;
                     this.state = STATE.ATTACK_SPECIAL;
@@ -5961,8 +5958,8 @@
                 // was a rear-facing animation with a forward-facing nothing.
                 if (this.spec.id === 8 && type === STATE.ATTACK_SPECIAL
                     && this.isGrounded && !this.attackAir
-                    && this.getInputAxis() === -this.facing
-                    && !this.isDownPressed() && !this.isUpPressed()) {
+                    && pressAxis === -this.facing
+                    && !pressDown && !pressUp) {
                     this.state = STATE.ATTACK_SPECIAL;
                     this.attackT = 0;
                     this.attackDir = 'back';       // what dirCells reads to pick gsback
@@ -6020,11 +6017,11 @@
                 // attackAir is forced false so the GROUNDED dirCells branch keeps drawing
                 // gsup — the same thing the branch below already relies on.
                 const oniLaunchWindow = this.spec.id === 8 && !this.isGrounded
-                    && this.isUpPressed() && this.vy < -180 && this.jumpsLeft >= 1;
+                    && pressUp && this.vy < -180 && this.jumpsLeft >= 1;
                 if (this.spec.id === 8 && type === STATE.ATTACK_SPECIAL && !this.isGrounded
                     && !oniLaunchWindow) {
-                    const ax = this.getInputAxis();
-                    const up = this.isUpPressed(), down = this.isDownPressed();
+                    const ax = pressAxis;
+                    const up = pressUp, down = pressDown;
                     if (!down) {
                         const useSpin = !up && SPRITES.oni && SPRITES.oni.frames.aspin1 !== undefined;
                         if (useSpin || (up && SPRITES.oni && SPRITES.oni.frames.sup1 !== undefined)) {
@@ -6071,7 +6068,7 @@
                 // Still rising out of his own jump with Up held is the only shape that input
                 // can have, so it IS the grounded press.
                 if (this.spec.id === 8 && type === STATE.ATTACK_SPECIAL
-                    && (this.isGrounded || oniLaunchWindow) && this.isUpPressed()
+                    && (this.isGrounded || oniLaunchWindow) && pressUp
                     && SPRITES.oni && SPRITES.oni.frames.gsup1 !== undefined) {
                     this.state = STATE.ATTACK_SPECIAL;
                     this.attackT = 0;
@@ -6163,7 +6160,7 @@
                 if (!allowedToCancel) {
                     // INPUT BUFFER (audit CRITICAL 2): a chain press landing a beat
                     // early is stored ~8 frames and retried, not silently eaten.
-                    this.bufferedAttack = { type, dir: pressDir, ttl: 0.133 };
+                    this.bufferedAttack = input;
                     return;
                 }
                 this.bufferedAttack = null;
@@ -6227,7 +6224,7 @@
                 // sweep and an overhead cleave, and the owner's rule is that the THRUST
                 // gets it. A point flash on a cleave is the arc-for-a-poke mistake mirrored.
                 this.tsukiAnim = (type === STATE.ATTACK_SPECIAL && this.spec.id === 0 && this.isGrounded
-                    && this.getInputAxis() === 0 && !this.isUpPressed() && !this.isDownPressed());
+                    && pressAxis === 0 && !pressUp && !pressDown);
                 if (this.tsukiAnim) this.thrustSlide = THRUST_SLIDE_T;
                 this.pendingSlash = {
                     type,
@@ -6323,12 +6320,12 @@
                 // "air Down+G — Meteor Break".
                 if (this.spec.id === 2 && this.kageNui && !this.kickKind && !this.upAtkPending
                     && !(!this.isGrounded && type === STATE.ATTACK_LIGHT)
-                    && !(!this.isGrounded && this.isDownPressed())
+                    && !(!this.isGrounded && pressDown)
                     && !(this.isGrounded && type === STATE.ATTACK_HEAVY
-                         && ['fwd', 'back', 'up'].includes(heldDir(this)))
+                         && ['fwd', 'back', 'up'].includes(pressDir))
                     && (type === STATE.ATTACK_LIGHT || type === STATE.ATTACK_HEAVY)) {
                     const light = type === STATE.ATTACK_LIGHT;
-                    const down = this.isDownPressed();
+                    const down = pressDown;
                     const fd = this.attackAnim.dur / 1000;
                     this.f2Air = false; this.f2Low = false;
 
@@ -6416,10 +6413,10 @@
                 // Form 2 — a mode is a different moveset, not a smaller one. Down in the
                 // air falls straight through to the plunge; the dive cut keeps neutral air.
                 if (this.spec.id === 3 && this.sakate && !this.kickKind && !this.upAtkPending
-                    && !(!this.isGrounded && this.isDownPressed())
+                    && !(!this.isGrounded && pressDown)
                     && (type === STATE.ATTACK_LIGHT || type === STATE.ATTACK_HEAVY)) {
                     const light = type === STATE.ATTACK_LIGHT;
-                    const down = this.isDownPressed();
+                    const down = pressDown;
                     const fd = this.attackAnim.dur / 1000;
                     this.f2Air = false; this.f2Low = false; this.f2Dash = false;
 
@@ -6481,7 +6478,7 @@
                     return;
                 }
                 if (this.chudan && this.spec.id === 0 && this.isGrounded && !this.kickKind
-                    && !this.upAtkPending && this.getInputAxis() === 0 && !this.isDownPressed()
+                    && !this.upAtkPending && pressAxis === 0 && !pressDown
                     && (type === STATE.ATTACK_LIGHT || type === STATE.ATTACK_HEAVY)) {
                     // Both strings shed after-images for their whole length. That is the
                     // "special effects to show the speed feat" — and it is the trail the
@@ -6533,7 +6530,7 @@
                 }
                 if (type === STATE.ATTACK_LIGHT) {
                     this.recoveryTimer = 0.25 / speedScale;
-                    if (!this.isGrounded && this.isUpPressed()) {
+                    if (!this.isGrounded && pressUp) {
                         // AIR UP-POKE (owner order: EVERY fighter attacks upward) —
                         // the weapon thrusts straight above the head (mokurai's bead
                         // fist, ember's claws, ...). Small pop starts a juggle; small
@@ -6550,7 +6547,7 @@
                     // ZERO-G CUT: a neutral air light suspends gravity for the swing —
                     // the blade hangs you in place for precision juggle strings.
                     // Down-held lights are pogo dives: they WANT the fall, no float.
-                    if (!this.isGrounded && !this.isDownPressed() && this.airFloats < AIRLIGHT_FLOATS_MAX) {
+                    if (!this.isGrounded && !pressDown && this.airFloats < AIRLIGHT_FLOATS_MAX) {
                         this.airFloats++;
                         this.airFloatT = AIRLIGHT_FLOAT_T;
                         this.vy = Math.min(this.vy, 40);   // kill the fall so the hang reads
@@ -6597,13 +6594,13 @@
                     // Armed, so unlike the kick tier it gets the blade crescent; it hits
                     // LOW (ducks under a high guard) and TRIPS, but costs a heavy's
                     // recovery rather than a kick's.
-                    const axisH = this.getInputAxis();
+                    const axisH = pressAxis;
                     // THE MASK EATS... AND EATS (cracked only) — the single headbutt
                     // goes rabid: three chained lunges, each shorter, third through
                     // the wall. Draws its own rabid cells (meats1-6, Sheet 2) in the
                     // headbutt branch; the feint hook supplies the wrong-timing for free.
                     if (this.spec.id === 6 && this.cracked && this.isGrounded
-                        && axisH === this.facing && !this.isDownPressed() && !this.isUpPressed()) {
+                        && axisH === this.facing && !pressDown && !pressUp) {
                         this.headbuttAnim = true;
                         this.attackAnim.dur = 640;
                         this.recoveryTimer = 0.74 / speedScale;
@@ -6627,7 +6624,7 @@
                     // strike: every heavy he owned was a plant. This is a step-in mid poke,
                     // and it is the move his mpalm1..5 row was drawn for.
                     if (this.spec.id === 6 && this.isGrounded && axisH === this.facing
-                        && !this.isDownPressed() && !this.isUpPressed()) {
+                        && !pressDown && !pressUp) {
                         this.palmStep = true;
                         this.attackAnim.dur = 330;
                         this.recoveryTimer = 0.42 / speedScale;
@@ -6640,8 +6637,8 @@
                     // MOKURAI LOW HAMMER — down+Heavy. Same hole on the floor: his down
                     // heavy was the neutral slam too, so the roster's slowest monk had no
                     // low answer at all. Both fists to the ground, trips.
-                    if (this.spec.id === 6 && this.isGrounded && this.isDownPressed()
-                        && !this.isUpPressed()) {
+                    if (this.spec.id === 6 && this.isGrounded && pressDown
+                        && !pressUp) {
                         this.lowHammer = true;
                         this.attackAnim.dur = 330;
                         this.recoveryTimer = 0.46 / speedScale;
@@ -6658,7 +6655,7 @@
                         this.attackAnim.dur = 340;
                         this.recoveryTimer = 0.55;
                         this.vx = 0;
-                        const up = this.isUpPressed(), dn = this.isDownPressed();
+                        const up = pressUp, dn = pressDown;
                         let pvx = this.facing * 170, pvy = 0;                    // forward
                         if (up && axisH === 0) { pvx = 0; pvy = -200; }        // straight up
                         else if (up) { pvx = this.facing * 130; pvy = -130; }  // up-diagonal
@@ -6693,7 +6690,7 @@
                     // Cells kneel(19) -> heavy_i3(22) -> heavy_i2(21) HELD -> i4(23) ->
                     // i5(24); the 0.10 box delay marries the impact cell (0.245 x 400ms).
                     if (this.spec.id === 0 && this.isGrounded && axisH === -this.facing
-                        && !this.isDownPressed() && !this.isUpPressed()) {
+                        && !pressDown && !pressUp) {
                         // IAI DASH-THROUGH (owner, Jul 30 2026: "a quick-draw attack that
                         // actually works, similar to Exile's but with his own style — after
                         // he reaches the other side you see him put his sword back in the
@@ -6738,7 +6735,7 @@
                     // (speed 3.5) had no step-in mid poke; the lunge carries him
                     // forward a beat to match the art.
                     if (this.spec.id === 0 && this.isGrounded && axisH === this.facing
-                        && !this.isDownPressed() && !this.isUpPressed()) {
+                        && !pressDown && !pressUp) {
                         this.stabAnim = true;
                         this.attackAnim.dur = 320;
                         this.recoveryTimer = 0.42 / speedScale;
@@ -6746,7 +6743,7 @@
                         this.spawnHitbox(150, 24, 14 * pow, 0.12, 160,
                                          { tier: STATE.ATTACK_HEAVY, delay: 0.09, unblockable: true });   // Chudan Tsuki armor-pierce (owner kenjutsu spec)
                     } else if (this.spec.id === 7 && this.isGrounded && axisH === this.facing
-                        && !this.isDownPressed() && !this.isUpPressed()) {
+                        && !pressDown && !pressUp) {
                         // SIDE REACH — fwd+Heavy. Her spec: "fundo hurled horizontally,
                         // chain fully extended, ground-locked counter-weight lean-back.
                         // Long-range poke / zoning." This slot used to replay her neutral
@@ -6761,7 +6758,7 @@
                                          { tier: STATE.ATTACK_HEAVY, delay: 0.09, mat: 'chain' });
                         this.throwChain(SIDE_REACH, false);
                     } else if (this.spec.id === 7 && this.isGrounded && axisH === -this.facing
-                               && !this.isDownPressed() && !this.isUpPressed()) {
+                               && !pressDown && !pressUp) {
                         // COUNTER-WEIGHT SNAP — back+Heavy. A GAP hitbox: it covers 120-190px
                         // and nothing closer, because a chain at full extension genuinely has
                         // a dead zone beneath it. It punishes someone walking into her range
@@ -6777,7 +6774,7 @@
                                          { tier: STATE.ATTACK_HEAVY, gap: 120, delay: 0.08, mat: 'chain' });
                         this.throwChain(190, false);
                     } else if (this.spec.id === 5 && this.isGrounded && axisH === -this.facing
-                               && !this.isDownPressed() && !this.isUpPressed()) {
+                               && !pressDown && !pressUp) {
                         // KAEL LOW PARRY — back+Heavy. His light sheet draws THREE parries
                         // (high / low / cross) and only the cross one was ever built. This
                         // is its floor half: the long blade drops across his shins to take
@@ -6790,7 +6787,7 @@
                         this.lowParryAnim = true;
                         this.recoveryTimer = 0.45 / speedScale;
                         this.parryFlashTimer = 0.15;
-                    } else if (this.spec.id === 0 && this.isGrounded && this.isDownPressed()) {
+                    } else if (this.spec.id === 0 && this.isGrounded && pressDown) {
                         // EXECUTIONER SUSO-GIRI — down+Heavy, his last empty input. It was
                         // byte-identical to his neutral heavy (verified: both drew
                         // heavy_i1..i5), so the slowest body in the roster had no ARMED low
@@ -6829,7 +6826,7 @@
                         // height five frames later. Every heavy queues one (pendingSlash,
                         // delay 0.075) before this chain runs.
                         this.pendingSlash = null;
-                    } else if (this.spec.id === 5 && (this.isGrounded || this.vy < -180) && this.isUpPressed()) {
+                    } else if (this.spec.id === 5 && (this.isGrounded || this.vy < -180) && pressUp) {
                         // KAEL HIGH PARRY — up+Heavy. The ceiling half of the same family.
                         // Jump-priority, like every other Up-keyed move in the file: Up IS the
                         // jump key, so grounded-only meant holding Up to arm the parry had
@@ -6842,7 +6839,7 @@
                         this.recoveryTimer = 0.45 / speedScale;
                         this.parryFlashTimer = 0.15;
                     } else if (this.spec.id === 5 && this.isGrounded && axisH === this.facing
-                               && !this.isDownPressed() && !this.isUpPressed()) {
+                               && !pressDown && !pressUp) {
                         // KAEL TWIN CYCLONE — fwd+Heavy. This slot replayed his neutral
                         // heavy, so a dual-sword fighter had no advancing mid at all.
                         // TWO hits, and they are what makes it not a second spinning
@@ -6857,7 +6854,7 @@
                                          { tier: STATE.ATTACK_HEAVY, delay: 0.10 });
                         this.spawnHitbox(80, 46, 11 * pow, 0.12, 120,
                                          { tier: STATE.ATTACK_HEAVY, delay: 0.20 });
-                    } else if (this.spec.id === 5 && this.isGrounded && this.isDownPressed()) {
+                    } else if (this.spec.id === 5 && this.isGrounded && pressDown) {
                         // KAEL LOW-HIGH SCISSOR — down+Heavy, the last free grounded heavy.
                         // The move is its own name: a LOW cut that must be blocked low,
                         // then the second blade coming back up through the same line, and
@@ -6873,7 +6870,7 @@
                         this.spawnHitbox(72, 52, 11 * pow, 0.12, 110,
                                          { tier: STATE.ATTACK_HEAVY, delay: 0.18,
                                            launch: true, launchVy: -300 });
-                    } else if (this.isGrounded && DIR_MOVES[this.spec.id + ':' + heldDir(this)]) {
+                    } else if (this.isGrounded && DIR_MOVES[this.spec.id + ':' + pressDir]) {
                         // 334 follow-up — the 18 dormant directional moves, one branch.
                         // Filed HERE, after every hand-written per-fighter heavy and before
                         // the airborne and generic ones: the table only holds ids 1-4, none
@@ -6881,7 +6878,7 @@
                         // move — and being ahead of the shared air/else means it cannot be
                         // shadowed either. That is the branch-order trap this file keeps
                         // re-teaching, and a table makes it checkable at a glance.
-                        const e = DIR_MOVES[this.spec.id + ':' + heldDir(this)];
+                        const e = DIR_MOVES[this.spec.id + ':' + pressDir];
                         this.moveArt = e.art;
                         this.moveTrack = e.track;
                         this.attackAnim.dur = e.dur;
@@ -6899,7 +6896,7 @@
                         for (const [w, h, dmg, delay, push, opts] of e.box)
                             this.spawnHitbox(w, h, dmg * pow, 0.12, push,
                                              { ...opts, delay, tier: STATE.ATTACK_HEAVY });
-                    } else if (this.spec.id === 7 && this.isGrounded && this.isDownPressed()) {
+                    } else if (this.spec.id === 7 && this.isGrounded && pressDown) {
                         this.lowAtkAnim = true;
                         this.attackAnim.dur = 300;
                         this.recoveryTimer = 0.38 / speedScale;
@@ -6907,7 +6904,7 @@
                         this.spawnHitbox(66, 20, 13 * pow, 0.12, 70,
                                          { low: true, trip: true, tier: STATE.ATTACK_HEAVY });
                         spawnSlash(this, STATE.ATTACK_LIGHT);
-                    } else if (this.spec.id === 7 && !this.isGrounded && this.isDownPressed()
+                    } else if (this.spec.id === 7 && !this.isGrounded && pressDown
                                && !this.upAtkPending) {
                         // EXILE SKY DOWN-SMASH — her spec's named aerial-to-ground finisher:
                         // "airborne, ball driven straight down... heavier hit-stop + landing
@@ -6942,7 +6939,7 @@
                                          { tier: STATE.ATTACK_HEAVY, delay: 0.07, mat: 'chain' });
                         this.throwChain(AIR_HURL, false);
                         this.airHurlAnim = true;
-                    } else if (!this.isGrounded && this.isDownPressed() && !this.upAtkPending) {
+                    } else if (!this.isGrounded && pressDown && !this.upAtkPending) {
                         // METEOR BREAK — gravity-anchored dive slam, whole roster.
                         this.startSlam(pow);
                     } else if (this.upAtkPending && this.spec.id === 7) {
@@ -7016,7 +7013,7 @@
                     }
                 } else if (type === STATE.ATTACK_SPECIAL) {
                     this.recoveryTimer = 0.6 / speedScale;
-                    this.triggerSpecialAction(this.opponent);
+                    this.triggerSpecialAction(this.opponent, input);
                 }
                 // The commitment floors and recoveryTotal are applied by the executeAttack
                 // wrapper, which every return path of this method funnels through.
@@ -7375,7 +7372,7 @@
                 AudioSys.tone(110, 0.6, { type: 'sine', vol: 0.7, slide: -40 });
             }
 
-            triggerSpecialAction(opponent) {
+            triggerSpecialAction(opponent, input) {
                 const specId = this.spec.id;
                 this.stamina -= SPECIAL_COST[specId]; // affordability already checked in executeAttack
                 this.chakraCd = CHAKRA_SPEND_STALL;
@@ -7407,10 +7404,10 @@
                 //
                 // To re-pin for a public cut, put back `= 0, = false, = false`; that is
                 // the entire switch, and 0ad0f02 shows the per-fighter form
-                // (`up = this.spec.id === 7 && this.isUpPressed()`) if it needs to be
+                // (`up = this.spec.id === 7 && input.up`) if it needs to be
                 // partial rather than all-or-nothing.
-                const axis = this.getInputAxis(), down = this.isDownPressed(),
-                      up = this.isUpPressed();
+                const axis = (input.axis * this.facing), down = input.down,
+                      up = input.up;
 
                 // ---- THE CRACK: while the mode lives, his whole special row is
                 // REPLACED (owner, Aug 2 2026). Every box below also lands +0.12s
@@ -8066,7 +8063,7 @@
                     // passes and to agree with a checker that asked whether the art was
                     // NAMED rather than reachable, which is how two sources told one wrong
                     // story. Deleted rather than annotated.
-                    const de = DIR_SPECIALS[specId + ':' + heldDir(this)];
+                    const de = DIR_SPECIALS[specId + ':' + input.dir];
                     if (de && (de.air || this.isGrounded || this.vy < -180)) {
                         this.moveArt = de.art;
                         this.moveTrack = de.track;
