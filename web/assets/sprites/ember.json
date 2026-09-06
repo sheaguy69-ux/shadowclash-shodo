@@ -158,7 +158,13 @@
     "jflight4": 305,
     "jflight5": 306,
     "jflight6": 306,
-    "jland": 307
+    "jland": 307,
+    "lock1": 156,
+    "lock2": 157,
+    "lock3": 157,
+    "lock4": 157,
+    "lock5": 160,
+    "lock6": 161
   },
   "weapon_type": "Tekk\u014d-kagi (Iron Claws)",
   "martial_art_discipline": "Tekk\u014dkagijutsu / Shuk\u014djutsu",
@@ -352,5 +358,6 @@
     "277": [[0,345,340,32]],
     "280": [[0,345,340,32]],
     "281": [[0,345,340,32]]
-  }
+  },
+  "lockReach": 30
 }

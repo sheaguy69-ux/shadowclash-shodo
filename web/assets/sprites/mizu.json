@@ -166,7 +166,13 @@
     "jflight4": 229,
     "jflight5": 231,
     "jflight6": 232,
-    "jland": 81
+    "jland": 81,
+    "lock1": 17,
+    "lock2": 17,
+    "lock3": 17,
+    "lock4": 17,
+    "lock5": 11,
+    "lock6": 19
   },
   "weapon_type": "B\u014d (Wooden Staff) / Hanb\u014d (Short Stick)",
   "martial_art_discipline": "B\u014djutsu & Hanb\u014djutsu",
@@ -271,5 +277,6 @@
     "218": 0.9,
     "219": 0.9,
     "220": 0.9
-  }
+  },
+  "lockReach": 21
 }
