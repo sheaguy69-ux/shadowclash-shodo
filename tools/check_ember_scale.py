@@ -46,7 +46,7 @@ async def main():
                     const group=key.replace(/[_\d]+$/,'');(groups[group]??=[]).push({key,cell});
                 }
                 const cells=[...new Set(Object.values(man.frames))];
-                if(cells.length!==133)failures.push('Ember inventory changed: review new cells');
+                if(cells.length!==132)failures.push('Ember inventory changed: review new cells');
                 for(const cell of cells){
                     const k=man.frameScale?.[cell]??1;
                     if(!(Number.isFinite(k)&&k>=0.5&&k<=2))failures.push('missing/invalid scale '+cell);

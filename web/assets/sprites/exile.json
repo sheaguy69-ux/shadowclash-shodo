@@ -170,7 +170,14 @@
   "xanchor5": 318,
   "xanchor6": 319,
   "xanchor7": 320,
-  "xanchor8": 321
+  "xanchor8": 321,
+  "jflight1": 105,
+  "jflight2": 106,
+  "jflight3": 107,
+  "jflight4": 107,
+  "jflight5": 108,
+  "jflight6": 108,
+  "jland": 306
  },
  "scale": 0.44085365853658537,
  "single_cell_names": "hurt/hurt2/hurt3 -> 113, air1/2/3 -> 127, block/block2 -> 117, special1/6/7 -> 136 are LEGACY names superseded by her x-rows (xhurt1-3 on STUNNED, xjump1-6, xroll1-4 on the tumble, xspin on the special). The resolver reaches the x-rows first, so the collapsed legacy names are unreachable, not broken.",

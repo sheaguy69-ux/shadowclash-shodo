@@ -1131,36 +1131,10 @@
             }
             return true;
         }
-        // Airborne pose band for EVERY 6-cell jump arc — roster ajump,
-        // Mokurai's claw cjump. It lived copy-pasted at the draw sites, so a
-        // re-time had to be made in several places or it silently fixed one
-        // fighter and left the others hanging. One helper now.
-        // Grounded ALWAYS means the recovery beat: the touchdown frame is still
-        // STATE.JUMP with vy already zeroed, and on a pure vy band that lands on
-        // the apex pose — an upside-down flash at ground level.
-        // The descent/landing split is 340, not the original 430. At GRAVITY 1100
-        // a -450 jump peaks at vy ~449, so a 430 cut gave descent 20 of the 51
-        // airborne frames (40% of the jump on one cell) and left the landing beat
-        // a 2-frame flash. Owner reviewed a 430/340/300 filmstrip and chose 340:
-        // descent 20->14, landing 2->6, without showing the planted landing stance
-        // so early that he reads as touching down while still in the air.
-        const JUMP_LAND_VY = 340;
-        // ⛔ AIRBORNE NEVER DRAWS A GROUNDED BEAT. Owner, 2026-09-03: "make sure it ain't
-        // no shadow ... ain't no ground frames when they in the air when they air jumping."
-        // Every one of the nine jump rows was inspected beat by beat: on all of them beats
-        // 5 and 6 are GROUND-CONTACT art — beat 5 is the landing impact burst (tsubasa's
-        // radiating spikes, ember's and the executioner's starburst) and beat 6 is the
-        // planted stance carrying its own cast shadow (tsubasa's is 130px of flat shadow
-        // spreading past both feet). The old band handed beat 5 to vy 75 and beat 6 to vy
-        // 340, so ~6 frames of the descent drew a shadow travelling up in the air with the
-        // fighter. That is exactly what he was seeing and calling a ground frame in mid-air.
-        // Airborne now stops at beat 4, the last clean flight pose on every sheet; beats 5
-        // and 6 are reachable ONLY through `grounded`, where the ground contact is real.
-        // NO ART WAS CHANGED, MOVED OR DELETED — this is a routing fix alone.
-        const JUMP_AIR_MAX = 3;
-        const jumpBand = (vy, grounded) => grounded ? 5
-            : vy < -380 ? 0 : vy < -260 ? 1 : vy < -75 ? 2
-            : JUMP_AIR_MAX;
+        // Six airborne phases. Each sheet explicitly selects clean flight cells;
+        // landing is separate because the source boards have different beat layouts.
+        const jumpBand = vy => vy < -380 ? 0 : vy < -240 ? 1 : vy < -60 ? 2
+            : vy < 100 ? 3 : vy < 270 ? 4 : 5;
         // METEOR BREAK (air Down+Heavy) + ZERO-G CUT (air lights) — the gravity
         // is a stance: heavies anchor it, lights suspend it. All numbers here so
         // a balance pass touches ONE block.
@@ -10462,7 +10436,8 @@
         // 716: Ember body scale, planted-foot anchors and isolated card-mark cleanup.
         // 715: Correct authored run, wall-grip and wall-jump orientation via mirror metadata.
         // 718: owner-approved Ember feral held idle, no thumb blades; appended cell302.
-        const SHEET_V = 718;   // (714: THE TWELVE DIRECTIONAL ROWS WERE NEVER MISSING — THEY WERE ON THE OTHER TREE. DIR_MOVES names 22 art rows and only 10 were packed here, so mizu's fwd/back heavy drew heavy_i, shin's four drew hneu, tsubasa's back drew heavy, ember's three drew eheavy and oni's back/down drew hfwd — the moves ran, only the art fell back. Every one of the twelve is packed on SHADOWCLASH-RECOVERED: the SHODO sheets were rebuilt and these rows never came across, so this is a PORT of already-approved art, not a generation and not a substitution. Appended 80 cells across five sheets, raw pixels (the engine keys at draw time, so keying on the way in keys twice), originals byte-identical at AE=0 cropped to each sheet's own pre-port width. SCALE: only shin is resampled, at 0.72. His three independent rulers agree (sqrt-area 0.70/0.74, bbox width 0.67/0.78, bbox height 0.74/0.71 on idle2 and xidle1); for mizu, tsubasa, ember and oni they CONFLICT — height says ~1.0 while width says 0.60-0.81, because bbox width is contaminated by weapon angle and the eye ruler is unvalidated on every fighter but the executioner — so those four are copied verbatim rather than resampled on a guess. ⛔ STYLE: nine of the twelve are a VISIBLE TREATMENT BREAK and are owner-gated per row. mizu and tsubasa read as the same character in the same ink; shin's RECOVERED art is a saturated green ninja against SHODO's mossy eroded one, ember's eye is GREEN there and white here, and oni is the correct Aug-9 canon design — white mask, red slits, two horns, swords on back, no purple, no mane — but rendered glossy against SHODO's grain. Reverting any row is a JSON edit; the cells stay addressable.) 713:    // (713: SEAT GATE FOR P1. Every P2 branch in fireCombatKey asks isP2Human(); the P1 branches asked nothing at all. So wherever cpuThink drives player1 — WATCH, where both fighters get a brain, and the spectate modifier — a human's W/F/J/G/H/C/V still fired his jump, all four attacks, kawarimi, stance and the throw pairing ON TOP of the brain, and the keyup KeyW cut the CPU's jump short (its P2 sibling already asked isP2Human(); P1's never did). Measured in the new tools/check_seat_gate.mjs: 84 presses across six mode/spectate/seat combinations, watch P1 and versus+spectate P1 each responded to 2 of 7 keys; now 0. The gate sits BELOW the blade-lock mash block, which is deliberately written to eat a CPU body's press without scoring from it, and cpuThink calls executeAttack directly rather than the funnel, so the brain is untouched. TRAINING IS NOT AFFECTED and that is the point of using the right authority: P2 there is CPU-driven AND legitimately human-controllable (owner: "play two controls don't work in training mode"), so the check asserts against isP2Human() for seat 2 and isCpuDriven() for seat 1 — asking isCpuDriven() for both called that deliberate behaviour a leak. Pre-existing and untouched: check_dir_moves still fails on 12 owner-gated art rows; it fails identically at 712. (712: DIAGONAL STEALS — five inputs that reached the wrong move. A branch testing getInputAxis() without !down && !up matches on a DIAGONAL too, so it swallows a press belonging to a move filed below it. The file states this law at the grapple ('axis === facing is TRUE on up-forward and down-forward') and it had been applied to some branches and not their siblings. Measured, not read: tools/drive_real_input.mjs now presses the four diagonals as well as the five cardinals (54 presses a fighter, both modes) and fingerprints each press by BEHAVIOUR — state, grounded, hitbox count, dx, dy — never by art, because Exile's Iai cross draws gsback+glback on Back+Special and 'light' on UpBack+Special while both travel the same 784px: fingerprinting on cells called one move two and hid the steal completely. FIXED: exile back+Special (UpBack and DownBack each fired the full-arena Iai instead of the chain anchor and Serpent's Tongue), shin fwd+Special (UpFwd threw the wire shuriken; his rising srisaa never came out, while UpBack reached it — live on one diagonal, dead on the other), mokurai fwd+Special (same asymmetry), and the two that only exist inside a second mode and so had outlived every previous sweep: mokurai CRACKED back+Special (UpBack set PARRY_STANCE) and shin KAGE-NUI fwd+Special (BOTH forward diagonals vanish-stepped). NOT FIXED, deliberately: mokurai upback+Heavy still plays the palm blast — that branch reads up/down to AIM the projectile, so the diagonal is the aim, not a theft. Verified: nine fighters x two modes x 54 presses, zero dead inputs, zero steals. (711: AUDIT #5 AND #6 — air normals stopped swapping to ground art on landing, and the air-heavy directional map is reachable. #5: THREE branches served airborne attacks off the LIVE isGrounded instead of the press-time attackAir latch — the ground-light dirCells gate, the airAttackCells light fallback and the air1..3 tail — so touching down before recovery ended handed the rest of the swing to the grounded row. Measured across all nine: aneu -> light on six, aneu -> xnuki on Executioner, kxcut -> kdual on Kael. All three now read attackAir and every fighter holds its air art through the landing (aneu -> aneu, kxcut -> kxcut). #6: airAttackCells() returns aneu/bair/kxcut — the generic AIR LIGHT row — and it was answering the HEAVY case before the hfwd/hback/hup/hdown/hneu map was ever read, so that map was unreachable for every fighter without a kxcut row. Reordered: the directional map runs first, the generic row is the fallback. Oni now reaches hfwd and Executioner/Shin reach hneu where before all four directions drew aneu. ⛔ MOKURAI'S mstrike IS NOT PACKED ON THIS SHEET — the audit called it shadowed dead and the branch order was indeed wrong, but on the Shodo sheet the row does not exist at all, so his air heavy still draws bair. That is art owed, not routing. The fighters still showing aneu on fwd/back/up have no hfwd/hback/hup packed either — also art owed, listed rather than faked.) (710: AUDIT #1 — THE THREE FASTEST FIGHTERS SHED AFTER-IMAGES WHILE WALKING. SPEEDLINE_V is 460 and its own comment justifies that as sitting 'ABOVE the fastest walk (moveSpeed peaks at 350 * 6/6)'. moveSpeed is 350 * speed/6 and the roster runs to speed 10, so the real walk tops are Exile 583, Shin 525, Ember 467 — all at or above the line. Ordinary strolling tripped the burst-only trail. Fixed with BOTH tests, because either alone is wrong: the 460 floor STAYS so the burst speeds the comment names still smear for every fighter (a wall-jump launch at 480 and Shin's wire yank at 560 sit between the slowest and fastest walks, so a per-fighter floor would silence them on exactly the fast cast they were written for), and a second test kills the walking trail — ordinary movement cannot exceed a fighter's own walk top, so anything above it is a dash, launch, reel or knockback. Where a burst now reads clean for Shin or Exile that is CORRECT: 480 is slower than they walk. Verified: all nine walk clean, dash 800 smears for all nine.) 709: DIRECTIONS. Owner: "characters directions still havent
+        // 719: reference-matched ninja jumps; explicit clean flight and landing maps for all nine.
+        const SHEET_V = 719;   // (714: THE TWELVE DIRECTIONAL ROWS WERE NEVER MISSING — THEY WERE ON THE OTHER TREE. DIR_MOVES names 22 art rows and only 10 were packed here, so mizu's fwd/back heavy drew heavy_i, shin's four drew hneu, tsubasa's back drew heavy, ember's three drew eheavy and oni's back/down drew hfwd — the moves ran, only the art fell back. Every one of the twelve is packed on SHADOWCLASH-RECOVERED: the SHODO sheets were rebuilt and these rows never came across, so this is a PORT of already-approved art, not a generation and not a substitution. Appended 80 cells across five sheets, raw pixels (the engine keys at draw time, so keying on the way in keys twice), originals byte-identical at AE=0 cropped to each sheet's own pre-port width. SCALE: only shin is resampled, at 0.72. His three independent rulers agree (sqrt-area 0.70/0.74, bbox width 0.67/0.78, bbox height 0.74/0.71 on idle2 and xidle1); for mizu, tsubasa, ember and oni they CONFLICT — height says ~1.0 while width says 0.60-0.81, because bbox width is contaminated by weapon angle and the eye ruler is unvalidated on every fighter but the executioner — so those four are copied verbatim rather than resampled on a guess. ⛔ STYLE: nine of the twelve are a VISIBLE TREATMENT BREAK and are owner-gated per row. mizu and tsubasa read as the same character in the same ink; shin's RECOVERED art is a saturated green ninja against SHODO's mossy eroded one, ember's eye is GREEN there and white here, and oni is the correct Aug-9 canon design — white mask, red slits, two horns, swords on back, no purple, no mane — but rendered glossy against SHODO's grain. Reverting any row is a JSON edit; the cells stay addressable.) 713:    // (713: SEAT GATE FOR P1. Every P2 branch in fireCombatKey asks isP2Human(); the P1 branches asked nothing at all. So wherever cpuThink drives player1 — WATCH, where both fighters get a brain, and the spectate modifier — a human's W/F/J/G/H/C/V still fired his jump, all four attacks, kawarimi, stance and the throw pairing ON TOP of the brain, and the keyup KeyW cut the CPU's jump short (its P2 sibling already asked isP2Human(); P1's never did). Measured in the new tools/check_seat_gate.mjs: 84 presses across six mode/spectate/seat combinations, watch P1 and versus+spectate P1 each responded to 2 of 7 keys; now 0. The gate sits BELOW the blade-lock mash block, which is deliberately written to eat a CPU body's press without scoring from it, and cpuThink calls executeAttack directly rather than the funnel, so the brain is untouched. TRAINING IS NOT AFFECTED and that is the point of using the right authority: P2 there is CPU-driven AND legitimately human-controllable (owner: "play two controls don't work in training mode"), so the check asserts against isP2Human() for seat 2 and isCpuDriven() for seat 1 — asking isCpuDriven() for both called that deliberate behaviour a leak. Pre-existing and untouched: check_dir_moves still fails on 12 owner-gated art rows; it fails identically at 712. (712: DIAGONAL STEALS — five inputs that reached the wrong move. A branch testing getInputAxis() without !down && !up matches on a DIAGONAL too, so it swallows a press belonging to a move filed below it. The file states this law at the grapple ('axis === facing is TRUE on up-forward and down-forward') and it had been applied to some branches and not their siblings. Measured, not read: tools/drive_real_input.mjs now presses the four diagonals as well as the five cardinals (54 presses a fighter, both modes) and fingerprints each press by BEHAVIOUR — state, grounded, hitbox count, dx, dy — never by art, because Exile's Iai cross draws gsback+glback on Back+Special and 'light' on UpBack+Special while both travel the same 784px: fingerprinting on cells called one move two and hid the steal completely. FIXED: exile back+Special (UpBack and DownBack each fired the full-arena Iai instead of the chain anchor and Serpent's Tongue), shin fwd+Special (UpFwd threw the wire shuriken; his rising srisaa never came out, while UpBack reached it — live on one diagonal, dead on the other), mokurai fwd+Special (same asymmetry), and the two that only exist inside a second mode and so had outlived every previous sweep: mokurai CRACKED back+Special (UpBack set PARRY_STANCE) and shin KAGE-NUI fwd+Special (BOTH forward diagonals vanish-stepped). NOT FIXED, deliberately: mokurai upback+Heavy still plays the palm blast — that branch reads up/down to AIM the projectile, so the diagonal is the aim, not a theft. Verified: nine fighters x two modes x 54 presses, zero dead inputs, zero steals. (711: AUDIT #5 AND #6 — air normals stopped swapping to ground art on landing, and the air-heavy directional map is reachable. #5: THREE branches served airborne attacks off the LIVE isGrounded instead of the press-time attackAir latch — the ground-light dirCells gate, the airAttackCells light fallback and the air1..3 tail — so touching down before recovery ended handed the rest of the swing to the grounded row. Measured across all nine: aneu -> light on six, aneu -> xnuki on Executioner, kxcut -> kdual on Kael. All three now read attackAir and every fighter holds its air art through the landing (aneu -> aneu, kxcut -> kxcut). #6: airAttackCells() returns aneu/bair/kxcut — the generic AIR LIGHT row — and it was answering the HEAVY case before the hfwd/hback/hup/hdown/hneu map was ever read, so that map was unreachable for every fighter without a kxcut row. Reordered: the directional map runs first, the generic row is the fallback. Oni now reaches hfwd and Executioner/Shin reach hneu where before all four directions drew aneu. ⛔ MOKURAI'S mstrike IS NOT PACKED ON THIS SHEET — the audit called it shadowed dead and the branch order was indeed wrong, but on the Shodo sheet the row does not exist at all, so his air heavy still draws bair. That is art owed, not routing. The fighters still showing aneu on fwd/back/up have no hfwd/hback/hup packed either — also art owed, listed rather than faked.) (710: AUDIT #1 — THE THREE FASTEST FIGHTERS SHED AFTER-IMAGES WHILE WALKING. SPEEDLINE_V is 460 and its own comment justifies that as sitting 'ABOVE the fastest walk (moveSpeed peaks at 350 * 6/6)'. moveSpeed is 350 * speed/6 and the roster runs to speed 10, so the real walk tops are Exile 583, Shin 525, Ember 467 — all at or above the line. Ordinary strolling tripped the burst-only trail. Fixed with BOTH tests, because either alone is wrong: the 460 floor STAYS so the burst speeds the comment names still smear for every fighter (a wall-jump launch at 480 and Shin's wire yank at 560 sit between the slowest and fastest walks, so a per-fighter floor would silence them on exactly the fast cast they were written for), and a second test kills the walking trail — ordinary movement cannot exceed a fighter's own walk top, so anything above it is a dash, launch, reel or knockback. Where a burst now reads clean for Shin or Exile that is CORRECT: 480 is slower than they walk. Verified: all nine walk clean, dash 800 smears for all nine.) 709: DIRECTIONS. Owner: "characters directions still havent
         // been corrected." He was right and my facing audit answered the wrong question — it
         // checked which way the HEAD points (249 rows, all clean, and still clean) and never
         // asked whether a DIRECTIONAL MOVE reaches its own art. Driving all nine fighters
@@ -11791,151 +11766,16 @@
                     // bands on purpose: a wall jump starts as a hard rise and would
                     // otherwise draw the ordinary launch stretch. Art-gated.
                     if (p.wallJumpLock > 0 && F.walljump !== undefined) return F.walljump;
-                    // vy-banded jump SEQUENCE (owner: every state is a sequence):
-                    // hard rise = launch stretch, soft rise/apex = tuck, fall = fall,
-                    // fast fall = tumble. Falls back to the 2-cell pair per fighter.
-                    // MOKURAI has his own arc (bjump1..4, cells 69-72). His jump, jump1,
-                    // jump2, fall and fall2 ALL pointed at cell 47 — one picture for every
-                    // airborne moment, and that same cell also served air1-3, kstomp, roll
-                    // and canon_kick, fourteen frame names in total.
-                    // Packed with per-cell foot placement, NOT the shared offset a run uses:
-                    // the engine already lifts the whole sprite by the fighter's world
-                    // height, so a cell carrying the jump's altitude as well double-counts
-                    // it — preserving the real inter-beat lift put the apex 130px outside
-                    // the top of the cell. Matches the roster, where every fighter's jump
-                    // and fall sit at footY+1 and only the tucked poses float, by pose alone.
-                    if (F.bjump1 !== undefined) {
-                        const bj = [];
-                        for (let i = 1; F['bjump' + i] !== undefined; i++) bj.push(F['bjump' + i]);
-                        const bands = [-400, -250, -80, 80, 240, 380, 520];
-                        let k = bands.findIndex(v => p.vy < v);
-                        if (k < 0) k = bands.length;
-                        let idx = Math.min(bj.length - 1,
-                            Math.round(k * (bj.length - 1) / bands.length));
-                        // Same law as jumpBand above, and Mokurai needed it MORE: his eight
-                        // beats are takeoff 1-2, flight 3-5, landing 6-8, and bands handed
-                        // 6/7/8 to vy 240/380/520 — the whole descent drew his landing splash
-                        // and the ground line under his feet while he was still up in the air.
-                        // bjump5 is his last clean flight beat.
-                        const BJUMP_AIR_MAX = 4;
-                        if (!p.isGrounded) idx = Math.min(idx, BJUMP_AIR_MAX);
-                        return bj[idx];
-                    }
-                    // ACROBATIC JUMP ARC (owner-approved lane, Jul 29): six harvested
-                    // i2v cells per public fighter (ajump1..6, appended after the
-                    // 300px cell widening) replace the 3-cell apex spin with a real
-                    // rotation — crouch launch -> rise -> tuck -> apex inversion ->
-                    // open-out extension -> landing recovery, vy-banded so the spin
-                    // tracks the arc with no timers. Frames that failed the
-                    // no-broken-frames law were DELETED, not patched (shin ajump2,
-                    // tsubasa ajump6, executioner ajump4), so an arc may be 5 cells:
-                    // the six bands map proportionally onto whatever cells exist,
-                    // which keeps launch on the first pose and landing on the last.
-                    // Original six only — Mokurai and Exile keep their own arcs.
-                    // EXILE'S ACROBATIC ARC (xjump1..6). She is the HIGHEST JUMPER in the
-                    // roster (jumpScale 1.12) and was the only fighter with no arc at all —
-                    // four static cells, no rotation, on her most-seen animation. Same vy
-                    // banding as the six originals' ajump: the spin tracks the arc with no
-                    // timers, and a grounded touchdown always lands on the recovery beat
-                    // instead of flashing the upside-down apex at floor level.
-                    // EXILE'S CHAIN TO THE WALL (xanchor1..8, owner-approved board, 683).
-                    // executeGrapple has no wind-up — she is reeled the instant the sickle
-                    // bites — so the eight beats ride the reel itself: cast 1-4 across the
-                    // first half of the flight, yank/reel/brace 5-8 across the second.
-                    // grappleT0 is the reel's full duration, stamped where grappleT is set.
-                    // Must sit ABOVE the xjump branch: the grapple runs in STATE.JUMP.
+                    // Exile's wall reel owns JUMP while the chain is pulling her.
                     if (p.spec.id === 7 && p.grappleT > 0 && F.xanchor1 !== undefined) {
                         const xa = [];
                         for (let i = 1; F['xanchor' + i] !== undefined; i++) xa.push(F['xanchor' + i]);
-                        const T0 = p.grappleT0 || p.grappleT;
-                        const u = Math.min(0.999, Math.max(0, 1 - p.grappleT / T0));
+                        const u = Math.min(0.999, Math.max(0, 1 - p.grappleT / (p.grappleT0 || p.grappleT)));
                         return xa[Math.floor(u * xa.length)];
                     }
-                    if (p.spec.id === 7 && F.xjump1 !== undefined) {
-                        const xj = [F.xjump1, F.xjump2, F.xjump3, F.xjump4, F.xjump5, F.xjump6];
-                        return xj[jumpBand(p.vy, p.isGrounded)];
-                    }
-                    // ⛔ ONI, AND HE MUST SIT ABOVE THE ajump BRANCH BELOW. That branch is gated
-                    // on `F.ajump1 !== undefined`, and Oni HAS an ajump row — so it catches him
-                    // and returns before anything filed after it can run. Placed underneath,
-                    // this entire block was DEAD CODE: jumpDir was being set correctly and every
-                    // jump still drew ajump. Fifth time this file's branch order has bitten; the
-                    // heavy-dir comment further down counts the first four.
-                    //
-                    // His air is DRAWN, not faked. The owner's states board files row 3 as "jump
-                    // takeoff / rise / peak / fall / BACKFLIP EVASION / backflip land / CARTWHEEL
-                    // FWD / recovery land", and his frame-data sheet files "Backflip & Front
-                    // Cartwheel" as Acrobatic Evasion / Light Attack. Jump STATES, not a mechanic
-                    // — owner: "it's just a animation frame sequence, is not a special engine."
-                    // Leaving BACKWARD is the backflip, leaving FORWARD is the cartwheel; a
-                    // neutral jump falls through to the ajump somersault below, which is his art
-                    // too. No physics, input or hitbox touched — it reads jumpDir and vy only.
-                    if (p.spec.id === 8) {
-                        const seq = (p.jumpDir === 'back' && F.bflip1 !== undefined)
-                                        ? [F.bflip1, F.bflip2, F.bflip3, F.bflip4, F.bflip5, F.bflip6]
-                                  : (p.jumpDir === 'fwd' && F.cart1 !== undefined)
-                                        ? [F.cart1, F.cart2, F.cart3, F.cart4, F.cart5, F.cart6]
-                                  : null;
-                        // Walk the six beats along the ARC, not a timer — the same jumpBand
-                        // law the rest of the roster flies by. A short hop then plays the
-                        // same poses as a full jump, just fewer of them, and a jump cut
-                        // short never strands him mid-flip.
-                        if (seq) {
-                            const beat = p.vy < -300 ? 0 : p.vy < -120 ? 1 : p.vy < 40 ? 2
-                                       : p.vy < 200 ? 3 : p.vy < 380 ? 4 : 5;
-                            if (seq[beat] !== undefined) return seq[beat];
-                        }
-                    }
-                    // ⛔ GATED ON THE ART, NOT THE ID. This read `p.spec.id <= 5`, written when
-                    // the six originals were the only fighters with an ajump row — so Oni at
-                    // id 8 fell straight through and his packed ajump1..6 could never draw,
-                    // no matter how correct the cells were. An id range is a claim about WHO
-                    // has art, which goes stale the moment the roster grows; `F.ajump1` IS
-                    // that claim and cannot. Safe for the rest: Exile (7) is caught by the
-                    // xjump branch above, and Mokurai has no ajump row, so neither reaches here.
-                    // ⛔ jump/jump1/jump2/fall/fall2 ARE THE SAME ART AS ajump ON SHIN. The
-                    // ajump row wins here, so those five names used to point at pre-board cells
-                    // nothing could reach — a name that resolves to stale art is a trap for the
-                    // next person who reads it. They are repointed at the board beats, so every
-                    // airborne name on his sheet resolves to the same current picture whichever
-                    // branch a future change happens to take.
-                    if (F.ajump1 !== undefined) {
-                        const aj = [F.ajump1, F.ajump2, F.ajump3, F.ajump4, F.ajump5, F.ajump6]
-                            .filter(c => c !== undefined);
-                        // Touchdown draws ONE frame still in JUMP with the feet down
-                        // and vy already zeroed — on a pure vy band that lands on the
-                        // apex pose, i.e. an upside-down flash at ground level (the
-                        // old 3-cell spin had the same hole, its tuck just hid it).
-                        // Grounded always means the recovery beat, never mid-air.
-                        const band = jumpBand(p.vy, p.isGrounded);
-                        return aj[Math.round(band * (aj.length - 1) / 5)];
-                    }
-                    // CHIBI TAKEOFF SQUASH (K3 jump rules #1): the first ~60ms of the
-                    // launch draws the MAX-compression crouch — anticipation read INSIDE
-                    // the launch, zero physics delay. vy<-380 only (fresh jump vy=-450).
-                    if (p.spec.id <= 5 && p.vy < -380 && F.kneel !== undefined) return F.kneel;
-                    // NINJA APEX SPIN (owner, Jul 28: "jumping frames more like ninja
-                    // movements" — plan A, ref_08 vocabulary). The apex is a ROTATION,
-                    // not a held photo: tuck-in -> inversion -> open-out, mapped to vy
-                    // so the spin tracks the jump with no timers. Original six only —
-                    // Mokurai and Exile keep their custom arcs. Static jump2 is the
-                    // fallback if a cell is missing (plan B = generated spin strips if
-                    // this reads flat in motion).
-                    if (p.spec.id <= 5 && p.vy < 120 && p.vy >= -260 && F.air2 !== undefined) {
-                        const spin = p.spec.id === 0 ? [F.jump2, F.air2, F.fall2]
-                                   : p.spec.id === 1 ? [F.air2, F.fall2, F.air1]
-                                   : p.spec.id === 2 ? [F.air2, F.fall2, F.air1]
-                                   : p.spec.id === 4 ? [F.jump2, F.air2, F.air1]
-                                   :                   [F.jump2, F.air2, F.fall2];   // tsubasa + kael
-                        // rule #3 (apex float): the inversion HOLDS the true apex —
-                        // -75..75 is a longer pose-read than -40..40 was
-                        const beat = p.vy < -75 ? 0 : p.vy < 75 ? 1 : 2;
-                        return spin[beat] ?? (F.jump2 ?? F.jump);
-                    }
-                    if (p.vy < -260) return F.jump1 ?? F.jump;
-                    if (p.vy < 120)  return F.jump2 ?? F.jump;
-                    if (p.vy > 430)  return F.fall2 ?? F.fall;
-                    return F.fall;
+                    if (p.isGrounded) return F.jland ?? F.crouch_3 ?? F.idle;
+                    return F['jflight' + (jumpBand(p.vy) + 1)]
+                        ?? (p.vy < 0 ? (F.jump1 ?? F.jump) : F.fall);
                 }
                 // Approved six-frame sequences move the whole body through the attack.
                 case STATE.ATTACK_MEDIUM:
@@ -13308,6 +13148,7 @@
                     // guard, so he changed head on every landing — and Exile's is her BLOCK.
                     // The xcrouch/bcrouch landing lines that used to patch those two are gone:
                     // crouch_3 is the same idea and it is the whole roster's now.
+                    if (p.landT > 0 && F.jland !== undefined) return F.jland;
                     if (p.landT > 0 && F.crouch_3 !== undefined) return F.crouch_3;
                     if (p.landT > 0) return F.kneel ?? F.idle;
                     // MOKURAI BREATHES (bidle1..4, cells 87-90): exhaled -> rising -> inhaled
