@@ -27,7 +27,7 @@ async def main():
                     // Independently inspected artwork, not an inferred ordinal cutoff.
                     const allowed=[[276,277,278,279],[228,229,230,231,232],[301,304,303,305,306],
                         [347,348,349,350,351,352],[303,304,305,306],[299,300,301,302,303,304],
-                        [291,292,293],[105,106,107,108],[403,404,405,406]][id];
+                        [291,292,293],[346,347,348,349],[403,404,405,406]][id];
                     if(flight.some(i=>!allowed.includes(i))||flight.includes(F.jland))failures.push('unreviewed/ground art in flight map');
                     Object.assign(p,{state:STATE.JUMP,isGrounded:false,wallDir:0,wallJumpLock:0,grappleT:0});
                     let swept=0;
