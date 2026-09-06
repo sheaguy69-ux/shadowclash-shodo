@@ -6,6 +6,9 @@
   "footY": 312,
   "scale": 0.3663,
   "frames": {
+    "airhurt1": 292,
+    "airhurt2": 292,
+    "airhurt3": 294,
     "light1": 213,
     "light2": 214,
     "light3": 215,

@@ -4,6 +4,9 @@
  "footY": 344,
  "cols": 409,
  "frames": {
+    "airhurt1": 179,
+    "airhurt2": 180,
+    "airhurt3": 183,
   "idle": 244,
   "idle2": 248,
   "block": 337,
@@ -222,6 +225,8 @@
   ]
  },
  "mirror": {
+  "345": true,
+  "183": true,
   "313": true,
   "377": true,
   "378": true,

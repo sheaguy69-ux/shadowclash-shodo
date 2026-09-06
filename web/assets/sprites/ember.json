@@ -6,6 +6,9 @@
   "footY": 369,
   "scale": 0.34137931034482755,
   "frames": {
+    "airhurt1": 233,
+    "airhurt2": 234,
+    "airhurt3": 235,
     "fall": 306,
     "hurt": 131,
     "run_clean1": 247,
