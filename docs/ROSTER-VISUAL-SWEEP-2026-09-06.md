@@ -67,3 +67,14 @@ Pre-pack contacts, native48×64 review, twelve-dimension grades and source hashe
 Verification: all nine sheet dimensions,36 wall cases,18 actual run/idle loops and882 compass samples plus authored-facing fixtures pass. Installed Exile left/right consecutive filmstrips reviewed in `run-alternation/live724/`. The run test now checks actual visible pixels as well as selected cell indices: an isolated preview assembly failure exposed that an index-only check could pass an invisible sprite. The production sheets never received that failed preview.
 
 Oni's new run is still unfinished and unchanged in724; its current generated candidate has thin shins and weak leg-depth continuity. Remaining attack-edge repairs from723 are also still pending. This is an Exile checkpoint, not completion of the full roster sweep. No user CPU-tab interruption, paid external API, reset credit, push or deployment.
+
+
+## Owner-approved Exile eight-pose run — SHEET_V725
+
+Anthony approved exec-b8c6e839 poses with a pants-only correction, then approved exec-e412a9bc with “ok.” This ruling supersedes the earlier internal rejection of that eight-pose board. Installed that exact pose order as run_clean1–8, cells401–408. Both legs retain near-black baggy trousers and gathered cuffs. Original401-cell RGBA prefix verified unchanged; other aliases and combat/run timing unchanged. Existing shared Shodo renderer and eight-cell selector handle playback.
+
+Uniform source scale0.433128069 was anchored to the current idle head (14 SIFT inliers). No per-cell body stretching. Corrected a scratch registration bug: duplicate comparison indices incorrectly reused another pose’s floor. Each new cell now uses its own measured source floor; split strides3/4/8 retain a6px native air gap. This bug was fixed before packing.
+
+Source, masks, native contact sheets, per-cell twelve-dimension grades and hashes, append script, and live evidence: media/roster-sweep-20260906/run-mechanics/. All eight cells KEEP for identity, weapon, palette, approved pose, silhouette, uniform registration, approved motion, compact body construction, floor alignment, clear background and atlas integrity; smear is not applicable. Motion judgment is the owner-approved pose sequence, not a claim that shading alone proves anatomical alternation.
+
+Verification: nine whole sheets;36 wall visibility cases;18 live run/idle loops with visible-pixel assertions;882 direction samples plus authored-facing fixtures passed. Reviewed Exile consecutive loops both ways; all401–408 cells appear, followed by the existing idle. No CPU-tab reload. Oni’s rejected run studies remain unpacked; the broader attack-edge and roster sweep is still incomplete.
