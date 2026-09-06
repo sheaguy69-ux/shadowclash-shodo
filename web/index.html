@@ -1117,6 +1117,8 @@
         // Physics constants
         const GRAVITY = 1100; // Snap heavy fall vectors
         const TERMINAL_VELOCITY = 1000;
+        // Owner's faster ninja feel (Sep 5): one clock keeps motion, art and hits aligned.
+        const COMBAT_TEMPO = 1.2;
         // Shodō production conversion ships first-form art only. Keep one shared gate so
         // input, direct helpers, and frame routers cannot activate or draw f2_* art.
         const FIRST_FORM_ONLY = true;
@@ -17604,6 +17606,8 @@
         }
 
         function updateGame(dt) {
+            const clockDt = dt;
+            dt = Math.min(dt * COMBAT_TEMPO, 0.1);
             animClock += dt;
 
             // Particles keep simulating even outside a match (menu flair)
@@ -17919,7 +17923,7 @@
             }
             // Round clock + round resolution (KO always; time-over only if timed).
             // TAG runs its clock regardless of the TIMER toggle — the clock IS the game.
-            if (timedRounds || gameMode === 'tag') roundTimer -= dt;
+            if (timedRounds || gameMode === 'tag') roundTimer -= clockDt;
             if (gameMode === 'tag') {
                 if (tagGrace > 0) tagGrace -= dt;
                 tagHold += dt;
