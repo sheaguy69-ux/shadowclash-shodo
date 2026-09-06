@@ -3827,9 +3827,9 @@
                 // phase (not sampling wall-clock * rate) keeps the frame index monotonic
                 // when run speed changes, so accel/decel no longer flickers frames.
                 // idle cadence raised 2/s -> 3/s (500ms per cell was a slow blink)
-                // Run rate scales with the sheet's cycle length so the STRIDE cadence
-                // stays ~2.2-3.7 strides/s: 6 drawn cells per cycle must burn phase
-                // 1.5x faster than 4 or the legs look like slow motion.
+                // Advance one stride per150px, capped at three cycles/game-second.
+                // This keeps slow movement from churning the legs and gives the eight
+                // drawn poses time to read without changing physical movement speed.
                 // a grounded fighter mid-swing or in recovery doesn't glide (audit:
                 // lunge/jump-in momentum slid through recovery on a settle sprite)
                 if (this.isGrounded && (this.isAttackingState() || this.recoveryTimer > 0) && this.dashTimer <= 0 && this.rollTimer <= 0)
@@ -3843,7 +3843,7 @@
                 const _runCells = runCells(SPRITES[this.spec.name.toLowerCase()]?.frames ?? {}).length;
                 const _prevPhase = this.animPhase;
                 this.animPhase += dt * (this.state === STATE.RUN
-                    ? (9 + Math.min(1, Math.abs(this.vx) / 300) * 6) * (_runCells / 4) * (this.spec.runAnimScale || 1) : 3);
+                    ? Math.min(3, Math.abs(this.vx) / 150) * _runCells * (this.spec.runAnimScale || 1) : 3);
                 // footfall dust: one puff per stride contact (cells 0 and mid-cycle)
                 if (this.state === STATE.RUN && this.isGrounded) {
                     const half = _runCells / 2;

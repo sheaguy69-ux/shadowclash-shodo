@@ -38,13 +38,15 @@ async def main():
                     return player1;
                 };
                 for(let id=0;id<9;id++){
-                    let p=reset(id);const name=p.spec.name,x=p.x,a=animClock,t=roundTimer;
+                    let p=reset(id);const name=p.spec.name,x=p.x,a=animClock,t=roundTimer,phase=p.animPhase;
                     key('KeyD',true);for(let i=0;i<30;i++)updateGame(dt);key('KeyD',false);
                     const distance=p.x-x,sim=animClock-a,clock=t-roundTimer;
                     near(sim,0.6,0.0001,name+' simulation seconds');
                     near(clock,0.5,0.0001,name+' round seconds');
                     near(distance,350*(p.curSpeed/6)*0.6,0.1,name+' travel');
-                    rows.push({name,kind:'run',distance,sim,clock});
+                    const cycles=(p.animPhase-phase)/runCells(SPRITES[name.toLowerCase()].frames).length;
+                    if(cycles<.6||cycles>1.8*(p.spec.runAnimScale||1)+.01)failures.push(name+' excessive/missing stride cadence: '+cycles);
+                    rows.push({name,kind:'run',distance,sim,clock,cycles});
                     for(const code of ['KeyF','KeyJ','KeyG','KeyH']){
                         p=reset(id);key(code,true);key(code,false);
                         const rec=p.recoveryTimer,anim=p.attackAnim?.dur||0;
