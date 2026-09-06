@@ -8,12 +8,26 @@ import os
 import tempfile
 from pathlib import Path
 
-from PIL import Image
+from PIL import Image, ImageChops
 import websockets
 import watch_game as browser
 
 
 async def main():
+    # The old smoke was baked into the six idle cells, independently of Canvas FX.
+    manifest = json.loads(Path('web/assets/sprites/oni.json').read_text())
+    Image.MAX_IMAGE_PIXELS = None
+    with Image.open('web/assets/sprites/oni.png') as atlas:
+        w, h = manifest['frameW'], manifest['frameH']
+        for beat in range(6):
+            old, new = 502 + beat, manifest['frames'][f'stand{beat+1}']
+            before = atlas.crop((old*w, 0, (old+1)*w, h)).convert('RGBA')
+            after = atlas.crop((new*w, 0, (new+1)*w, h)).convert('RGBA')
+            assert before.convert('RGB').tobytes() == after.convert('RGB').tobytes(), 'Oni body was repainted'
+            removed = ImageChops.subtract(before.getchannel('A'), after.getchannel('A'))
+            assert sum(removed.histogram()[17:]) > 500, 'baked idle haze remains'
+            assert not ImageChops.subtract(after.getchannel('A'), before.getchannel('A')).getbbox(), 'cleanup added pixels'
+    browser.PORT = int(os.environ.get('BROWSER_PORT', browser.PORT))
     url = 'http://localhost:9101/index.html'
     browser.assert_serving_this_tree(url)
     out = Path(os.environ.get('OUT', 'media/oni-aura-cutoff-20260906/live'))
@@ -66,10 +80,11 @@ async def main():
                 for(const k in keys)keys[k]=false;physKeys.clear();p.x=420;player2.x=850;
                 const frames=[],trace=[];paused=false;
                 await new Promise(resolve=>{let n=0;function tick(){
-                    if(n%4===0){frames.push(shot().toDataURL().split(',')[1]);trace.push({clock:animClock,cell:p.drawCell,x:p.x,y:p.y});}
-                    if(++n<96)requestAnimationFrame(tick);else resolve();
+                    if(n%6===0){frames.push(shot().toDataURL().split(',')[1]);trace.push({clock:animClock,cell:p.drawCell,x:p.x,y:p.y});}
+                    if(++n<720)requestAnimationFrame(tick);else resolve();
                 }requestAnimationFrame(tick);});paused=true;drawOniAura=original;
                 if(trace[trace.length-1].clock<=trace[0].clock)failures.push('live combat clock did not advance');
+                for(let beat=1;beat<=6;beat++)if(!trace.some(t=>t.cell===m.frames['stand'+beat]))failures.push('idle beat never played '+beat);
                 return {failures,trace,frames};
                 ''')
                 assert result and '__error' not in result, result
@@ -78,7 +93,7 @@ async def main():
                 durations = [max(20, round((b['clock']-a['clock'])*1000/1.2)) for a,b in zip(trace,trace[1:])]
                 durations.append(durations[-1])
                 frames[0].save(out/'aura.gif', save_all=True, append_images=frames[1:], duration=durations, loop=0)
-                board = Image.new('RGB', (300*6, 250*4))
+                board = Image.new('RGB', (300*6, 250*((len(frames)+5)//6)))
                 for i, frame in enumerate(frames):
                     board.paste(frame, (i%6*300, i//6*250))
                 board.save(out/'consecutive.png')
