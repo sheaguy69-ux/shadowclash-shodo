@@ -1,0 +1,249 @@
+{
+  "move_id": "executioner_air_forward_heavy",
+  "display_name": "Falling Verdict",
+  "fighter": {
+    "id": 0,
+    "name": "Executioner",
+    "weapon": "one long odachi"
+  },
+  "input": {
+    "state": "airborne",
+    "direction": "forward",
+    "button": "Heavy"
+  },
+  "art_row": {
+    "key_prefix": "airhfwd",
+    "cells": 8,
+    "track": "airheavy"
+  },
+  "status": "PROPOSED \u2014 art not generated, not approved, not packed. Timing below is the wiring target, not a measurement of a live move.",
+  "units": {
+    "frames": "60 Hz game time; the existing COMBAT_TEMPO 1.2 accelerates playback and the cinematic hitstop crawl still applies",
+    "rect_origin": "center-feet: x is forward, y is up, y names the rectangle's BOTTOM edge, all in world pixels",
+    "note": "Runtime rectangles are top-left origin with y down; the packer converts. Kael's idle stands 120 world px tall \u2014 every number below is a fraction of that, not an absolute picked out of the air."
+  },
+  "timing": {
+    "total_frames": 18,
+    "startup_frames": 6,
+    "active_frames": 5,
+    "recovery_frames": 7,
+    "landing_recovery_frames": 4,
+    "comment": "Heavy tier baseline in web/index.html:2069 is startup 0.42 / active 0.07 seconds, scaled by the fighter's own recovery divisor. The Executioner is the heaviest and slowest fighter (speed 3.5), so his jump-in is the slow end of the tier: 6 startup / 5 active / 7 recovery. It does not cancel and stays punishable on block and whiff."
+  },
+  "properties": {
+    "tier": "ATTACK_HEAVY",
+    "base_damage": 27,
+    "hitstun_frames": 20,
+    "blockstun_frames": 9,
+    "pushback": 162,
+    "attack_air": true,
+    "cancels": [],
+    "cancel_comment": "No cancels. Existing heavy whiff commitment is preserved; this move must stay punishable on block and on whiff.",
+    "one_hit_per_victim": true
+  },
+  "frames": [
+    {
+      "n": 1,
+      "cell": "airhfwd1",
+      "beat": "GATHER",
+      "phase": "startup",
+      "exposure": 1,
+      "drawing": "new",
+      "hurtbox": {
+        "x": -22,
+        "y": 8,
+        "w": 44,
+        "h": 74
+      },
+      "hitbox": null,
+      "velocity": {
+        "vx": "carried",
+        "vy": "carried",
+        "comment": "the jump's own arc; the move adds nothing yet"
+      }
+    },
+    {
+      "n": 2,
+      "cell": "airhfwd2",
+      "beat": "WIND",
+      "phase": "startup",
+      "exposure": 2,
+      "drawing": "new",
+      "hurtbox": {
+        "x": -24,
+        "y": 8,
+        "w": 48,
+        "h": 78
+      },
+      "hitbox": null,
+      "velocity": {
+        "vx": "carried",
+        "vy": "carried"
+      }
+    },
+    {
+      "n": 3,
+      "cell": "airhfwd3",
+      "beat": "TIP-OVER",
+      "phase": "startup",
+      "exposure": 2,
+      "drawing": "new",
+      "hurtbox": {
+        "x": -24,
+        "y": 6,
+        "w": 50,
+        "h": 76
+      },
+      "hitbox": null,
+      "velocity": {
+        "vx": "+40",
+        "vy": "-60",
+        "comment": "he tips forward and starts to fall; the plunge is a nudge, not a dive-bomb"
+      }
+    },
+    {
+      "n": 4,
+      "cell": "airhfwd4",
+      "beat": "CUT",
+      "phase": "active",
+      "exposure": 2,
+      "drawing": "new",
+      "hurtbox": {
+        "x": -20,
+        "y": 4,
+        "w": 52,
+        "h": 72
+      },
+      "hitbox": {
+        "x": 16,
+        "y": 14,
+        "w": 82,
+        "h": 52,
+        "comment": "the contact frame. His air Heavy today is box 80/40/27 at pushback 162 shared with back and up; this keeps that tier and gives the forward case the committed reach a jump-in needs. 82 px is 0.66 of his 125 px body."
+      },
+      "velocity": {
+        "vx": "+40",
+        "vy": "-60"
+      }
+    },
+    {
+      "n": 5,
+      "cell": "airhfwd5",
+      "beat": "FOLLOW",
+      "phase": "active",
+      "exposure": 2,
+      "drawing": "new",
+      "hurtbox": {
+        "x": -20,
+        "y": 2,
+        "w": 54,
+        "h": 70
+      },
+      "hitbox": {
+        "x": 20,
+        "y": 0,
+        "w": 78,
+        "h": 46,
+        "comment": "the arc has swept down; the box follows the tips below his feet line"
+      },
+      "velocity": {
+        "vx": "+40",
+        "vy": "-60"
+      }
+    },
+    {
+      "n": 6,
+      "cell": "airhfwd6",
+      "beat": "HANG",
+      "phase": "active",
+      "exposure": 1,
+      "drawing": "new",
+      "hurtbox": {
+        "x": -22,
+        "y": 2,
+        "w": 52,
+        "h": 72
+      },
+      "hitbox": {
+        "x": 18,
+        "y": -2,
+        "w": 67,
+        "h": 40,
+        "comment": "last eligible sample; the box expires with this exposure"
+      },
+      "velocity": {
+        "vx": "+20",
+        "vy": "carried"
+      }
+    },
+    {
+      "n": 7,
+      "cell": "airhfwd7",
+      "beat": "RECOVER",
+      "phase": "recovery",
+      "exposure": 3,
+      "drawing": "new",
+      "hurtbox": {
+        "x": -22,
+        "y": 6,
+        "w": 46,
+        "h": 76
+      },
+      "hitbox": null,
+      "velocity": {
+        "vx": "carried",
+        "vy": "carried"
+      }
+    },
+    {
+      "n": 8,
+      "cell": "airhfwd8",
+      "beat": "READY",
+      "phase": "recovery",
+      "exposure": 3,
+      "drawing": "new",
+      "hurtbox": {
+        "x": -22,
+        "y": 8,
+        "w": 44,
+        "h": 74
+      },
+      "hitbox": null,
+      "velocity": {
+        "vx": "carried",
+        "vy": "carried"
+      },
+      "comment": "hands off to ajump5 / fall without a jump-cut"
+    }
+  ],
+  "wiring": {
+    "engine_changes_required": "none",
+    "why": "web/index.html:13239 already reads `F.airhfwd1 !== undefined ? 'airhfwd' : 'hfwd'` and gives the forward case its own `airheavy` animation track. Packing the row under this key makes it live.",
+    "sheet": {
+      "file": "web/assets/sprites/executioner.png",
+      "append_only": true,
+      "cols_before": 351,
+      "new_cell_indices": [
+        351,
+        352,
+        353,
+        354,
+        355,
+        356,
+        357,
+        358
+      ],
+      "cols_after": 359,
+      "manifest": "web/assets/sprites/executioner.json \u2014 add airhfwd1..8 to `frames`, set `cols` to 359, change nothing else",
+      "sheet_v": "bump SHEET_V in web/index.html in the SAME commit as the sprite change"
+    }
+  },
+  "verification_after_packing": [
+    "python3 tools/check_sheets_whole.py --worktree \u2014 nine sheets whole, every original cell byte-identical",
+    "SHADOWCLASH_URL=http://localhost:9101/index.html python3 tools/audit_move_coverage.py --ids 0 \u2014 the Executioner's air distinct count must rise from 9/20, and air fwd+H must stop echoing neutral+H",
+    "node tools/check_dir_moves.mjs \u2014 every track matches its cell count, every art row exists",
+    "python3 tools/export_footsies_frames.py --fighter 0 --move heavy --direction forward --facing 1 --scenario hit --frames 20 --out media/exec-airhfwd/right \u2014 plus facing -1, and scenario whiff and block",
+    "Consecutive live-loop filmstrip of the airborne forward Heavy in BOTH facings \u2014 watched, not asserted. Cel animation cuts; a static assert cannot see a ghost."
+  ],
+  "scope_note": "This row changes what the forward air Heavy LOOKS like, not what it does. Forward, back and up air Heavy share one hitbox today (box 80/40/27/0.07/162). Making the jump-in hit differently is frame data on top of this art and is the owner's call; the timing above is the wiring target for that decision, not a measurement of a live move."
+}
