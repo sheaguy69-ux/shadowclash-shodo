@@ -108,3 +108,34 @@ Traceback (most recent call last):
     assert 'vanishTimer' in m['Shin']['gnd.back.S']['touched'], "Shin's back vanish"
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: Shin's back vanish
+
+────────────────────────────────────────────────────────────────────────
+CORRECTION APPENDED 2026-09-09 — read this before trusting the ECHO list
+────────────────────────────────────────────────────────────────────────
+The raw output above is left byte-for-byte as the tool printed it. Two
+classes of line in it are now known to be wrong, and one whole class of
+finding is missing. Do not quote the ECHO block without this footer.
+
+1. PROBE ARTIFACTS — the sweep parks an airborne fighter at p.vy = -40
+   (tools/audit_move_coverage.py:96). Nine moves roster-wide latch on
+   `this.vy < -180` and never arm at that speed, so they read as echoes
+   of the move they fall through to. On the Executioner:
+     "air fwd+H == back+H == up+H"      -> up+H is GYAKU KESA, a real
+                                           distinct move (xrise/xkiriage)
+     "air neutral+S == ... == up+S"     -> up+S is SKY CLEAVE, a real
+                                           distinct move
+   Both were re-driven at vy = -400 and confirmed distinct, and both are
+   reached by a real press (PORT=9101 node tools/drive_real_input.mjs).
+
+2. MISSED SHARED ART — the sweep samples six frames per move, so moves of
+   different durations returned different cell subsets and their shared
+   art never matched. Re-driven every frame, on the Executioner:
+     xjodan1..6  is drawn by gnd neutral+H, back+H AND down+H
+     xtsuki1..3  is drawn by gnd fwd+H, down+S, up+S, fwd+L AND fwd+S
+   Neither collision appears anywhere in the output above.
+
+3. The ECHO key included `cells`, so frame-sampling jitter also split some
+   single moves into fake distinct ones. Roster-wide the redundant-input
+   count is 131 of 360, not 94.
+
+Full corrected picture: docs/MOVE-COVERAGE-773.md
