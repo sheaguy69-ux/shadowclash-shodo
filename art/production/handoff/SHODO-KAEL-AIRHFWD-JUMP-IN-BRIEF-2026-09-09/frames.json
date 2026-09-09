@@ -1,0 +1,101 @@
+{
+  "move_id": "kael_air_forward_heavy",
+  "display_name": "Diving Twin Fang",
+  "fighter": { "id": 5, "name": "Kael", "weapon": "Niten Ichi-ryu — long katana + short wakizashi" },
+  "input": { "state": "airborne", "direction": "forward", "button": "Heavy" },
+  "art_row": { "key_prefix": "airhfwd", "cells": 8, "track": "airheavy" },
+
+  "status": "PROPOSED — art not generated, not approved, not packed. Timing below is the wiring target, not a measurement of a live move.",
+
+  "units": {
+    "frames": "60 Hz game time; the existing COMBAT_TEMPO 1.2 accelerates playback and the cinematic hitstop crawl still applies",
+    "rect_origin": "center-feet: x is forward, y is up, y names the rectangle's BOTTOM edge, all in world pixels",
+    "note": "Runtime rectangles are top-left origin with y down; the packer converts. Kael's idle stands 120 world px tall — every number below is a fraction of that, not an absolute picked out of the air."
+  },
+
+  "timing": {
+    "total_frames": 16,
+    "startup_frames": 5,
+    "active_frames": 5,
+    "recovery_frames": 6,
+    "landing_recovery_frames": 4,
+    "comment": "Heavy tier baseline in web/index.html:2069 is startup 0.42 / active 0.07 seconds, scaled by the fighter's own recovery divisor. 5/5/6 at 60 Hz sits on that baseline. A jump-in is committed: it does not cancel, and landing before recovery ends still pays the landing tail."
+  },
+
+  "properties": {
+    "tier": "ATTACK_HEAVY",
+    "base_damage": 22,
+    "hitstun_frames": 18,
+    "blockstun_frames": 9,
+    "pushback": 150,
+    "attack_air": true,
+    "cancels": [],
+    "cancel_comment": "No cancels. Existing heavy whiff commitment is preserved; this move must stay punishable on block and on whiff.",
+    "one_hit_per_victim": true
+  },
+
+  "frames": [
+    { "n": 1, "cell": "airhfwd1", "beat": "GATHER", "phase": "startup", "exposure": 1, "drawing": "new",
+      "hurtbox": { "x": -22, "y": 8, "w": 44, "h": 74 },
+      "hitbox": null,
+      "velocity": { "vx": "carried", "vy": "carried", "comment": "the jump's own arc; the move adds nothing yet" } },
+
+    { "n": 2, "cell": "airhfwd2", "beat": "WIND", "phase": "startup", "exposure": 2, "drawing": "new",
+      "hurtbox": { "x": -24, "y": 8, "w": 48, "h": 78 },
+      "hitbox": null,
+      "velocity": { "vx": "carried", "vy": "carried" } },
+
+    { "n": 3, "cell": "airhfwd3", "beat": "TIP-OVER", "phase": "startup", "exposure": 2, "drawing": "new",
+      "hurtbox": { "x": -24, "y": 6, "w": 50, "h": 76 },
+      "hitbox": null,
+      "velocity": { "vx": "+40", "vy": "-60", "comment": "he tips forward and starts to fall; the plunge is a nudge, not a dive-bomb" } },
+
+    { "n": 4, "cell": "airhfwd4", "beat": "CUT", "phase": "active", "exposure": 2, "drawing": "new",
+      "hurtbox": { "x": -20, "y": 4, "w": 52, "h": 72 },
+      "hitbox": { "x": 16, "y": 14, "w": 74, "h": 52, "comment": "the contact frame. Reach 74 px forward is 0.62 of his 120 px body — a committed jump-in, shorter than his ground forward Heavy." },
+      "velocity": { "vx": "+40", "vy": "-60" } },
+
+    { "n": 5, "cell": "airhfwd5", "beat": "FOLLOW", "phase": "active", "exposure": 2, "drawing": "new",
+      "hurtbox": { "x": -20, "y": 2, "w": 54, "h": 70 },
+      "hitbox": { "x": 20, "y": 0, "w": 70, "h": 46, "comment": "the arc has swept down; the box follows the tips below his feet line" },
+      "velocity": { "vx": "+40", "vy": "-60" } },
+
+    { "n": 6, "cell": "airhfwd6", "beat": "HANG", "phase": "active", "exposure": 1, "drawing": "new",
+      "hurtbox": { "x": -22, "y": 2, "w": 52, "h": 72 },
+      "hitbox": { "x": 18, "y": -2, "w": 60, "h": 40, "comment": "last eligible sample; the box expires with this exposure" },
+      "velocity": { "vx": "+20", "vy": "carried" } },
+
+    { "n": 7, "cell": "airhfwd7", "beat": "RECOVER", "phase": "recovery", "exposure": 3, "drawing": "new",
+      "hurtbox": { "x": -22, "y": 6, "w": 46, "h": 76 },
+      "hitbox": null,
+      "velocity": { "vx": "carried", "vy": "carried" } },
+
+    { "n": 8, "cell": "airhfwd8", "beat": "READY", "phase": "recovery", "exposure": 3, "drawing": "new",
+      "hurtbox": { "x": -22, "y": 8, "w": 44, "h": 74 },
+      "hitbox": null,
+      "velocity": { "vx": "carried", "vy": "carried" },
+      "comment": "hands off to ajump5 / fall without a jump-cut" }
+  ],
+
+  "wiring": {
+    "engine_changes_required": "none",
+    "why": "web/index.html:13239 already reads `F.airhfwd1 !== undefined ? 'airhfwd' : 'hfwd'` and gives the forward case its own `airheavy` animation track. Packing the row under this key makes it live.",
+    "sheet": {
+      "file": "web/assets/sprites/kael.png",
+      "append_only": true,
+      "cols_before": 311,
+      "new_cell_indices": [311, 312, 313, 314, 315, 316, 317, 318],
+      "cols_after": 319,
+      "manifest": "web/assets/sprites/kael.json — add airhfwd1..8 to `frames`, set `cols` to 319, change nothing else",
+      "sheet_v": "bump SHEET_V in web/index.html in the SAME commit as the sprite change"
+    }
+  },
+
+  "verification_after_packing": [
+    "python3 tools/check_sheets_whole.py --worktree — nine sheets whole, every original cell byte-identical",
+    "SHADOWCLASH_URL=http://localhost:9101/index.html python3 tools/audit_move_coverage.py --ids 5 — Kael's air distinct count must rise from 8/20, and air fwd+H must stop echoing neutral+H",
+    "node tools/check_dir_moves.mjs — every track matches its cell count, every art row exists",
+    "python3 tools/export_footsies_frames.py --fighter 5 --move heavy --direction forward --facing 1 --scenario hit --frames 20 --out media/kael-airhfwd/right — plus facing -1, and scenario whiff and block",
+    "Consecutive live-loop filmstrip of the airborne forward Heavy in BOTH facings — watched, not asserted. Cel animation cuts; a static assert cannot see a ghost."
+  ]
+}

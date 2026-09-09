@@ -1,0 +1,110 @@
+  measured at x=140: 9 fighters
+  measured at x=400: 9 fighters
+  measured at x=760: 9 fighters
+DEAD — spends stamina and chakra and does nothing else: no hitbox, no
+       projectile, no stance, no movement, no timer of its own (all x in [140, 400, 760])
+  0 of 360
+
+STATIC — runs 250ms+ and draws ONE cell the whole way: a still
+         frame that deals damage
+  Mokurai      air.up+L            360ms  draws bair3
+  Exile        gnd.down+H          300ms  draws xheavy5
+  2 of 360
+
+STANCE — a hitboxless stance held on ONE cell for 250ms+. Deals no
+         damage, so it is not the bucket above — but its peers animate.
+  0 of 360
+
+ECHO — identical hitbox spec, cells, duration, projectiles and touched fields
+       to another input, at EVERY parking spot [140, 400, 760]. One of them has no move
+       of its own. (A range-gated move that only collides at one x is not here.)
+  Executioner  gnd  back+H == back+S
+  Executioner  air  neutral+L == fwd+L == back+L
+  Executioner  air  neutral+S == fwd+S == back+S == down+S == up+S
+  Executioner  air  fwd+H == back+H == up+H
+  Mizu         gnd  neutral+M == fwd+M == back+M == down+M == up+M
+  Mizu         air  neutral+L == fwd+L == back+L
+  Mizu         air  neutral+M == fwd+M == back+M == down+M == up+M
+  Mizu         air  neutral+H == fwd+H == back+H == up+H
+  Shin         air  neutral+L == fwd+L == back+L
+  Shin         air  neutral+S == fwd+S == back+S == down+S == up+S
+  Shin         air  fwd+H == back+H == up+H
+  Tsubasa      air  neutral+L == fwd+L == back+L
+  Tsubasa      air  neutral+M == fwd+M == back+M == down+M == up+M
+  Tsubasa      air  neutral+H == fwd+H == back+H == up+H
+  Tsubasa      air  neutral+S == fwd+S == back+S == up+S
+  Ember        air  neutral+L == fwd+L == back+L
+  Ember        air  neutral+H == fwd+H == back+H == up+H
+  Ember        air  neutral+S == fwd+S == back+S == down+S == up+S
+  Kael         gnd  neutral+M == fwd+M == back+M == down+M == up+M
+  Kael         air  neutral+L == fwd+L == back+L
+  Kael         air  neutral+M == fwd+M == back+M == up+M
+  Kael         air  neutral+H == fwd+H == back+H == up+H
+  Kael         air  neutral+S == fwd+S == back+S == down+S == up+S
+  Mokurai      gnd  neutral+M == fwd+M == back+M == down+M == up+M
+  Mokurai      air  neutral+L == back+L
+  Mokurai      air  neutral+M == fwd+M == back+M == down+M == up+M
+  Mokurai      air  neutral+H == up+H
+  Mokurai      air  fwd+H == back+H
+  Exile        gnd  neutral+M == fwd+M == back+M == down+M == up+M
+  Exile        air  neutral+L == fwd+L == back+L
+  Exile        air  neutral+M == fwd+M == back+M == down+M == up+M
+  Exile        air  neutral+H == fwd+H == back+H == up+H
+  Oni          air  neutral+L == fwd+L == back+L
+  Oni          air  neutral+H == up+H
+  94 redundant inputs of 360
+
+SHARED ART — DIFFERENT moves drawing the SAME cells: the input is real, the
+             animation is a repeat, so on screen the two look identical.
+  Executioner  gnd  fwd+H / down+S / up+S              cells 329,296,297
+  Executioner  air  neutral+L / fwd+L / back+L / down+L cells 154
+  Mizu         gnd  back+L / down+L                    cells 28,31
+  Mizu         gnd  back+S / down+S                    cells 166,167,171,173
+  Mizu         air  neutral+L / fwd+L / back+L / down+L cells 199,203
+  Mizu         air  neutral+M / fwd+M / fwd+S / back+M / back+S / down+M / up+M cells 198,200,202,205
+  Mizu         air  down+S / up+S                      cells 198,201,202,205
+  Shin         gnd  neutral+L / up+L                   cells 259,263
+  Shin         gnd  fwd+S / down+S                     cells 220,378,226
+  Shin         gnd  back+L / down+L                    cells 251,254
+  Shin         air  neutral+L / fwd+L / back+L / down+L cells 151,218
+  Tsubasa      gnd  neutral+L / up+L                   cells 216,220
+  Tsubasa      gnd  back+L / down+L                    cells 182,185
+  Tsubasa      air  neutral+L / fwd+L / back+L / down+L cells 86,90
+  Ember        gnd  neutral+L / up+L                   cells 282,271
+  Ember        gnd  fwd+L / back+L                     cells 148,151
+  Ember        air  neutral+L / fwd+L / back+L / down+L cells 100,104
+  Kael         gnd  neutral+L / up+L                   cells 223,226
+  Kael         gnd  fwd+L / back+L / down+L            cells 223,236
+  Kael         gnd  back+H / up+H                      cells 218,77,79
+  Mokurai      gnd  neutral+L / up+L                   cells 372,376,378
+  Mokurai      gnd  fwd+H / down+L                     cells 372,375,377
+  Mokurai      air  neutral+M / fwd+M / fwd+S / back+M / back+S / down+M / up+M cells 234,235,236,238
+  Mokurai      air  neutral+H / fwd+L / down+L / down+S / up+H cells 234,236,238
+  Mokurai      air  neutral+S / up+S                   cells 236,238
+  Exile        air  neutral+L / fwd+L / back+L / down+L cells 186,190
+  Exile        air  fwd+S / back+S / up+S              cells 185,187,189,191
+  Oni          gnd  neutral+L / up+L                   cells 525,530
+  Oni          gnd  back+L / down+L                    cells 533,536
+  Oni          air  neutral+L / fwd+L / back+L / down+L cells 289,293
+  Oni          air  fwd+M / back+M / back+S / up+M     cells 346,291,293
+  31 shared rows
+
+fighter            ground          air   distinct moves of 20
+  Executioner        16/20         9/20
+  Mizu               16/20        11/20
+  Shin               17/20         9/20
+  Tsubasa            16/20         8/20
+  Ember              16/20         8/20
+  Kael               16/20         8/20
+  Mokurai            15/20        12/20
+  Exile              16/20        11/20
+  Oni                17/20        14/20
+  TOTAL             145/180        90/180
+Traceback (most recent call last):
+  File "/Users/anthonyguy/SHADOWCLASH.1.0*2/SHODO-EDITION/tools/audit_move_coverage.py", line 336, in <module>
+    sys.exit(main())
+             ~~~~^^
+  File "/Users/anthonyguy/SHADOWCLASH.1.0*2/SHODO-EDITION/tools/audit_move_coverage.py", line 327, in main
+    assert 'vanishTimer' in m['Shin']['gnd.back.S']['touched'], "Shin's back vanish"
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Shin's back vanish
