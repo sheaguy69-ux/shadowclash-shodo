@@ -2883,10 +2883,13 @@
             executeReprisal() {
                 if (this.spec.id !== 0 || this.chudan) return false;   // no guard in chudan, no riposte
                 if (animClock - this.blockedAt > REPRISAL_WINDOW) return false;
-                if (this.stunTimer > 0 || this.vanishTimer > 0 || this.grabbedBy || this.throwTimer > 0) return false;
+                // Blockstun sits on stunTimer (Sep 7) and the riposte is pressed DURING
+                // blockstun by design (see the KeyG wiring note), so only HIT stun gates it.
+                if ((this.stunTimer > 0 && this.state !== STATE.BLOCKING) || this.vanishTimer > 0 || this.grabbedBy || this.throwTimer > 0) return false;
                 if (!this.isGrounded || this.windedTimer > 0 || this.stamina < REPRISAL_COST) return false;
                 this.stamina -= REPRISAL_COST;
                 this.chakraCd = CHAKRA_SPEND_STALL;
+                this.stunTimer = 0; this.stunPeak = 0;   // the riposte cancels the blockstun it answers
                 this.blockedAt = -1e9;            // one riposte per block, not per press
                 this.clearMoveArt();              // must run BEFORE reprisalAnim is set
                 this.state = STATE.ATTACK_SPECIAL;
@@ -3640,7 +3643,11 @@
                             } else {
                                 // the wire YANKS them toward Shin — zoning into throw range
                                 opponent.takeDamage(4, this);
-                                if (opponent.hp > 0 && opponent.stunTimer > 0) {
+                                // ⛔ CLEAN HITS ONLY. Blockstun rides stunTimer too (Sep 7 guard
+                                // rework), so `stunTimer > 0` no longer means "the hit landed" —
+                                // a GUARDED wire was reeling the blocker 460px/s into throw range.
+                                // The clean-hit signal is the state takeDamage stamps: STUNNED.
+                                if (opponent.hp > 0 && opponent.state === STATE.STUNNED) {
                                     opponent.vx = -Math.sign(proj.vx) * 460;
                                     opponent.stunTimer = Math.max(opponent.stunTimer, 0.4);
                                 }
@@ -3763,7 +3770,12 @@
                     // knockback bleeds off instead of ice-skating at constant speed (audit)
                     if (this.isGrounded) this.vx *= Math.max(0, 1 - 6.5 * dt);
                     if (this.stunTimer <= 0) {
-                        if (this.lockT <= 0) this.state = STATE.IDLE;
+                        // Blockstun ends with the guard STILL UP: dropping to IDLE here and
+                        // returning left the held guard IDLE for one tick before the
+                        // BLOCKING branch could re-enter, and a projectile stream landed
+                        // one clean hit through it. handleMovement re-reads the button next
+                        // tick and drops the guard itself if it was released.
+                        if (this.lockT <= 0 && this.state !== STATE.BLOCKING) this.state = STATE.IDLE;
                         this.chainComboTier = 0;
                         this.stunPeak = 0;
                     }
@@ -4027,6 +4039,10 @@
                     if (this.isGrounded) this.state = STATE.RUN;
                 } else if (!this.isAttackingState()) {
                     this.vx = 0; // Instant ground stop
+                    // A guard that leaves the ground (shoved off a ledge, platform gone)
+                    // is no guard: BLOCKING is grounded-only, and takeDamage reads the
+                    // state, so an airborne BLOCKING body would block in the air.
+                    if (!this.isGrounded && this.state === STATE.BLOCKING) this.state = STATE.IDLE;
                     if (this.isGrounded) {
                         this.state = STATE.IDLE;
                         // Auto-turnaround: a standing fighter always faces its opponent, so a
