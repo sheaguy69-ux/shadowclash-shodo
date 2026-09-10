@@ -96,6 +96,11 @@ def main():
     ap.add_argument('fighter'); ap.add_argument('board'); ap.add_argument('prefix')
     ap.add_argument('--wire', default='', help='comma list key=beat, e.g. block=1,block2=2')
     ap.add_argument('--anchor', type=int, default=1, help='beat whose stance sets the scale')
+    ap.add_argument('--scale', type=float, default=None,
+                    help='explicit scale, overriding the anchor beat. For a board with NO '
+                         'idle-like beat (a round intro that ends sword-out, a KO that ends '
+                         'on the floor) the anchor ruler has nothing fair to measure against; '
+                         '784 hit this and corrected all four executioner rows the same way.')
     ap.add_argument('--dry', action='store_true')
     args = ap.parse_args()
 
@@ -115,7 +120,7 @@ def main():
     arrs = [black_key(np.array(Image.open(f).convert('RGBA'))) for f in frames]
     masks = [a[..., 3] >= 128 for a in arrs]
     areas = [int(m.sum()) for m in masks]
-    scale = float(np.sqrt(canon / areas[args.anchor - 1]))
+    scale = args.scale if args.scale else float(np.sqrt(canon / areas[args.anchor - 1]))
 
     boxes = [ink_bbox(m) for m in masks]
     ux0 = min(b[0] for b in boxes); uy0 = min(b[1] for b in boxes)
@@ -127,8 +132,9 @@ def main():
     dx = (W - uw) // 2 - round(ux0 * scale)
     dy = (FY - FOOT_GAP) - round(uy1 * scale)
 
-    print(f'{args.fighter}/{args.prefix}: idle canon {canon:.0f}px  anchor beat {args.anchor} '
-          f'{areas[args.anchor-1]}px  -> scale {scale:.4f}   window {uw}x{uh}  beats {len(frames)}')
+    ruler = 'EXPLICIT --scale' if args.scale else f'anchor beat {args.anchor} {areas[args.anchor-1]}px'
+    print(f'{args.fighter}/{args.prefix}: idle canon {canon:.0f}px  {ruler} '
+          f'-> scale {scale:.4f}   window {uw}x{uh}  beats {len(frames)}')
 
     out = Image.new('RGBA', ((cols + len(frames)) * W, H), (0, 0, 0, 0))
     out.paste(sheet, (0, 0))          # paste, not composite: keeps the originals byte-identical
