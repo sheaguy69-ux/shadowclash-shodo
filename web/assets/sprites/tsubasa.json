@@ -295,7 +295,15 @@
     "wcling5": 457,
     "wcling6": 458,
     "wcling7": 459,
-    "wcling8": 460
+    "wcling8": 460,
+    "taunt1": 429,
+    "taunt2": 430,
+    "taunt3": 431,
+    "taunt4": 432,
+    "taunt5": 433,
+    "taunt6": 434,
+    "taunt7": 435,
+    "taunt8": 436
   },
   "weapon_type": "Dual Tant\u014d Knives",
   "martial_art_discipline": "Tant\u014djutsu (Reverse-Grip)",

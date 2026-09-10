@@ -400,6 +400,8 @@
                             <div class="text-gray-400">Special Skill</div>
                             <div><kbd class="px-1.5 py-0.5 bg-gray-800 rounded text-purple-300 font-mono">C</kbd></div>
                             <div class="text-gray-400">Poof (tap) / Block (hold)</div>
+                            <div><kbd class="px-1.5 py-0.5 bg-gray-800 rounded text-purple-300 font-mono">X</kbd></div>
+                            <div class="text-gray-400">Taunt (no hitbox — any input cancels it)</div>
                             <div><kbd class="px-1.5 py-0.5 bg-gray-800 rounded text-purple-300 font-mono">F+G</kbd></div>
                             <div class="text-gray-400">Throw (together)</div>
                             <div><kbd class="px-1.5 py-0.5 bg-gray-800 rounded text-purple-300 font-mono">A A / D D</kbd></div>
@@ -444,6 +446,8 @@
                             <div class="text-gray-400">Special Skill</div>
                             <div><kbd class="px-1.5 py-0.5 bg-gray-800 rounded text-orange-300 font-mono">M</kbd></div>
                             <div class="text-gray-400">Poof (tap) / Block (hold)</div>
+                            <div><kbd class="px-1.5 py-0.5 bg-gray-800 rounded text-orange-300 font-mono">N</kbd></div>
+                            <div class="text-gray-400">Taunt (no hitbox — any input cancels it)</div>
                             <div><kbd class="px-1.5 py-0.5 bg-gray-800 rounded text-orange-300 font-mono">I+O</kbd></div>
                             <div class="text-gray-400">Throw (together)</div>
                             <div><kbd class="px-1.5 py-0.5 bg-gray-800 rounded text-orange-300 font-mono">&larr;&larr; / &rarr;&rarr;</kbd></div>
@@ -494,6 +498,8 @@
                             <div class="text-gray-400">Throw</div>
                             <div><kbd class="px-1.5 py-0.5 bg-gray-800 rounded text-emerald-300 font-mono">Back / Share</kbd></div>
                             <div class="text-gray-400">Second Form / Stance</div>
+                            <div><kbd class="px-1.5 py-0.5 bg-gray-800 rounded text-emerald-300 font-mono">L3 <span class="text-gray-500">left stick click</span></kbd></div>
+                            <div class="text-gray-400">Taunt (no hitbox — any input cancels it)</div>
                             <div><kbd class="px-1.5 py-0.5 bg-gray-800 rounded text-emerald-300 font-mono">Start / Options</kbd></div>
                             <div class="text-gray-400">Pause</div>
                         </div>
@@ -3231,6 +3237,7 @@
                 this.rollAway = false;       // latched at startRoll: is this roll a retreat?
                 this.rollStaleT = 0;         // time left in the staling window
                 this.flipTimer = 0;          // >0 = air-jump backflip spin (visual only)
+                this.tauntT = 0;             // >0 = taunting: no hitbox, no armour, cancels on any input
                 // ⛔ ONI'S RAZOR-WIRE COMMAND GRAB. His board files four sequences that all
                 // read setup -> bind -> CONVERSION -> follow-through -> reset, and the
                 // conversion is the whole idea: a successful bind is what unlocks a weapon
@@ -4516,6 +4523,19 @@
                 const axis = this.getInputAxis();
                 this.inputAxis = axis;
 
+                // ⛔ THE TAUNT CANCEL RUNS BEFORE THE CHAIN, NOT INSIDE ITS BRANCH.
+                // Put inside, the frame that cancels is spent cancelling: the step,
+                // duck or guard that ended it would not also happen until the next
+                // tick, and a taunt you have to press twice out of is a dropped input.
+                // Cleared here, the very same frame falls through to the branch the
+                // player actually asked for. Everything with its own branch above the
+                // taunt (dash, roll, grapple, throw) needs no test — it simply outranks
+                // it — so this lists only what does not: a step, a duck, a guard, a
+                // swing, a hit, and leaving the ground.
+                if (this.tauntT > 0 && (axis !== 0 || this.isDownPressed() || this.isDefendHeld()
+                    || this.isAttackingState() || this.stunTimer > 0 || !this.isGrounded))
+                    this.tauntT = 0;
+
                 // Release or reverse brakes the grounded burst; air dashes keep their commitment.
                 if (this.isGrounded && this.dashTimer > 0
                     && this.dashTimer <= DASH_TIME - FOOTSIES.dashMinTime + 1e-9
@@ -4563,6 +4583,13 @@
                     // to a stop rather than snapping upright.
                     this.vx *= 0.82;
                     this.state = STATE.CROUCH;
+                } else if (this.tauntT > 0) {
+                    // TAUNT in flight — and nothing to decide here, because the cancel
+                    // already ran at the top of this method. Sits BELOW dash/roll/
+                    // grapple/throw so any of those takes the body straight off it.
+                    this.tauntT -= dt;
+                    this.vx = 0;
+                    this.state = STATE.IDLE;
                 } else if (this.wallJumpLock > 0) {
                     // keep wall-jump momentum
                 } else if (this.spec.id === 6 && this.isGrounded && this.isDefendHeld()
@@ -8912,7 +8939,7 @@
                 // roll, so a shunshin or roll still running when the sickle bites would
                 // have its clock frozen for the whole reel and then resume on arrival —
                 // a delayed lurch out of the wall, and a roll whose i-frames outlive it.
-                this.dashTimer = this.rollTimer = 0;
+                this.dashTimer = this.rollTimer = this.tauntT = 0;
                 this.isGrounded = false;
                 this.vx = 0; this.vy = 0;
                 this.state = STATE.JUMP;
@@ -9523,7 +9550,7 @@
                 this.throwTimer = THROW_TIME;
                 this.throwVictim = opp;
                 this.throwReleased = false;
-                this.dashTimer = this.rollTimer = 0;   // no 800px/s lurch resurrecting post-throw (audit)
+                this.dashTimer = this.rollTimer = this.tauntT = 0;   // no 800px/s lurch resurrecting post-throw (audit)
                 this.attackAnim = { start: animClock * 1000, dur: THROW_TIME * 1000 };
                 this.chainComboTier = 3;
                 this.facing = dx >= 0 ? 1 : -1;
@@ -9540,7 +9567,7 @@
                 opp.attackAnim = null;
                 opp.chainComboTier = 0;
                 opp.recoveryTimer = 0;
-                opp.dashTimer = opp.rollTimer = 0;
+                opp.dashTimer = opp.rollTimer = opp.tauntT = 0;
                 opp.state = STATE.THROWN;
                 opp.stunTimer = 0;
                 opp.grabbedBy = this;
@@ -9702,6 +9729,37 @@
                 this.throwVictim = null;
                 this.throwReleased = false;
                 this.attackAnim = null;
+            }
+
+            // TAUNT — X for P1, N for P2, L3 on a pad. The one move with no hitbox,
+            // no armour, no meter and no state of its own: it rides `tauntT` exactly
+            // the way the shunshin dash rides `dashTimer`, so a taunting fighter IS a
+            // standing fighter for hurtboxes, throws, blockstun and the CPU's read —
+            // only the drawing differs. That is deliberate: a new STATE would need a
+            // new branch in every switch that already handles IDLE, and every one of
+            // them would be a place for the taunt to behave unlike standing.
+            //
+            // ⛔ ART OR NOTHING. A fighter whose sheet has no taunt row does not enter
+            // it — no borrowed idle, no substitute pose. Today that is everyone but
+            // Tsubasa, and the input is honestly dead for them until the art exists.
+            //
+            // The cost is the TIME. It cancels into anything on the first real input
+            // (see handleMovement), so it is never a trap you cannot get out of — but
+            // you are standing in the open, not blocking, for as long as you leave it
+            // running, and takeDamage puts you in STUNNED like any other standing body.
+            executeTaunt() {
+                if (this.tauntT > 0 || !this.isGrounded) return false;
+                if (this.isAttackingState() || this.stunTimer > 0 || this.sayaLock > 0
+                    || this.dashTimer > 0 || this.rollTimer > 0 || this.rollRecover > 0
+                    || this.grabbedBy || this.lockT > 0 || this.grappleT > 0
+                    || this.state === STATE.THROWN || this.state === STATE.THROWING
+                    || this.state === STATE.SUBSTITUTION) return false;
+                if (!tauntCells(SPRITES[this.spec.name.toLowerCase()]?.frames ?? {}).length) return false;
+                this.tauntT = TAUNT_TIME;
+                this.vx = 0;
+                if (this.opponent)   // you taunt AT someone
+                    this.facing = (this.opponent.x + this.opponent.width / 2) >= (this.x + this.width / 2) ? 1 : -1;
+                return true;
             }
 
             // Tap Poof to arm the substitution window; damage landing inside
@@ -10277,7 +10335,7 @@
                 this.stunTimer = 0.35 + (dmg * 0.01); // scaling stun duration
                 // Getting hit INTERRUPTS a dash/roll — otherwise the frozen timer
                 // resurrects an 800px/s lurch after hitstun clears (audit BUG 1).
-                this.dashTimer = 0; this.rollTimer = 0;
+                this.dashTimer = 0; this.rollTimer = 0; this.tauntT = 0;
                 // ...and an interrupted VAULT cancels instead of leaving its lease behind.
                 // Mizu's Up+Special books recoveryTimer = 2.0 as an "airborne lease" that
                 // only the landing hook collapses to the real 0.5 — and that hook requires
@@ -10756,7 +10814,8 @@
         // Shared edge placement keeps body, strike and chain-hand source points aligned.
         // 777: approved Executioner Back Light row; full katana/boots, contact holds, retained strike reach. Body hurtboxes follow new poses.
         // 778: approved Executioner low cut; low contact4–5 then half-rise recovery, body bounds prevent sword-driven viewport shifts. Existing offensive mechanics retained; defensive poses change.
-        const SHEET_V = 781; // 781: TSUBASA'S UNPACKED BOARDS GO IN. His art folder holds 22 keyed 8-frame boards; a silhouette-IoU sweep of all 176 frames against all 373 cells found ten already packed (idle-v4 = xidle/idle, run-v3 = run_clean, backdash-v5 = roll_, hook-throw-v2 = grab, crouch-v2 = crouch_, knockdown-recovery-v3 = getup, light-combo1-v2 = light, plus air-talon-cross and jump-v2 sitting ORPHAN at 45-52 and 25-28/70-74) and eleven absent. Those eleven are appended as 88 cells, 373-460, cols 373 -> 461. WIRED LIVE: lock1..8 from blade-lock-v3 (the row was six keys pointing at four duplicated cells 359-362; bladeLockFrame reads the last two as win/lose, so lock7 = beat 8, blades intact and driving forward, and lock8 = beat 7, the blade shattering) and block/block2 from dagger-guard-block-v3. PACKED AND NAMED BUT NOT PLAYED, because no fighter in this game has the state: fdash, ko, hitm, lightb, intro, taunta, tauntb, win, wcling. That is art waiting on an engine state, not orphan debris - one JSON edit each the day the state exists. NOT PACKED: idle-8f-v2, superseded by the live idle-v4. ⛔ NOT RE-KEYED. These boards arrive already keyed (alpha 0/255) and pack_shodo_row white-composites and re-keys at min-channel >= 205, which is what ate the near-white eyes at 708; new tools/sprites/pack_keyed_board.py appends the authored alpha untouched and the engine keys at draw time. Three of the boards (forward-dash-v3, and the already-packed backdash-v5/run-v3) ship on an opaque black card and are border-flooded at max-channel <= 18 first; his darkest ink measures (32,27,27). SCALE: ONE per board, sqrt(ink area) against the packed idle's 11774px, anchored on the board's READY-GUARD beat - NOT its largest, because the victory board's beat 4 carries a horn FX at 1.9x its own stance and would have packed that row 25% small. Validated against the eight boards already on this sheet: beat-1 anchoring predicts their applied scale to 1.6% mean (idle -0.1, hook-throw -0.7, wallslide +1.0, crouch +1.2, run -1.8, light-combo1 +4.1) and disagrees only with air-talon (+28%) and roll (+11%), the two rows the size campaign already flags as oversized. Measured on the written cells: every new row lands 0.85-1.06x the idle's ink area, foot gap 3-5px on every planted beat, art-loss 0.1-0.3% (resampling only, premultiplied LANCZOS), no beat clipped, gate_fragments CLEAN at 461 cells, originals byte-identical. The eye reads 1.06-1.37x the shipped 10.4px on intro/taunt/win - eye_scale itself calls the tsubasa eye UNMEASURABLE (the artist draws it 1.10x on run, 1.27x on divecut) and says use ink area, so area wins and the eye is logged, not obeyed.
+        const SHEET_V = 782; // 782: TAUNT. X for P1, N for P2, L3 on a pad. It rides `tauntT` and has NO STATE of its own, exactly the way the shunshin dash rides dashTimer — a taunting fighter IS a standing fighter for hurtboxes, throws, blockstun and the CPU's read, and only the drawing differs. A new STATE would have needed a branch in every switch that already handles IDLE and every one of them would be a place for the taunt to behave unlike standing. The row is `taunt1..N`, read from the sheet rather than assumed to be eight, and A FIGHTER WITHOUT THE ROW DOES NOT TAUNT — no borrowed idle, no substitute pose, so today the input is honestly dead for everyone but Tsubasa, whose taunt1..8 point at the taunta cells 429-436 (board taunt-8f-v5, the knife juggle; v6's ring take stays packed as tauntb and is one JSON edit away). No hitbox, no armour, no meter, no reward: the cost is the 0.8s you spend not blocking. It CANCELS INTO ANYTHING on the first real input, and that test runs at the TOP of handleMovement rather than inside the taunt's own branch — inside, the frame that cancels is spent cancelling and the step or guard that ended it would not happen until the next tick, which is a dropped input. Dash, roll, grapple and throw need no test there because their branches already outrank it; the five sites that zero dashTimer/rollTimer for a transient action now zero tauntT too, or a taunt interrupted by a throw resumes after it. tauntFrame is consulted above the state switch because the taunt holds IDLE and the idle cell would otherwise paint straight over it. New tools/check_taunt.mjs covers all four silent-failure modes and runs the picker's arithmetic for 1/4/6/8/12-cell rows.
+        // 781: TSUBASA'S UNPACKED BOARDS GO IN. His art folder holds 22 keyed 8-frame boards; a silhouette-IoU sweep of all 176 frames against all 373 cells found ten already packed (idle-v4 = xidle/idle, run-v3 = run_clean, backdash-v5 = roll_, hook-throw-v2 = grab, crouch-v2 = crouch_, knockdown-recovery-v3 = getup, light-combo1-v2 = light, plus air-talon-cross and jump-v2 sitting ORPHAN at 45-52 and 25-28/70-74) and eleven absent. Those eleven are appended as 88 cells, 373-460, cols 373 -> 461. WIRED LIVE: lock1..8 from blade-lock-v3 (the row was six keys pointing at four duplicated cells 359-362; bladeLockFrame reads the last two as win/lose, so lock7 = beat 8, blades intact and driving forward, and lock8 = beat 7, the blade shattering) and block/block2 from dagger-guard-block-v3. PACKED AND NAMED BUT NOT PLAYED, because no fighter in this game has the state: fdash, ko, hitm, lightb, intro, taunta, tauntb, win, wcling. That is art waiting on an engine state, not orphan debris - one JSON edit each the day the state exists. NOT PACKED: idle-8f-v2, superseded by the live idle-v4. ⛔ NOT RE-KEYED. These boards arrive already keyed (alpha 0/255) and pack_shodo_row white-composites and re-keys at min-channel >= 205, which is what ate the near-white eyes at 708; new tools/sprites/pack_keyed_board.py appends the authored alpha untouched and the engine keys at draw time. Three of the boards (forward-dash-v3, and the already-packed backdash-v5/run-v3) ship on an opaque black card and are border-flooded at max-channel <= 18 first; his darkest ink measures (32,27,27). SCALE: ONE per board, sqrt(ink area) against the packed idle's 11774px, anchored on the board's READY-GUARD beat - NOT its largest, because the victory board's beat 4 carries a horn FX at 1.9x its own stance and would have packed that row 25% small. Validated against the eight boards already on this sheet: beat-1 anchoring predicts their applied scale to 1.6% mean (idle -0.1, hook-throw -0.7, wallslide +1.0, crouch +1.2, run -1.8, light-combo1 +4.1) and disagrees only with air-talon (+28%) and roll (+11%), the two rows the size campaign already flags as oversized. Measured on the written cells: every new row lands 0.85-1.06x the idle's ink area, foot gap 3-5px on every planted beat, art-loss 0.1-0.3% (resampling only, premultiplied LANCZOS), no beat clipped, gate_fragments CLEAN at 461 cells, originals byte-identical. The eye reads 1.06-1.37x the shipped 10.4px on intro/taunt/win - eye_scale itself calls the tsubasa eye UNMEASURABLE (the artist draws it 1.10x on run, 1.27x on divecut) and says use ink area, so area wins and the eye is logged, not obeyed.
         // 780: Kael uniformly reduced 8% below Executioner standing height.
         // // 779: owner-approved Executioner breathing idle367–369; original combat calibration retained.
            // (714: THE TWELVE DIRECTIONAL ROWS WERE NEVER MISSING — THEY WERE ON THE OTHER TREE. DIR_MOVES names 22 art rows and only 10 were packed here, so mizu's fwd/back heavy drew heavy_i, shin's four drew hneu, tsubasa's back drew heavy, ember's three drew eheavy and oni's back/down drew hfwd — the moves ran, only the art fell back. Every one of the twelve is packed on SHADOWCLASH-RECOVERED: the SHODO sheets were rebuilt and these rows never came across, so this is a PORT of already-approved art, not a generation and not a substitution. Appended 80 cells across five sheets, raw pixels (the engine keys at draw time, so keying on the way in keys twice), originals byte-identical at AE=0 cropped to each sheet's own pre-port width. SCALE: only shin is resampled, at 0.72. His three independent rulers agree (sqrt-area 0.70/0.74, bbox width 0.67/0.78, bbox height 0.74/0.71 on idle2 and xidle1); for mizu, tsubasa, ember and oni they CONFLICT — height says ~1.0 while width says 0.60-0.81, because bbox width is contaminated by weapon angle and the eye ruler is unvalidated on every fighter but the executioner — so those four are copied verbatim rather than resampled on a guess. ⛔ STYLE: nine of the twelve are a VISIBLE TREATMENT BREAK and are owner-gated per row. mizu and tsubasa read as the same character in the same ink; shin's RECOVERED art is a saturated green ninja against SHODO's mossy eroded one, ember's eye is GREEN there and white here, and oni is the correct Aug-9 canon design — white mask, red slits, two horns, swords on back, no purple, no mane — but rendered glossy against SHODO's grain. Reverting any row is a JSON edit; the cells stay addressable.) 713:    // (713: SEAT GATE FOR P1. Every P2 branch in fireCombatKey asks isP2Human(); the P1 branches asked nothing at all. So wherever cpuThink drives player1 — WATCH, where both fighters get a brain, and the spectate modifier — a human's W/F/J/G/H/C/V still fired his jump, all four attacks, kawarimi, stance and the throw pairing ON TOP of the brain, and the keyup KeyW cut the CPU's jump short (its P2 sibling already asked isP2Human(); P1's never did). Measured in the new tools/check_seat_gate.mjs: 84 presses across six mode/spectate/seat combinations, watch P1 and versus+spectate P1 each responded to 2 of 7 keys; now 0. The gate sits BELOW the blade-lock mash block, which is deliberately written to eat a CPU body's press without scoring from it, and cpuThink calls executeAttack directly rather than the funnel, so the brain is untouched. TRAINING IS NOT AFFECTED and that is the point of using the right authority: P2 there is CPU-driven AND legitimately human-controllable (owner: "play two controls don't work in training mode"), so the check asserts against isP2Human() for seat 2 and isCpuDriven() for seat 1 — asking isCpuDriven() for both called that deliberate behaviour a leak. Pre-existing and untouched: check_dir_moves still fails on 12 owner-gated art rows; it fails identically at 712. (712: DIAGONAL STEALS — five inputs that reached the wrong move. A branch testing getInputAxis() without !down && !up matches on a DIAGONAL too, so it swallows a press belonging to a move filed below it. The file states this law at the grapple ('axis === facing is TRUE on up-forward and down-forward') and it had been applied to some branches and not their siblings. Measured, not read: tools/drive_real_input.mjs now presses the four diagonals as well as the five cardinals (54 presses a fighter, both modes) and fingerprints each press by BEHAVIOUR — state, grounded, hitbox count, dx, dy — never by art, because Exile's Iai cross draws gsback+glback on Back+Special and 'light' on UpBack+Special while both travel the same 784px: fingerprinting on cells called one move two and hid the steal completely. FIXED: exile back+Special (UpBack and DownBack each fired the full-arena Iai instead of the chain anchor and Serpent's Tongue), shin fwd+Special (UpFwd threw the wire shuriken; his rising srisaa never came out, while UpBack reached it — live on one diagonal, dead on the other), mokurai fwd+Special (same asymmetry), and the two that only exist inside a second mode and so had outlived every previous sweep: mokurai CRACKED back+Special (UpBack set PARRY_STANCE) and shin KAGE-NUI fwd+Special (BOTH forward diagonals vanish-stepped). NOT FIXED, deliberately: mokurai upback+Heavy still plays the palm blast — that branch reads up/down to AIM the projectile, so the diagonal is the aim, not a theft. Verified: nine fighters x two modes x 54 presses, zero dead inputs, zero steals. (711: AUDIT #5 AND #6 — air normals stopped swapping to ground art on landing, and the air-heavy directional map is reachable. #5: THREE branches served airborne attacks off the LIVE isGrounded instead of the press-time attackAir latch — the ground-light dirCells gate, the airAttackCells light fallback and the air1..3 tail — so touching down before recovery ended handed the rest of the swing to the grounded row. Measured across all nine: aneu -> light on six, aneu -> xnuki on Executioner, kxcut -> kdual on Kael. All three now read attackAir and every fighter holds its air art through the landing (aneu -> aneu, kxcut -> kxcut). #6: airAttackCells() returns aneu/bair/kxcut — the generic AIR LIGHT row — and it was answering the HEAVY case before the hfwd/hback/hup/hdown/hneu map was ever read, so that map was unreachable for every fighter without a kxcut row. Reordered: the directional map runs first, the generic row is the fallback. Oni now reaches hfwd and Executioner/Shin reach hneu where before all four directions drew aneu. ⛔ MOKURAI'S mstrike IS NOT PACKED ON THIS SHEET — the audit called it shadowed dead and the branch order was indeed wrong, but on the Shodo sheet the row does not exist at all, so his air heavy still draws bair. That is art owed, not routing. The fighters still showing aneu on fwd/back/up have no hfwd/hback/hup packed either — also art owed, listed rather than faked.) (710: AUDIT #1 — THE THREE FASTEST FIGHTERS SHED AFTER-IMAGES WHILE WALKING. SPEEDLINE_V is 460 and its own comment justifies that as sitting 'ABOVE the fastest walk (moveSpeed peaks at 350 * 6/6)'. moveSpeed is 350 * speed/6 and the roster runs to speed 10, so the real walk tops are Exile 583, Shin 525, Ember 467 — all at or above the line. Ordinary strolling tripped the burst-only trail. Fixed with BOTH tests, because either alone is wrong: the 460 floor STAYS so the burst speeds the comment names still smear for every fighter (a wall-jump launch at 480 and Shin's wire yank at 560 sit between the slowest and fastest walks, so a per-fighter floor would silence them on exactly the fast cast they were written for), and a second test kills the walking trail — ordinary movement cannot exceed a fighter's own walk top, so anything above it is a dash, launch, reel or knockback. Where a burst now reads clean for Shin or Exile that is CORRECT: 480 is slower than they walk. Verified: all nine walk clean, dash 800 smears for all nine.) 709: DIRECTIONS. Owner: "characters directions still havent
@@ -11837,9 +11896,32 @@
             return (i === undefined || i === null) ? neutralFrame(p, F, F.idle) : i;
         }
 
+        // TAUNT. `taunt1..N` on the sheet, however many beats the artist drew — read the
+        // row rather than assuming eight, the way the blade lock reads lock1..N. A sheet
+        // without the row returns [], which is what makes executeTaunt refuse: no
+        // fighter ever taunts with borrowed art.
+        const TAUNT_TIME = 0.80;           // whole row, once, at ~10 beats/sec
+        function tauntCells(F) {
+            const c = [];
+            for (let n = 1; n <= 12 && F['taunt' + n] !== undefined; n++) c.push(F['taunt' + n]);
+            return c;
+        }
+        function tauntFrame(p, F) {
+            if (!(p.tauntT > 0)) return undefined;
+            const c = tauntCells(F);
+            if (!c.length) return undefined;
+            // ONE-SHOT, not a loop: a taunt plays through and holds its last beat. The
+            // clamp matters — at tauntT exactly 0 the index would land one past the end.
+            return c[Math.min(c.length - 1, Math.floor((1 - p.tauntT / TAUNT_TIME) * c.length))];
+        }
+
         function spriteFrameIndexRaw(p, F) {
             const lockFrame = bladeLockFrame(p, F);
             if (lockFrame !== undefined) return lockFrame;
+            // Above everything but the lock: the taunt holds STATE.IDLE, so any branch
+            // below that reads the state would draw the standing cell straight over it.
+            const taunt = tauntFrame(p, F);
+            if (taunt !== undefined) return taunt;
             // Air hit reactions outrank stance, floor-recovery and stale move artwork.
             // A held throw still uses its paired animation; released victims use air recoil.
             if (!p.isGrounded && !p.grabbedBy && F.airhurt1 !== undefined
@@ -17182,6 +17264,7 @@
             if (code === 'KeyH' && player1.isDefendHeld()) { player1.castBunshin(); return; }   // BUNSHIN
             if (code === 'KeyH') player1.executeAttack(STATE.ATTACK_SPECIAL);
             if (code === 'KeyC') player1.executeKawarimi();
+            if (code === 'KeyX') player1.executeTaunt();
 
             // Player 2 Combat Triggers — 2P + training (CPU/watch drive P2)
             if (p2Live) {
@@ -17194,6 +17277,7 @@
                 if (code === 'KeyP' && player2.isDefendHeld()) { player2.castBunshin(); return; }   // BUNSHIN
                 if (code === 'KeyP') player2.executeAttack(STATE.ATTACK_SPECIAL);
             if (code === 'KeyM') player2.executeKawarimi();
+            if (code === 'KeyN') player2.executeTaunt();
             }
         }
 
@@ -17353,9 +17437,11 @@
         const PAD_KEYS = [
             // pad 0 drives P1, pad 1 drives P2 — the same codes their keyboard half uses
             { up:'KeyW', down:'KeyS', left:'KeyA', right:'KeyD',
-              light:'KeyF', medium:'KeyJ', heavy:'KeyG', special:'KeyH', poof:'KeyC', stance:'KeyV' },
+              light:'KeyF', medium:'KeyJ', heavy:'KeyG', special:'KeyH', poof:'KeyC', stance:'KeyV',
+              taunt:'KeyX' },
             { up:'ArrowUp', down:'ArrowDown', left:'ArrowLeft', right:'ArrowRight',
-              light:'KeyI', medium:'KeyU', heavy:'KeyO', special:'KeyP', poof:'KeyM', stance:'KeyK' },
+              light:'KeyI', medium:'KeyU', heavy:'KeyO', special:'KeyP', poof:'KeyM', stance:'KeyK',
+              taunt:'KeyN' },
         ];
         // ⛔ MEDIUM WAS MISSING FROM THE PAD ENTIRELY. The keyboard has four attack
         // strengths (KeyJ / KeyU are Medium and route to executeAttack(ATTACK_MEDIUM)
@@ -17378,6 +17464,10 @@
             4:'poof', 5:'poof',
             6:'throw', 7:'throw',
             8:'stance', 9:'pause',
+            // L3 was the only free button left on a standard pad, and a stick click is
+            // where taunt already lives on most fighters. Nothing is lost by a stray
+            // press: the taunt has no hitbox and the first real input cancels it.
+            10:'taunt',
             12:'up', 13:'down', 14:'left', 15:'right',
         };
         const PAD_DEAD = 0.4;              // stick deadzone — a resting thumb must never walk
@@ -18008,7 +18098,7 @@
             'Executioner': ["F / J / G / H — light · medium · heavy · armored overhead", "Fwd+F — SHADOW SLICE (fast disjointed poke)", "Fwd+H — SMOKE-BOMB SHADOW STRIKE (vanish, cross-up, launch)", "Shadow Slice / Smoke Strike: clean hit → jump, dash or Special in the brief cancel window", "Up+H — SKY CLEAVE (owns the column above)", "Fwd+G — Drive Stab (PIERCES guard)", "Back+G — IAI QUICK-DRAW (PIERCES guard)", "Up+G — GYAKU KESA rising launcher", "Down+G — SUSO-GIRI (his only armed low)", "Down+H — HARAI OTOSHI (low sweeping cut, trips)", "C+G — SHADOW SLIP REVERSAL (i-frame slip; counters ONLY if he read your swing)", "G right after a BLOCK — IRON GUARD REPRISAL (riposte; spends DREAD)", "V — CHUDAN STANCE: rewrites F and G, and you cannot block", "Down/Back+F — sweep · heel kicks; Fwd+F in reverse grip retains push kick", "air Down+G — Meteor Break", "hold C+H — BUNSHIN (30): counter-double, stuns who strikes it", "F+G — throw"],
             'Mizu':        ["F / J / G / H — light · medium · heavy · mist drop", "Fwd+G — BO THRUST (longest poke) · Down+G — BO LOW SWEEP (trips)", "Up+G — RISING STAFF (anti-air) · Back+G — GUARD-BREAK SPIN", "Back+H — REED WITHDRAW (retreating sweep)", "Fwd+H — Reed Pierce", "Down+H — mist silhouettes (needs her mist)", "Up+H — VAULTING STAFF SLAM", "Down/Fwd/Back+F — kicks", "air Down+G — Meteor Break", "hold C+H — BUNSHIN (30): pops into a slowing water slick", "F+G — throw"],
             'Shin':        ["F / J / G / H — light · medium · heavy · flying kick", "Fwd+G — FUDO KEN · Down+G — SOKUYAKU KEN (low)", "Up+G — OMOTE SHUTO · Back+G — URA SHUTO", "Up+H — RISING ANTI-AIR", "Fwd+H — Wire Shuriken (yanks them in)", "Back+H — WIRE-STEP (teleport)", "Down+H — SHURIKEN FAN (3-star spread)", "wall cling — F throws SHURIKEN (x3)", "Down/Fwd/Back+F — kicks", "air Down+G — Meteor Break", "hold C+H — BUNSHIN (30): throws one star, then poofs", "F+G — throw"],
-            'Tsubasa':     ["F / J / G / H — light · medium · heavy · parry stance", "Fwd+G — REVERSE-GRIP RUSH (2 stabs) · Down+G — low tanto", "Up+G — RISING TWIN SLASH · Back+G — EVASIVE FLICK", "Down+H — AERIAL DIVE CUT · Up+H — AIR-THROW SETUP", "Fwd+H — pass-through slash", "Back+H — TANTO REVERSE FLURRY (4 rakes)", "Down/Fwd/Back+F — kicks", "air Down+G — Meteor Break", "hold C+H — BUNSHIN (30): rises — jump off its head", "F+G — throw"],
+            'Tsubasa':     ["F / J / G / H — light · medium · heavy · parry stance", "Fwd+G — REVERSE-GRIP RUSH (2 stabs) · Down+G — low tanto", "Up+G — RISING TWIN SLASH · Back+G — EVASIVE FLICK", "Down+H — AERIAL DIVE CUT · Up+H — AIR-THROW SETUP", "Fwd+H — pass-through slash", "Back+H — TANTO REVERSE FLURRY (4 rakes)", "Down/Fwd/Back+F — kicks", "air Down+G — Meteor Break", "hold C+H — BUNSHIN (30): rises — jump off its head", "F+G — throw", "X — TAUNT: he juggles both tanto. No hitbox; any input cancels it"],
             'Ember':       ["F / J / G / H — light · medium · heavy · armored claw dash", "Fwd+H — SHRED CHARGE (armored, 2 hits)", "Down+H — GROUND RIP (low, trips)", "Up+H — CEILING HOOK (leaves the floor)", "Fwd+G — CLAW REND (2 tears) · Down+G — LOW CLAW RAKE", "Back+G — CLAW RETREAT SWIPE", "Up+G — rising double-claw launcher", "Back+H — BLADE-TRAP PARRY (catch -> X-shred)", "H on wall — pounce dive", "Down/Fwd/Back+F — kicks", "air Down+G — Meteor Break", "hold C+H — BUNSHIN (30): touch it and it detonates", "F+G — claw-slice throw"],
             'Kael':        ["F / J / G / H — light · medium · heavy · double slash", "Fwd+H — TRAVELLING CROSS SLASH", "Up+H — SKYWARD FANG (planted anti-air)", "Fwd+G — TWIN CYCLONE (2 rings) · Down+G — LOW-HIGH SCISSOR", "Up+G — HIGH PARRY · Back+G — LOW PARRY", "Down+H — rising launcher (invuln start)", "Back+H — NITEN PARRY (wakizashi -> katana)", "Down/Fwd/Back+F — kicks", "air Down+G — Meteor Break", "hold C+H — BUNSHIN (30): sprint feint", "F+G — throw"],
             'Mokurai':      ["F / J / G / H — light · medium · overhead slam · palm special", "Back+G — SAGE'S PALM (slow blast; hold Up/Down to aim)", "Up+G — BELL RINGER (planted anti-air, launches)", "Fwd+H — PRAYER ORBIT (armored spinning advance, 3 hits)", "Back+H — ZEN REFLECT (catch a hit, automatic palm counter)", "Up+H — neutral special on ground · in air — SKY CATCH (hand catch, spikes)", "KARMA — hits, blocks and counters store up to 15 power for your next damaging Special", "Down+H — temple bell (hits both sides) · in air — BELL TOLL (dive, rings on landing)", "Down/Fwd/Back+F — sweep · front · high kicks", "hold Down+C 2s on a SHORT karma bar — ENLIGHTENMENT (once/round)", "hold Down+C 2s on a FULL karma bar — THE CRACK: 6s of feint-rhythm madness", "   ...spends all 15 karma, +20% damage taken, ends in a punishable kneel","hold C+H — BUNSHIN (30): while it sits, chakra flows free", "F+G — throw"],
@@ -18017,10 +18107,10 @@
         function drawMoveList(ctx) {
             const col = (p, side) => {
                 if (!p) return;
-                const buttons = { F: 'I', J: 'U', G: 'O', H: 'P', C: 'M', V: 'K', W: 'Up' };
+                const buttons = { F: 'I', J: 'U', G: 'O', H: 'P', C: 'M', V: 'K', W: 'Up', X: 'N' };
                 const lines = (MOVES_LIST[p.spec.name] || []).filter(line =>
                     !FIRST_FORM_ONLY || !line.startsWith('V ')).map(line =>
-                    side > 0 ? line.replace(/\b(F|J|G|H|C|V|W)\b/g, key => buttons[key]) : line);
+                    side > 0 ? line.replace(/\b(F|J|G|H|C|V|W|X)\b/g, key => buttons[key]) : line);
                 if (!lines.length) return;
                 ctx.save();
                 // Size the panel to its longest line. A hardcoded 252 was narrower
@@ -18091,7 +18181,7 @@
                 p.dropTether();
                 p.clearMoveArt(); p.releaseAnchor(); p.clashRecoil = 0;
                 // Reset transient actions on the same fighter: round-use caps, gauges and modes survive.
-                p.dashTimer = p.rollTimer = p.rollRecover = p.wallJumpLock = p.clingTime = 0;
+                p.dashTimer = p.rollTimer = p.rollRecover = p.wallJumpLock = p.clingTime = p.tauntT = 0;
                 p.dashDir = p.inputAxis = p.wallDir = 0; p.wallRunning = false;
                 p.ceilLatch = p.grappleT = p.jumpBufferTimer = p.flipTimer = 0;
                 p.latchPlat = p.jumpDir = null; p.headHopSpent = false;
