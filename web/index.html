@@ -3238,6 +3238,7 @@
                 this.rollStaleT = 0;         // time left in the staling window
                 this.flipTimer = 0;          // >0 = air-jump backflip spin (visual only)
                 this.tauntT = 0;             // >0 = taunting: no hitbox, no armour, cancels on any input
+                this.ceremony = null;        // {row:'win'|'ko', t0} — the round-end pose, see ceremonyFrame
                 // ⛔ ONI'S RAZOR-WIRE COMMAND GRAB. His board files four sequences that all
                 // read setup -> bind -> CONVERSION -> follow-through -> reset, and the
                 // conversion is the whole idea: a successful bind is what unlocks a weapon
@@ -10814,7 +10815,7 @@
         // Shared edge placement keeps body, strike and chain-hand source points aligned.
         // 777: approved Executioner Back Light row; full katana/boots, contact holds, retained strike reach. Body hurtboxes follow new poses.
         // 778: approved Executioner low cut; low contact4–5 then half-rise recovery, body bounds prevent sword-driven viewport shifts. Existing offensive mechanics retained; defensive poses change.
-        const SHEET_V = 782; // 782: TAUNT. X for P1, N for P2, L3 on a pad. It rides `tauntT` and has NO STATE of its own, exactly the way the shunshin dash rides dashTimer — a taunting fighter IS a standing fighter for hurtboxes, throws, blockstun and the CPU's read, and only the drawing differs. A new STATE would have needed a branch in every switch that already handles IDLE and every one of them would be a place for the taunt to behave unlike standing. The row is `taunt1..N`, read from the sheet rather than assumed to be eight, and A FIGHTER WITHOUT THE ROW DOES NOT TAUNT — no borrowed idle, no substitute pose, so today the input is honestly dead for everyone but Tsubasa, whose taunt1..8 point at the taunta cells 429-436 (board taunt-8f-v5, the knife juggle; v6's ring take stays packed as tauntb and is one JSON edit away). No hitbox, no armour, no meter, no reward: the cost is the 0.8s you spend not blocking. It CANCELS INTO ANYTHING on the first real input, and that test runs at the TOP of handleMovement rather than inside the taunt's own branch — inside, the frame that cancels is spent cancelling and the step or guard that ended it would not happen until the next tick, which is a dropped input. Dash, roll, grapple and throw need no test there because their branches already outrank it; the five sites that zero dashTimer/rollTimer for a transient action now zero tauntT too, or a taunt interrupted by a throw resumes after it. tauntFrame is consulted above the state switch because the taunt holds IDLE and the idle cell would otherwise paint straight over it. New tools/check_taunt.mjs covers all four silent-failure modes and runs the picker's arithmetic for 1/4/6/8/12-cell rows.
+        const SHEET_V = 783; // 783: SHIN'S CEREMONY ROWS AND THE THREE STATES THAT PLAY THEM. Six keyed boards off the owner's Desktop drop go in as 48 cells, 393-440: taunt (the fingertip shuriken spin), intro (the round opening), win (the palm-fist salute), ko (the collapse), wcling (the wall cling) and adown (the flying crescent kick). TWO of the six needed NO engine work at all - `taunt1..8` is the row `tauntCells` has been waiting for since 782, so Shin is the second fighter who can taunt, and `adown1..8` lands on the air-Down picker that has been art-gated since 675. THE OTHER THREE HAD NO STATE IN THIS GAME, and now share one: `ceremonyFrame` reads `intro1..N` off `roundIntroTimer` and `win1..N`/`ko1..N` off a new per-player `ceremony` field that `beginCeremony(w)` sets from endRound's own winner variable in all three modes (1v1, tag, brawl). It rides a timer the way the taunt rides tauntT - no new STATE, no new branch in any switch - and sits beside tauntFrame above the state switch for the same reason: the intro holds IDLE and the KO holds STUNNED, so the stance cell would paint straight over both. ART OR NOTHING, the taunt's rule: a sheet without the row draws what it drew before, which is why this ALSO lights up TSUBASA's intro/ko/win/wcling - packed and named at 781 and explicitly parked as 'art waiting on an engine state'. The state exists now. A DRAW SALUTES NOBODY and a time-over loser is still standing, so `ko` is earned by hp<=0 and `win` by being on the winning side. THE KO ROW IS GROUNDED-ONLY - its last beats are a body on the floor and drawing them mid-fall is the ground-frame-in-the-air defect 707 was run to kill; airborne, `airhurt` still wins. Rows read 1..N like the taunt and the lock, never a fixed eight. PACKED BUT DELIBERATELY NOT WIRED: `wcling1..8` - beats 2-5 have the WALL DRAWN INTO THE ART, the same grey-wall defect that got a walljump cell rejected Aug 16, so the cells are on the sheet and the key is one JSON edit away the day the owner rules on it. Originals byte-identical (393 cells, 0 diff px), foot gap 3-4px on every planted beat, ink area within 0.7% of the packer's idle anchor on all 48; eye_scale REFUSES Shin (idle spread 6.5%, disc follows the row) so the ruler is ink area and the eye is logged, not obeyed. Gate: tools/check_ceremony.mjs. // 782: TAUNT. X for P1, N for P2, L3 on a pad. It rides `tauntT` and has NO STATE of its own, exactly the way the shunshin dash rides dashTimer — a taunting fighter IS a standing fighter for hurtboxes, throws, blockstun and the CPU's read, and only the drawing differs. A new STATE would have needed a branch in every switch that already handles IDLE and every one of them would be a place for the taunt to behave unlike standing. The row is `taunt1..N`, read from the sheet rather than assumed to be eight, and A FIGHTER WITHOUT THE ROW DOES NOT TAUNT — no borrowed idle, no substitute pose, so today the input is honestly dead for everyone but Tsubasa, whose taunt1..8 point at the taunta cells 429-436 (board taunt-8f-v5, the knife juggle; v6's ring take stays packed as tauntb and is one JSON edit away). No hitbox, no armour, no meter, no reward: the cost is the 0.8s you spend not blocking. It CANCELS INTO ANYTHING on the first real input, and that test runs at the TOP of handleMovement rather than inside the taunt's own branch — inside, the frame that cancels is spent cancelling and the step or guard that ended it would not happen until the next tick, which is a dropped input. Dash, roll, grapple and throw need no test there because their branches already outrank it; the five sites that zero dashTimer/rollTimer for a transient action now zero tauntT too, or a taunt interrupted by a throw resumes after it. tauntFrame is consulted above the state switch because the taunt holds IDLE and the idle cell would otherwise paint straight over it. New tools/check_taunt.mjs covers all four silent-failure modes and runs the picker's arithmetic for 1/4/6/8/12-cell rows.
         // 781: TSUBASA'S UNPACKED BOARDS GO IN. His art folder holds 22 keyed 8-frame boards; a silhouette-IoU sweep of all 176 frames against all 373 cells found ten already packed (idle-v4 = xidle/idle, run-v3 = run_clean, backdash-v5 = roll_, hook-throw-v2 = grab, crouch-v2 = crouch_, knockdown-recovery-v3 = getup, light-combo1-v2 = light, plus air-talon-cross and jump-v2 sitting ORPHAN at 45-52 and 25-28/70-74) and eleven absent. Those eleven are appended as 88 cells, 373-460, cols 373 -> 461. WIRED LIVE: lock1..8 from blade-lock-v3 (the row was six keys pointing at four duplicated cells 359-362; bladeLockFrame reads the last two as win/lose, so lock7 = beat 8, blades intact and driving forward, and lock8 = beat 7, the blade shattering) and block/block2 from dagger-guard-block-v3. PACKED AND NAMED BUT NOT PLAYED, because no fighter in this game has the state: fdash, ko, hitm, lightb, intro, taunta, tauntb, win, wcling. That is art waiting on an engine state, not orphan debris - one JSON edit each the day the state exists. NOT PACKED: idle-8f-v2, superseded by the live idle-v4. ⛔ NOT RE-KEYED. These boards arrive already keyed (alpha 0/255) and pack_shodo_row white-composites and re-keys at min-channel >= 205, which is what ate the near-white eyes at 708; new tools/sprites/pack_keyed_board.py appends the authored alpha untouched and the engine keys at draw time. Three of the boards (forward-dash-v3, and the already-packed backdash-v5/run-v3) ship on an opaque black card and are border-flooded at max-channel <= 18 first; his darkest ink measures (32,27,27). SCALE: ONE per board, sqrt(ink area) against the packed idle's 11774px, anchored on the board's READY-GUARD beat - NOT its largest, because the victory board's beat 4 carries a horn FX at 1.9x its own stance and would have packed that row 25% small. Validated against the eight boards already on this sheet: beat-1 anchoring predicts their applied scale to 1.6% mean (idle -0.1, hook-throw -0.7, wallslide +1.0, crouch +1.2, run -1.8, light-combo1 +4.1) and disagrees only with air-talon (+28%) and roll (+11%), the two rows the size campaign already flags as oversized. Measured on the written cells: every new row lands 0.85-1.06x the idle's ink area, foot gap 3-5px on every planted beat, art-loss 0.1-0.3% (resampling only, premultiplied LANCZOS), no beat clipped, gate_fragments CLEAN at 461 cells, originals byte-identical. The eye reads 1.06-1.37x the shipped 10.4px on intro/taunt/win - eye_scale itself calls the tsubasa eye UNMEASURABLE (the artist draws it 1.10x on run, 1.27x on divecut) and says use ink area, so area wins and the eye is logged, not obeyed.
         // 780: Kael uniformly reduced 8% below Executioner standing height.
         // // 779: owner-approved Executioner breathing idle367–369; original combat calibration retained.
@@ -11915,6 +11916,68 @@
             return c[Math.min(c.length - 1, Math.floor((1 - p.tauntT / TAUNT_TIME) * c.length))];
         }
 
+        // CEREMONY — `intro1..N`, `win1..N`, `ko1..N`. The three moments the match owns
+        // instead of the player: the round opening, and the two ends of it. They ride a
+        // timer exactly the way the taunt rides `tauntT` — no new STATE, no new branch in
+        // any switch, only a different drawing over a body that is already standing or
+        // already down. Rows are read 1..N like the taunt and the blade lock, never a
+        // fixed eight.
+        //
+        // ⛔ ART OR NOTHING, the taunt's rule. A sheet without the row returns undefined
+        // and the fighter draws whatever it drew before — his guard for the intro, his
+        // knockdown for the KO. Nothing borrows another row and nothing is substituted.
+        // Today shin and tsubasa carry all three; the other seven cost nothing.
+        //
+        // ⛔ THE KO ROW IS GROUNDED-ONLY. Its last beats are a body lying on the floor;
+        // drawn while he is still falling that is a ground frame in the air, which is the
+        // exact defect the 707 air sweep was run to kill. Airborne, `airhurt` keeps it.
+        const INTRO_TIME = 0.95;           // the ROUND N phase (roundIntroTimer 1.5 -> 0.55)
+        const CEREMONY_TIME = 1.10;        // win / ko, inside the 1200 ms round-end window
+        function rowCells(F, name) {
+            const c = [];
+            for (let n = 1; n <= 16 && F[name + n] !== undefined; n++) c.push(F[name + n]);
+            return c;
+        }
+        // One-shot, holding the last beat: the same clamp the taunt needs, because at
+        // t = 1 the index lands one past the end.
+        function oneShot(cells, t) {
+            return cells[Math.min(cells.length - 1, Math.floor(Math.max(0, t) * cells.length))];
+        }
+        // ⛔ EVERY POSE HERE IS A STANDING-STILL POSE, so each one yields the moment the
+        // body is doing something else. In a match that costs nothing — inputs are locked
+        // for the whole intro and the round is over by the time win/ko run — but this
+        // branch sits above the entire state switch, and a branch that high which does
+        // NOT check is how the intro cell ended up shadowing Shin's and Tsubasa's
+        // airborne held poses the first time this was wired (caught by
+        // check_air_held_poses, which drives those states directly).
+        function ceremonyBusy(p) {
+            return p.isAttackingState() || p.grabbedBy || p.dashTimer > 0 || p.rollTimer > 0
+                || p.state === STATE.THROWN || p.state === STATE.THROWING;
+        }
+        // Win and salute are PLANTED poses and take the ground test too. The intro does
+        // NOT, and that is not an oversight: updateGame is gated on `roundIntroTimer <= 0`,
+        // so no physics runs for the whole intro and the fighters sit at their spawn Y with
+        // isGrounded still false. Testing it there made the row dead art — measured, the
+        // intro drew `xidle1` for all 90 frames of it.
+        function standingStill(p) { return p.isGrounded && !ceremonyBusy(p); }
+        function ceremonyFrame(p, F) {
+            if (roundIntroTimer > 0) {
+                const c = rowCells(F, 'intro');
+                if (!c.length || ceremonyBusy(p)) return undefined;
+                // Runs over the ROUND N beat and HOLDS its last cell through FIGHT!, so
+                // the pose he opens on is the guard the board ends in, not a half-rise.
+                return oneShot(c, (1.5 - roundIntroTimer) / INTRO_TIME);
+            }
+            if (!p.ceremony) return undefined;
+            const c = rowCells(F, p.ceremony.row);
+            if (!c.length) return undefined;
+            // The KO's last beats are a body ON THE FLOOR and the salute is planted:
+            // both are ground art, and drawing either mid-fall is the ground-frame-in-
+            // the-air defect. Airborne, `airhurt` and the jump rows keep it.
+            if (p.ceremony.row === 'ko' ? !p.isGrounded : !standingStill(p)) return undefined;
+            return oneShot(c, (animClock - p.ceremony.t0) / CEREMONY_TIME);
+        }
+
         function spriteFrameIndexRaw(p, F) {
             const lockFrame = bladeLockFrame(p, F);
             if (lockFrame !== undefined) return lockFrame;
@@ -11922,6 +11985,11 @@
             // below that reads the state would draw the standing cell straight over it.
             const taunt = tauntFrame(p, F);
             if (taunt !== undefined) return taunt;
+            // Beside the taunt and for the same reason: the intro and the round-end poses
+            // hold STATE.IDLE / STATE.STUNNED, so any branch below that reads the state
+            // draws straight over them.
+            const ceremony = ceremonyFrame(p, F);
+            if (ceremony !== undefined) return ceremony;
             // Air hit reactions outrank stance, floor-recovery and stale move artwork.
             // A held throw still uses its paired animation; released victims use air recoil.
             if (!p.isGrounded && !p.grabbedBy && F.airhurt1 !== undefined
@@ -16767,6 +16835,24 @@
             return true;
         }
 
+        // Hand every fighter on the board its closing pose. `w` is the winning SIDE
+        // (0 = P1, 1 = P2, -1 = draw), which is endRound's own variable in all three
+        // modes. Read only by ceremonyFrame; a sheet with no `win`/`ko` row ignores it.
+        // ⛔ A DRAW SALUTES NOBODY. Only a fighter on the winning side wins, and the ko
+        // pose is earned by being at zero — a time-over loser is still standing and keeps
+        // his stance. Set here rather than in the draw path so the three mode branches
+        // share one rule instead of three.
+        function beginCeremony(w) {
+            for (const q of new Set([player1, player2,
+                                     ...(teamP1 || []), ...(teamP2 || [])])) {
+                if (!q) continue;
+                const side = q.isP1 ? 0 : 1;
+                q.ceremony = q.hp <= 0        ? { row: 'ko',  t0: animClock }
+                           : (w >= 0 && side === w) ? { row: 'win', t0: animClock }
+                           : null;
+            }
+        }
+
         function endRound() {
             // 2v2 BRAWL: the side with anyone still standing takes it.
             if (gameMode === 'brawl') {
@@ -16792,6 +16878,7 @@
                     const a = tot(teamP1), b = tot(teamP2);
                     if (a !== b) w = a > b ? 0 : 1;
                 }
+                beginCeremony(w);
                 roundBanner = { text: w < 0 ? (timeOver ? 'TIME — DEAD HEAT' : 'DOUBLE KO')
                                             : `${w === 0 ? 'TEAM 1' : 'TEAM 2'} `
                                               + (timeOver ? 'LEADS ON HEALTH' : 'STANDS'),
@@ -16814,6 +16901,7 @@
                 // "TIME! X IS STILL IT" cited itTime/tags for a round the clock did not
                 // decide. Only the clock-out case may announce the carry.
                 const koEnd = player1.hp <= 0 || player2.hp <= 0;
+                beginCeremony(winner.isP1 ? 0 : 1);
                 roundBanner = { text: koEnd
                                     ? `${loser.spec.name.toUpperCase()} IS DOWN — ${winner.spec.name.toUpperCase()} TAKES IT`
                                     : `TIME! ${loser.spec.name.toUpperCase()} IS STILL IT  —  `
@@ -16829,6 +16917,8 @@
             else if (player2.hp <= 0) w = 0;
             else if (player1.hp <= 0) w = 1;
             else if (player1.hp !== player2.hp) w = player1.hp > player2.hp ? 0 : 1; // time-over
+
+            beginCeremony(w);
 
             if (w >= 0) roundWins[w]++;
             else if (player1.hp <= 0 && player2.hp <= 0) {
