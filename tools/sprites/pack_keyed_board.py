@@ -96,6 +96,8 @@ def main():
     ap.add_argument('fighter'); ap.add_argument('board'); ap.add_argument('prefix')
     ap.add_argument('--wire', default='', help='comma list key=beat, e.g. block=1,block2=2')
     ap.add_argument('--anchor', type=int, default=1, help='beat whose stance sets the scale')
+    ap.add_argument('--canon-area', type=int, default=0,
+                    help='target ink area for the anchor beat, overriding the idle median')
     ap.add_argument('--scale', type=float, default=None,
                     help='explicit scale, overriding the anchor beat. For a board with NO '
                          'idle-like beat (a round intro that ends sword-out, a KO that ends '
@@ -114,6 +116,15 @@ def main():
     idle_cells = sorted({i for k, i in man['frames'].items()
                          if k in ('idle', 'idle2') or k.startswith('xidle')})
     canon = float(np.median([(sarr[:, c * W:(c + 1) * W, 3] >= 128).sum() for c in idle_cells]))
+    # ⛔ THE IDLE IS NOT ALWAYS THE CANON. It is only a canon while it IS a stance beat
+    # packed to the sheet's own target. Ember's idle aliases currently borrow intro8, the
+    # compact LAST beat of his intro (16486px), while his four ceremony rows were every
+    # one of them packed to a stance-beat area of 18093-18163 — so deriving from his idle
+    # would land a new row ~10% small. Pass the measured target instead and say where it
+    # came from in the SHEET_V entry.
+    if args.canon_area:
+        print(f'  canon overridden: {canon:.0f} (idle median) -> {args.canon_area} (given)')
+        canon = float(args.canon_area)
 
     frames = sorted(glob.glob(str(pathlib.Path(args.board) / 'frame-*.png')))
     assert frames, f'no frame-*.png in {args.board}'
