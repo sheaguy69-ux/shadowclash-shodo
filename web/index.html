@@ -565,7 +565,7 @@
                             <div><kbd class="px-1.5 py-0.5 bg-gray-800 rounded text-green-300 font-mono">☝ Point</kbd></div>
                             <div class="text-gray-400">Special</div>
                             <div><kbd class="px-1.5 py-0.5 bg-gray-800 rounded text-green-300 font-mono">🤏 Pinch</kbd></div>
-                            <div class="text-gray-400">Poof / Kawarimi</div>
+                            <div class="text-gray-400">Guard / Block</div>
                             <div><kbd class="px-1.5 py-0.5 bg-gray-800 rounded text-green-300 font-mono">✊✊ Both fists</kbd></div>
                             <div class="text-gray-400">THROW</div>
                             <div class="col-span-2 text-gray-500 text-[10px]">Open your palm between attacks to re-arm. One hand visible = simple mode (move + fist strike).</div>
@@ -578,8 +578,6 @@
                         <ul class="text-[11px] text-gray-400 list-disc list-inside space-y-1 mt-2">
                             <li><b class="text-gray-200">Magic Chain:</b> Light &rarr; Heavy &rarr; Special can cancel recovery frames on hit/block.</li>
                             <li><b class="text-gray-200">Block:</b> HOLD the Poof key to guard — only 15% chip damage, no stun. Throws beat block!</li>
-                            <li><b class="text-gray-200">Kawarimi (Poof):</b> Tap right as a hit lands to swap with a LOG behind the attacker (35 chakra).</li>
-                            <li><b class="text-gray-200">Bomb-Log:</b> Tap Poof again mid-vanish (+25) to rig your log — it detonates when struck!</li>
                             <li><b class="text-gray-200">Free Escape:</b> When your ninja flashes amber (attacker repeated a chain or busted your stagger bar), Poof is FREE — even mid-combo.</li>
                             <li><b class="text-gray-200">Throw:</b> Light+Heavy together up close — hold toward them for a forward toss or hold away for an over-shoulder back throw. Beats block and poof-arming. Ember's forward throw is a claw SLICE — they fly forward and tumble along the ground.</li>
                             <li><b class="text-gray-200">Ember Up Attack:</b> Hold <kbd>Up</kbd> + Heavy on the ground — rising double-claw launcher. Sends them HIGH for a juggle.</li>
@@ -588,8 +586,8 @@
                             <li><b class="text-gray-200">Shunshin:</b> Double-tap a direction to dash (15 chakra). Release or reverse after the opening burst to micro-dash; hold to travel farther. You can be clipped mid-dash.</li>
                             <li><b class="text-gray-200">Air control:</b> Hold a direction when a launch connects to influence its angle. Heavier fighters travel less. Neutral air Light cancels on landing.</li>
                             <li><b class="text-gray-200">Executioner:</b> Forward+Light — Shadow Slice. Forward+Special — Smoke-Bomb Shadow Strike. On a clean hit, cancel into jump, dash, or Special during their brief windows.</li>
-                            <li><b class="text-gray-200">Winded:</b> Hit 0 chakra and you pant for 1.5s — half speed, no jutsu, no poof. Budget your bar!</li>
-                            <li><b class="text-gray-200">Kicks (0 chakra, work winded):</b> <kbd>Down+Light</kbd> sweep (trips low) · <kbd>Fwd+Light</kbd> push kick (shoves, wall-splats, PUNTS logs) · <kbd>Back+Light</kbd> heel turn (hits behind you).</li>
+                            <li><b class="text-gray-200">Winded:</b> Hit 0 chakra and you pant for 1.5s — half speed, no jutsu. Budget your bar!</li>
+                            <li><b class="text-gray-200">Kicks (0 chakra, work winded):</b> <kbd>Down+Light</kbd> sweep (trips low) · <kbd>Fwd+Light</kbd> push kick (shoves, wall-splats, PUNTS decoys) · <kbd>Back+Light</kbd> heel turn (hits behind you).</li>
                             <li><b class="text-gray-200">2nd Specials:</b> Executioner <kbd>Down+S</kbd> HARAI OTOSHI (long low sweeping cut, trips) · <b>Guard + Heavy</b> SHADOW SLIP REVERSAL (i-frame slip back; it only counters if he read your swing) · <b>Heavy right after a BLOCK</b> = IRON GUARD REPRISAL (riposte; at DREAD 3 it comes out as the Execution) · Mizu <kbd>Down+S</kbd> in her mist = fake Mizus · Shin <kbd>Fwd+S</kbd> wire shuriken (yanks you in) · Tsubasa <kbd>Fwd+S</kbd> pass-through slash · Ember <kbd>S on wall</kbd> pounce dive · Kael <kbd>Down+S</kbd> rising launcher (invulnerable start) · Mokurai <kbd>Down+S</kbd> temple bell (hits BOTH sides) · Exile <kbd>Down+S</kbd> SERPENT'S TONGUE floor chain (long low, trips).</li>
                             <li><b class="text-gray-200">Signature Techniques:</b> Executioner <kbd>Back+S</kbd> Iai Quick-Draw (one flash from the sheath — huge, punishable on whiff; Back+H also works) · Ember <kbd>Back+S</kbd> Blade-Trap Parry (crossed claws catch a swing, X-shred answers) · Mizu <kbd>Up+S</kbd> Vaulting Staff Slam (pole-vault forward, the bo detonates the floor) · Shin <kbd>Down+S</kbd> Shuriken Fan (three stars, one sweep) · Kael <kbd>Back+S</kbd> Niten Parry (wakizashi catches, katana answers) · Tsubasa <kbd>Back+S</kbd> Tanto Flurry (four rapid rakes, the last pops you up).</li>
                             <li><b class="text-gray-200">Exile · Iaijutsu Cross:</b> <kbd>Back+S</kbd> blinks her clean across the arena — <i>everyone caught in the path she crossed is cut</i>, and anyone behind her is safe. Also comes out of a Shunshin dash + <kbd>Light</kbd>.</li>
@@ -865,7 +863,7 @@
                                 <button id="btn-t-p1-medium" class="w-14 h-12 bg-fuchsia-600/90 rounded-xl text-[11px] font-bold active:scale-95 text-white border border-fuchsia-400">MED</button>
                                 <button id="btn-t-p1-heavy" class="w-14 h-12 bg-pink-600/90 rounded-xl text-[11px] font-bold active:scale-95 text-white border border-pink-400">HVY</button>
                                 <button id="btn-t-p1-special" class="w-14 h-12 bg-cyan-600/90 rounded-xl text-[10px] font-bold active:scale-95 text-white border border-cyan-400">SPC</button>
-                                <button id="btn-t-p1-poof" class="w-14 h-12 bg-yellow-600/90 rounded-xl text-[10px] font-bold active:scale-95 text-white border border-yellow-400">POOF</button>
+                                <button id="btn-t-p1-poof" class="w-14 h-12 bg-yellow-600/90 rounded-xl text-[10px] font-bold active:scale-95 text-white border border-yellow-400">BLOCK</button>
                             </div>
                         </div>
 
@@ -885,7 +883,7 @@
                                     <button id="btn-t-p2-medium" class="w-14 h-12 bg-amber-600/90 rounded-xl text-[11px] font-bold active:scale-95 text-white border border-amber-400">MED</button>
                                     <button id="btn-t-p2-heavy" class="w-14 h-12 bg-red-600/90 rounded-xl text-[11px] font-bold active:scale-95 text-white border border-red-400">HVY</button>
                                     <button id="btn-t-p2-special" class="w-14 h-12 bg-cyan-600/90 rounded-xl text-[10px] font-bold active:scale-95 text-white border border-cyan-400">SPC</button>
-                                    <button id="btn-t-p2-poof" class="w-14 h-12 bg-yellow-600/90 rounded-xl text-[10px] font-bold active:scale-95 text-white border border-yellow-400">POOF</button>
+                                    <button id="btn-t-p2-poof" class="w-14 h-12 bg-yellow-600/90 rounded-xl text-[10px] font-bold active:scale-95 text-white border border-yellow-400">BLOCK</button>
                                 </div>
                             </div>
                         </div>
@@ -1602,7 +1600,7 @@
         // 'random' = roll the normal pool each match; a stage id = pin that board.
         // Validated against STAGES at build time (below, once STAGES exists).
         let stagePick = typeof save.prefs.stagePick === 'string' ? save.prefs.stagePick : 'random';
-        let matchStats = null;   // per-match {p:[{combo,dmg,esc} x2]} — feeds the victory screen
+        let matchStats = null;   // per-match {p:[{combo,dmg} x2]} — feeds the victory screen
         let isTouchDevice = false;
         let matchActive = false;
 
@@ -1759,7 +1757,7 @@
         //   Fwd   SHADOW-WEAVE    item 6 — the anchor
         //
         // ZERO NEW ART. Every one of them draws cells the sheets already carry: the
-        // echo is the bunshin's own dark-translucent path, the stances tint the idle
+        // echo is the shadow's own dark-translucent path, the stances tint the idle
         // the fighter is already standing in, and the lock draws both guards pressed
         // together. Nothing here waits on a board.
 
@@ -1874,7 +1872,7 @@
         // strangle ordinary play instead of capping the mash. The cost alone is the cap:
         // at 7/s regen a 10-point heavy sustains one per 1.43s, against the 0.33-0.54s its
         // recovery allows. Mash through the pool and you hit 0 and go WINDED — half speed,
-        // no jutsu, no kawarimi, 1.5s — which is the punish the owner asked for.
+        // no jutsu, 1.5s — which is the punish the owner asked for.
         // Swept on the live sim, roster sustained DPS over 10s of pressing-when-ready:
         // heavy 0->397, 8->343 (-14%), 10->287 (-28%), 14->202 (-49%), 18->176 (-56%).
         // 10 is where the mash stops paying without the button becoming a cast. Medium at
@@ -1882,8 +1880,6 @@
         // you and bought no balance; at 8 it reads a steady -14%, half the heavy's bite,
         // which is the ladder: light free, medium taxed, heavy priced.
         const NORMAL_COST = { ATTACK_LIGHT: 0, ATTACK_MEDIUM: 8, ATTACK_HEAVY: 10 };
-        const KAWARIMI_ARM_COST = 5;   // taxing the arm kills mash-to-auto-dodge
-        const KAWARIMI_REARM_CD = 0.4; // cooldown after a whiffed window
         // Combo economy (design doc Pillar E): scaling with a floor keeps combos finite
         const SCALE_PER_HIT = 0.875;   // compounding after hit 3
         const SCALE_FLOOR = 0.2;       // ponytail: flat floor; 45% special floor when specials are tagged
@@ -1894,7 +1890,7 @@
         // one combo; on whiff every tap pays the full recovery, so mashing buys
         // rhythm, not safety. A cancel can never WRAP the string: the loop back to
         // beat one only happens through a fresh tier-0 press, which re-flags the
-        // chain starter for the defender's Substitution read like any other opener.
+        // chain starter like any other opener.
         // Numbers are FACTORS on the shipped light (which already scales rate/pow
         // per fighter) — beat one is all 1s, so a single tap is byte-identical to
         // the light that shipped. `vx` is an absolute step-in speed; `launch`,
@@ -2053,7 +2049,7 @@
         // ---- THE EXECUTIONER'S TWO COUNTER SPECIALS (owner sheet, Aug 2 2026) ----
         // "Special counter tools … preserve his heavy / precise sword identity …
         //  can build or spend Dread." Neither takes a new key: Guard+Heavy was a free
-        //  chord (Guard+Special is the roster's Bunshin) and the reprisal is contextual.
+        //  chord and the reprisal is contextual.
         const SLIP_COST = 20, REPRISAL_COST = 20;
         // How long after a GUARDED hit the riposte stays available. 0.22s ~= 13 frames:
         // long enough to be a decision, short enough that it is not just "heavy after block".
@@ -2592,22 +2588,13 @@
         // Round intro gate: "ROUND N" -> "FIGHT!" with inputs locked.
         let roundIntroTimer = 0;
         const hitstopQueue = [];  // inputs received during the freeze, flushed when it ends
-        // The Substitution Game (design doc Pillar A): every kawarimi leaves a LOG decoy.
-        const logs = [];          // {x,y,w,h,life,rigged,owner}
-        const LOG_LIFE = 2.0;     // seconds the decoy lingers
-        const BOMB_COST = 25;     // rig the log with a paper bomb (press poof again mid-vanish)
+        // Floor decoys — Mizu's mist silhouettes. ponytail: kawarimi's log decoys shared
+        // this list and left with the substitution mechanic; the silhouettes stayed.
+        const logs = [];          // {x,y,w,h,life,owner,silhouette}
         // PUSHBOX width as a fraction of sprite width. 0.72 = bodies resist while the ART
         // still overlaps at point-blank, so pressure reads tight instead of fighters being
         // held apart at arm's length. Raise toward 1.0 for more shove, lower for closer.
         const PUSHBOX_FRAC = 0.72;
-        const BUNSHIN_COST = 30;  // shadow clone — jutsu-tier chakra, hurts in the dry economy
-        const BUNSHIN_LIFE = 3.0; // seconds a clone stands before dispersing
-        const BOMB_DMG = 14;
-        const BOMB_RADIUS = 70;
-        // Stagger budget + flags (design doc Pillar A.2/E): attacker greed earns the
-        // defender a FREE kawarimi — repeating a chain-starting tier, or busting the bar.
-        const STAGGER_MAX = 240;
-        const STAGGER_VALUES = { ATTACK_LIGHT: 15, ATTACK_HEAVY: 30, ATTACK_SPECIAL: 20, KICK: 5 };
 
         // ---- 334 FOLLOW-UP (engine only): the 18 packed-but-dormant directional moves ----
         //
@@ -2747,11 +2734,8 @@
             const ax = p.getInputAxis();
             return ax === p.facing ? 'fwd' : ax === -p.facing ? 'back' : null;
         }
-        const STAGGER_DECAY = 240;      // per second, out of combo (~1s full drain)
-        const COUNTERHIT_REBATE = 75;   // opening a combo on an attacking foe earns budget back
-        const FLAG_WINDOW = 0.6;        // seconds the earned escape stays live
         const THROW_RANGE = 55;         // px, center to center
-        const THROW_DMG = 12;           // untechable; beats block AND kawarimi-arming
+        const THROW_DMG = 12;           // untechable; beats block
         // ONI'S RAZOR-WIRE BIND: how long a landed Special keeps the conversion armed.
         // Named because two places need the SAME number — the arming site and the wire1..3
         // draw ramp. A literal in both is how a three-cell animation quietly desyncs from
@@ -2760,7 +2744,7 @@
         const THROW_TIME = 0.38;        // staged grab -> lift -> release -> recovery
         const THROW_RELEASE = 0.56;     // normalized point where the victim leaves the hands
         // Living economy (design doc Pillar B): overdraft has a body
-        const WINDED_DURATION = 1.5;    // s of panting at 0 chakra: half speed, no jutsu, no kawarimi
+        const WINDED_DURATION = 1.5;    // s of panting at 0 chakra: half speed, no jutsu
         const WALL_DRAIN_DELAY = 1.0;   // free cling time before chakra starts draining
         const WALL_DRAIN_RATE = 10;     // chakra/s while clinging past the free window
 
@@ -3026,7 +3010,6 @@
             THROWING: "THROWING",
             THROWN: "THROWN",
             STUNNED: "STUNNED",
-            SUBSTITUTION: "SUBSTITUTION",
             WALL_CLING: "WALL_CLING",
             BLOCKING: "BLOCKING",
             CROUCH: "CROUCH",
@@ -3221,9 +3204,7 @@
                 this.bossFrenzyUsed = false;   // CPU Exile's once-per-round second wind
                 this.champion = 0;             // EXILE: 0-CHAMPION_MAX, combat fills it; V/K spends it (see enterChampion)
                 this.ghosts = [];              // after-image trail snapshots (wire-step etc.)
-                this.clone = null;             // BUNSHIN shadow clone (one at a time; see castBunshin)
-                this.slick = null;             // Mizu clone's water slick, outlives the clone
-                this.echoTrail = [];           // Exile clone: movement tape for the 0.5s echo
+                this.clone = null;             // KAGE-KAMI shadow echo (one at a time; see castKageKami)
                 this.thrustSlide = 0;          // Executioner tsuki: seconds of travel left
                 this.thrustGhostT = 0;         // and its own afterimage spacing
                 this.speedTrail = 0;           // chudan strings: seconds of after-image trail
@@ -3247,12 +3228,7 @@
                 this.airFloats = 0;            // floats spent this airtime (cap = no stall-flying)
                 this.groundBounce = false;     // spiked victim: floor converts impact into a re-pop
 
-                // Kawarimi: tapping Poof arms a short window; damage arriving
-                // inside the window is negated and triggers the substitution.
-                this.kawarimiWindow = 0;
-                this.kawarimiCooldown = 0;   // re-arm lockout after a whiffed window
                 this.vanishTimer = 0;        // >0 = mid-teleport: invisible + intangible
-                this.vanishAttacker = null;  // who we reappear behind
                 this.comboHits = 0;          // hits taken in the current combo (drives scaling)
                 this.armorTimer = 0;         // >0 = hyper armor: eat hits without stagger
                 this.invulnTimer = 0;        // >0 = fully invulnerable (Kael's rising reversal startup)
@@ -3263,12 +3239,7 @@
                                              // getting up. Draw-only: the stun that
                                              // owns this window is already the throw's.
                 this.blockPushTimer = 0;     // brief window where block pushback moves the guard
-                this.staggerMeter = 0;       // combo budget taken; >=STAGGER_MAX flags the next hits
-                this.freeKawarimiTimer = 0;  // >0 = flagged: kawarimi is FREE and works in hitstun
-                this.usedStarters = [];      // chain-starting tiers landed on the current victim
-                this.pendingChainStarter = null; // tier that started the in-flight chain
-                this.lastAttacker = null;    // who to substitute behind on a flagged escape
-                this.windedTimer = 0;        // >0 = exhausted: half speed, no jutsu/kawarimi
+                this.windedTimer = 0;        // >0 = exhausted: half speed, no jutsu
                 this.windedLatch = false;    // hysteresis so winded fires once per depletion
                 this.clingTime = 0;          // continuous wall-cling seconds (drain after 1s)
                 this.dashTimer = 0;          // >0 = shunshin in flight (clippable, no i-frames)
@@ -3554,118 +3525,24 @@
                 return true;
             }
 
-            // ================= BUNSHIN — the shadow clone (every fighter) =================
-            // Hold Guard + tap Special. One clone, 30 chakra, ~3s. The SHELL is shared; the
-            // SOUL is per-fighter (the twist table lives in updateBunshin/popBunshin).
-            // ZERO new art: the clone is the fighter's own sheet cells drawn dark and
-            // translucent, same draw trick as the fist-mode after-images.
-            castBunshin() {
-                if (this.stunTimer > 0 || this.vanishTimer > 0 || this.grabbedBy || this.throwTimer > 0) return;
-                if (this.clone || !this.isGrounded || this.windedTimer > 0) return;
-                if (this.stamina < BUNSHIN_COST) return;
-                const man = SPRITES[this.spec.name.toLowerCase()];
-                if (!man || !man.ready) return;
-                this.stamina -= BUNSHIN_COST;
-                this.chakraCd = CHAKRA_SPEND_STALL;
-                const F = man.frames, id = this.spec.id;
-                const cells = (id === 5 ? [F.run_clean1, F.run_clean2, F.run_clean3, F.run_clean4, F.run1, F.run2]
-                             : id === 6 ? [F.kneel]
-                             : [F.idle, F.idle2]).filter(c => c != null);
-                // trap-flavored clones (Ember/Executioner) step out FRONT — a body the
-                // opponent has to deal with; the rest step out BEHIND as the double
-                const dir = (id === 4 || id === 0) ? this.facing : -this.facing;
-                this.clone = { x: this.x + dir * 52, y: this.y, facing: this.facing,
-                               t: BUNSHIN_LIFE, animT: 0,
-                               atkCd: 0.3, cells: cells.length ? cells : [0],
-                               vx: id === 5 ? this.facing * 300 : 0,
-                               vy: id === 3 ? -130 : 0, shot: false };
-                if (id === 7) this.echoTrail = [{ t: animClock, x: this.clone.x, y: this.y, facing: this.facing }];
-                const cx = this.clone.x + this.width / 2, cy = this.y + this.height / 2;
-                createSmokePuff(cx, cy);
-                
-                sfx('poof');
-            }
-
-            popBunshin(fx = true) {
+            // ============ SHADOW ECHO SHELL (KAGE-KAMI rides this) ============
+            // The per-fighter BUNSHIN shadow double was REMOVED (owner: it changed
+            // nothing in a fight). What is left is the shell Kage-Kami needs: one
+            // clone at a time, drawn dark + translucent from the caster's own cells.
+            // ponytail: shell kept deliberately — re-adding a double is castX() + a twist.
+            popClone(fx = true) {
                 const c = this.clone;
                 if (!c) return;
-                this.clone = null;   // cleared FIRST — popBunshin can be re-entered via takeDamage below
+                this.clone = null;   // cleared FIRST — popClone can be re-entered via takeDamage
                 if (fx) { createSmokePuff(c.x + this.width / 2, c.y + this.height / 2); sfx('poof'); }
-                // MIZU: the clone was water all along — it leaves a slick where it stood
-                if (this.spec.id === 1) this.slick = { x: c.x + this.width / 2, y: c.y + this.height, w: 150, t: 2.5 };
             }
 
-            updateBunshin(dt) {
-                const foe = this.opponent;
-                // Mizu's slick outlives its clone: grounded feet in it lose their grip
-                if (this.slick) {
-                    this.slick.t -= dt;
-                    if (this.slick.t <= 0) this.slick = null;
-                    else if (foe && foe.isGrounded
-                             && Math.abs(foe.y + foe.height - this.slick.y) < 24
-                             && Math.abs(foe.x + foe.width / 2 - this.slick.x) < this.slick.w / 2) {
-                        foe.vx *= 0.86;   // ponytail: per-frame drag ~= half speed across the puddle
-                    }
-                }
+            updateClone(dt) {
                 const c = this.clone;
                 if (!c) return;
                 c.t -= dt; c.animT += dt;
-                const id = this.spec.id;
-                // KAGE-KAMI (item 4) is a SHELL SWAP, not a ninth fighter branch: the
-                // echo is whoever cast it, so it is checked before the per-fighter
-                // table and short-circuits it. Ember's clone still detonates and
-                // Kael's still sprints — when they cast THOSE, on their own key.
-                if (c.kage) {
-                    this.updateKageEcho(dt, c);
-                    if (c.t <= 0) this.popBunshin();
-                    return;
-                }
-                if (id === 5) {                        // KAEL — the sprint feint
-                    c.x += c.vx * dt;
-                    if (c.x < -20 || c.x > canvas.width - this.width + 20) { this.popBunshin(); return; }
-                } else if (id === 3) {                 // TSUBASA — the rising step
-                    c.y += c.vy * dt;
-                    // ...and you can jump off it: same pogo contract as a head-hop
-                    if (!this.isGrounded && this.vy > 120 && !this.headHopSpent && !this.isAttackingState()) {
-                        const feet = this.y + this.height;
-                        const xOv = Math.min(this.x + this.width, c.x + this.width) - Math.max(this.x, c.x);
-                        if (xOv > 10 && feet >= c.y - 4 && feet <= c.y + 16) {
-                            this.y = c.y - this.height;
-                            this.vy = -Math.min(560, 340 + Math.max(0, this.vy) * 0.45);
-                            this.jumpsLeft = Math.max(this.jumpsLeft, 1);
-                            this.headHopSpent = true;
-                            this.landSquash = 0.4;
-                            createSparks(c.x + this.width / 2, c.y, '#ffffff');
-                            this.popBunshin();         // the step disperses under your foot
-                            return;
-                        }
-                    }
-                } else if (id === 2 && !c.shot && c.animT >= 0.35) {   // SHIN — one star, then gone
-                    c.shot = true;
-                    this.projectiles.push({ x: c.x + this.width / 2 + c.facing * 18,
-                                            y: c.y + this.height * 0.38, vx: c.facing * 480, vy: 0 });
-                    c.t = Math.min(c.t, 0.22);
-                } else if (id === 4 && foe) {          // EMBER — walk into it, it detonates
-                    if (foe.x < c.x + this.width && foe.x + foe.width > c.x
-                        && foe.y < c.y + this.height && foe.y + foe.height > c.y
-                        && (foe.vanishTimer || 0) <= 0 && (foe.grabbedBy == null)) {
-                        createSparks(c.x + this.width / 2, c.y + this.height / 2, '#ff6a2a');
-                        
-                        screenShakeAmount = Math.max(screenShakeAmount, 7);
-                        this.popBunshin(false);
-                        foe.takeDamage(6, this, { pushback: 280, tier: STATE.ATTACK_SPECIAL });
-                        sfx('bomb');
-                        return;
-                    }
-                } else if (id === 6) {                 // MOKURAI — while it meditates, chakra flows free
-                    this.chakraCd = 0;
-                } else if (id === 7) {                 // EXILE — the echo replays you, half a second late
-                    this.echoTrail.push({ t: animClock, x: this.x, y: this.y, facing: this.facing });
-                    while (this.echoTrail.length > 2 && this.echoTrail[1].t <= animClock - 0.5) this.echoTrail.shift();
-                    const e = this.echoTrail[0];
-                    if (e.t <= animClock - 0.5) { c.x = e.x; c.y = e.y; c.facing = e.facing; }
-                }
-                if (c.t <= 0) this.popBunshin();
+                if (c.kage) this.updateKageEcho(dt, c);
+                if (c.t <= 0) this.popClone();
             }
 
             isCpuDriven() {
@@ -3680,7 +3557,7 @@
                     || !!(this.usesRawKeys() && (this.isP1 ? keys['KeyS'] : keys['ArrowDown']));
             }
 
-            // Hold the poof/defend key (past the kawarimi tap-window) to GUARD
+            // Hold the poof/defend key to GUARD
             isDefendHeld() {
                 return !!keys[this.getPrefix() + "poof"]
                     || !!(this.usesRawKeys() && (this.isP1 ? keys['KeyC'] : keys['KeyM']));
@@ -3960,7 +3837,7 @@
                 // THE READ's mark decays in real time. It is a window, not a debuff:
                 // nothing about it hurts, it only makes the NEXT hit true.
                 if (this.markedT > 0 && (this.markedT -= dt) <= 0) this.markedBy = null;
-                this.updateBunshin(dt);        // BUNSHIN clone + Mizu slick lifecycle
+                this.updateClone(dt);          // KAGE-KAMI echo lifecycle
                 if (this.chain) this.updateChain(dt);
                 // THE CRACK (CPU Mokurai, once per round): below 40% HP the mask
                 // cracks — the golden phase is REPLACED by the madness at the
@@ -4135,23 +4012,14 @@
                     this.stamina = Math.min(100, this.stamina + this.staminaRegenRate * tollMul * dt);
                 }
 
-                // Decay flash + kawarimi timers (a whiffed window starts the re-arm cooldown)
+                // Decay cosmetic + defensive timers
                 if (this.parryFlashTimer > 0) this.parryFlashTimer -= dt;
                 if (this.rollRecover > 0) this.rollRecover -= dt;
                 if (this.rollStaleT > 0) { this.rollStaleT -= dt; if (this.rollStaleT <= 0) this.rollStale = 0; }
-                if (this.kawarimiWindow > 0) {
-                    this.kawarimiWindow -= dt;
-                    if (this.kawarimiWindow <= 0) this.kawarimiCooldown = KAWARIMI_REARM_CD;
-                }
-                if (this.kawarimiCooldown > 0) this.kawarimiCooldown -= dt;
                 if (this.armorTimer > 0) this.armorTimer -= dt;
                 if (this.invulnTimer > 0) this.invulnTimer -= dt;
-                if (this.freeKawarimiTimer > 0) this.freeKawarimiTimer -= dt;
-                // Stagger budget drains out of combo (~1s full drain)
-                if (this.stunTimer <= 0 && this.staggerMeter > 0)
-                    this.staggerMeter = Math.max(0, this.staggerMeter - STAGGER_DECAY * dt);
 
-                // Handle transparency recovery (e.g. Kawarimi / smoke transitions)
+                // Handle transparency recovery (e.g. vanish / smoke transitions)
                 if (this.alpha < 1.0) {
                     this.alpha += dt * 1.5;
                     if (this.alpha > 1.0) this.alpha = 1.0;
@@ -4337,7 +4205,7 @@
                     const running = this.kageStepT;
                     this.kageStepT -= dt;
                     // THE PASS: intangible while he is inside them, and he does not drift.
-                    // ⛔ invulnTimer, NOT vanishTimer. vanishTimer is the SUBSTITUTION timer —
+                    // ⛔ invulnTimer, NOT vanishTimer. vanishTimer is the TELEPORT timer —
                     // update() sets alpha 0 and early-returns on it, so borrowing it blanked him
                     // for the whole move and the six beats he drew played to an invisible sprite.
                     if (this.kageStepFoe && this.kageStepT > 0) {
@@ -4378,7 +4246,7 @@
                 if (this.vanishTimer > 0) {
                     this.alpha = 0;
                     this.vanishTimer -= dt;
-                    if (this.vanishTimer <= 0) this.finishSubstitution();
+                    if (this.vanishTimer <= 0) this.finishVanish();
                     return; // no input, movement, or physics while gone
                 }
 
@@ -4434,7 +4302,6 @@
                     if (this.recoveryTimer <= 0) {
                         this.state = STATE.IDLE;
                         this.chainComboTier = 0;
-                        this.pendingChainStarter = null;
                         // THE ATTACK IS OVER — ITS ART LATCH DIES WITH IT, ALL OF THEM.
                         // This was a hand-written list of TWELVE latches where clearMoveArt
                         // owns thirty-five, so twenty-three could outlive their move and sit
@@ -4654,7 +4521,7 @@
                     // keep wall-jump momentum
                 } else if (this.spec.id === 6 && this.isGrounded && this.isDefendHeld()
                            && this.isDownPressed() && !this.isAttackingState() && this.stunTimer <= 0
-                           && this.kawarimiWindow <= 0 && !this.enlightenUsed && this.enlightenTimer <= 0) {
+                           && !this.enlightenUsed && this.enlightenTimer <= 0) {
                     // MEDITATION (Mokurai): hold Down+Guard for 2.0s — a locked
                     // channel pose (any hit breaks it, releasing either key resets it).
                     // Placed BEFORE the plain guard branch, or Down+Guard would always
@@ -4685,13 +4552,12 @@
                         sfx('parry');
                         }
                     }
-                } else if (this.isGrounded && this.isDefendHeld() && this.kawarimiWindow <= 0
+                } else if (this.isGrounded && this.isDefendHeld()
                            && !this.isAttackingState() && this.stunTimer <= 0 && !this.chudan
                            && this.muki <= 0) {
                     // NO GUARD IN MUKI-KAMAE EITHER (item 7). "Zero defense" is not a
                     // damage multiplier dressed up — the guard branch is unreachable
                     // while the stance is set, so the button genuinely does nothing.
-                    // BLOCK: tap poof = kawarimi try, HOLD poof = guard stance.
                     // NO GUARD IN CHUDAN (owner's chosen trade) — both hands are committed
                     // to the blade out front, so there is nothing left to raise. This is the
                     // cost that makes the stance a decision rather than a free upgrade.
@@ -4794,7 +4660,7 @@
                 // fire keyup: the reset must track the HOLD, not the event source.
                 if (this.meditateTimer > 0 && !(this.isGrounded && this.isDefendHeld()
                         && this.isDownPressed() && !this.isAttackingState()
-                        && this.stunTimer <= 0 && this.kawarimiWindow <= 0
+                        && this.stunTimer <= 0
                         && !this.enlightenUsed && this.enlightenTimer <= 0))
                     this.meditateTimer = 0;
                 this._wasGrounded = this.isGrounded;
@@ -5472,7 +5338,7 @@
             }
 
             // ==== ITEM 4 — KAGE-KAMI =============================================
-            // The echo rides the bunshin shell: same field, same draw, same pop, same
+            // The echo rides the clone shell: same field, same draw, same pop, same
             // reset. What is new is the SOUL — a tape head instead of a scripted twist.
             castKageKami() {
                 if (this.clone || !this.isGrounded || this.windedTimer > 0) return;
@@ -5888,7 +5754,7 @@
                 // with no bomb thrown. A buffered press must read state and touch NOTHING.
                 // recovery is a commitment: a fresh (tier-0) attack during someone's
                 // recovery tail buffers instead of firing instantly (audit: kicks and
-                // kawarimi-reappear were infinitely cancelable)
+                // teleport-reappear were infinitely cancelable)
                 if (this.chainComboTier === 0 && this.recoveryTimer > 0.05 && !this.attackHasConnected) {
                     this.bufferedAttack = input;
                     return;
@@ -5964,7 +5830,7 @@
                     }
                     this.clearMoveArt();
                     this.state = type; this.chainComboTier = type === STATE.ATTACK_LIGHT ? 1 : 3;
-                    this.attackHasConnected = false; this.pendingChainStarter = type;
+                    this.attackHasConnected = false;
                     this.attackAnim = { start: animClock * 1000, dur: authored.total_frames / authored.frame_rate * 1000,
                                         moveId: authored.move_id, cleanHit: false, approachFacing: this.facing };
                     this.recoveryTimer = this.recoveryTotal = this.attackAnim.dur / 1000;
@@ -6576,7 +6442,7 @@
                 } else if (type === STATE.ATTACK_LIGHT) {
                     // String continuation: beat n cancels into beat n+1 on hit. The tier
                     // STAYS 1 — the whole string is one link, so Heavy/Special still
-                    // chain off its last connect, and the Substitution starter is only
+                    // chain off its last connect, and the starter tier is only
                     // recorded once per string. MIRROR of the companion gate above.
                     const inWindowL = this.attackHasConnected && (animClock - (this.connectTime ?? -1e9)) <= 0.166;
                     if (this.chainComboTier === 1 && inWindowL && this.isGrounded
@@ -6612,10 +6478,6 @@
                     return;
                 }
                 this.bufferedAttack = null;
-
-                // Substitution Game: remember the tier that STARTED this chain — recorded
-                // against the victim when the hit lands, flagged if it's a repeat.
-                if (startsChain) this.pendingChainStarter = type;
 
                 this.state = type;
                 this.attackHasConnected = false;
@@ -7600,8 +7462,7 @@
                     { tier: STATE.ATTACK_HEAVY, down: true, spike: true, delay: SLAM_HANG });
             }
 
-            // Push kick meets a kawarimi log: PUNT it — a rigged log becomes YOUR
-            // projectile, detonating on whoever it slides into (incl. its owner).
+            // Push kick meets a floor decoy: PUNT it across the arena.
             puntLogs() {
                 for (const log of logs) {
                     const inFront = this.facing === 1
@@ -8118,7 +7979,7 @@
                             logs.push({ x: Math.max(20, Math.min(canvas.width - 46, lx)),
                                         y: GROUND_Y - 60, w: 26, h: 60,
                                         life: Math.min(4, field.duration),
-                                        rigged: false, owner: this, silhouette: true });
+                                        owner: this, silhouette: true });
                         }
                         createSmokePuff(cx, cy);
                         return;
@@ -9621,15 +9482,14 @@
                         { mirror: dir });
             }
 
-            // THROW: L+H together at close range. Untechable — beats block and a
-            // kawarimi arm (both are hit-negations; a grab isn't a hit).
+            // THROW: L+H together at close range. Untechable — beats block.
             executeThrow() {
                 if (gameMode === 'tag') return false;   // one attack means one attack — no grabs
                 if (this.stunTimer > 0 || this.vanishTimer > 0 || this.grabbedBy || this.throwTimer > 0) return false;
                 const opp = this.opponent;
                 // EXILE AIR GRAB (owner page, 10 panels): chain snatch, spin lift,
-                // DOWNWARD slam — the throw contract (grabs beat poofs, both
-                // committed) but living in the air, forward hurl at release.
+                // DOWNWARD slam — the throw contract (committed on both sides)
+                // but living in the air, forward hurl at release.
                 const airSnatch = this.spec.name === 'Exile' && !this.isGrounded;
                 if (!opp || (!this.isGrounded && !airSnatch) || (this.isGrounded && !opp.isGrounded)) return false;
                 if (airSnatch) {
@@ -9638,8 +9498,8 @@
                     if (Math.abs(adx) > THROW_RANGE + 15 || Math.abs(ady) > 90) return false;
                 }
                 // Exploit hardening: no regrabbing a stunned victim (corner throw-loop
-                // infinite), no grabbing a vanished ghost (kawarimi stays honored),
-                // no grabbing through a platform (same surface only).
+                // infinite), no grabbing a vanished ghost, no grabbing through a
+                // platform (same surface only).
                 if (opp.stunTimer > 0 || opp.vanishTimer > 0 || opp.grabbedBy || opp.throwTimer > 0) return false;
                 if (!airSnatch && Math.abs((opp.y + opp.height) - (this.y + this.height)) > 8) return false;
                 const dx = (opp.x + opp.width/2) - (this.x + this.width/2);
@@ -9661,10 +9521,8 @@
                 if (airSnatch) { this.vx = 0; this.vy = -340; opp.vy = -340; }   // the rise
                 else this.vx = this.vy = 0;
 
-                opp.kawarimiWindow = 0;            // the arm is snuffed — grabs beat poofs
                 opp.hitboxes.length = 0;
                 opp.pendingSlash = null;
-                opp.pendingChainStarter = null;
                 opp.attackAnim = null;
                 opp.chainComboTier = 0;
                 opp.recoveryTimer = 0;
@@ -9735,7 +9593,6 @@
                     this.throwReleased = false;
                     this.state = STATE.IDLE;
                     this.chainComboTier = 0;
-                    this.pendingChainStarter = null;
                     this.attackAnim = null;
                 }
             }
@@ -9757,7 +9614,6 @@
                 // clock; it adds no state and changes nothing you can play against.
                 victim.flooredT = 0.68;
                 victim.comboHits = 1;
-                victim.staggerMeter += 20;
                 victim.stamina = Math.min(100, victim.stamina + 2);
                 // CHAKRA THEFT (owner mechanics ladder #1 — the toll, in-fight):
                 // every completed throw RIPS 15 chakra out of the victim into the
@@ -9854,7 +9710,7 @@
                     || this.dashTimer > 0 || this.rollTimer > 0 || this.rollRecover > 0
                     || this.grabbedBy || this.lockT > 0 || this.grappleT > 0
                     || this.state === STATE.THROWN || this.state === STATE.THROWING
-                    || this.state === STATE.SUBSTITUTION) return false;
+                    ) return false;
                 if (!tauntCells(SPRITES[this.spec.name.toLowerCase()]?.frames ?? {}).length) return false;
                 this.tauntT = TAUNT_TIME;
                 this.vx = 0;
@@ -9863,92 +9719,12 @@
                 return true;
             }
 
-            // Tap Poof to arm the substitution window; damage landing inside
-            // the window is negated (see takeDamage). Spec: "tapping the
-            // defensive modifier at the frame of impact triggers a Poof".
-            executeKawarimi() {
-                // Winded means NO poof, period — this gate must run before the flagged
-                // branch or a winded player still got the free escape (exploit audit).
-                if (this.windedTimer > 0) return;
-                // FLAGGED ESCAPE: the attacker got greedy — kawarimi is FREE and fires
-                // instantly, even mid-hitstun (design doc Pillar A.2, the earned burst).
-                if (this.freeKawarimiTimer > 0 && this.stunTimer > 0 && this.lastAttacker) {
-                    this.freeKawarimiTimer = 0;
-                    this.stunTimer = 0;
-                    this.performSubstitution(this.lastAttacker, true);
-                    return;
-                }
-                // BOMB-LOG: pressing poof again mid-vanish rigs the log you just left
-                // with a paper bomb (design doc Pillar A.4 — the counter-counter).
-                if (this.vanishTimer > 0) {
-                    if (this.lastLog && !this.lastLog.rigged && this.stamina >= BOMB_COST) {
-                        this.stamina -= BOMB_COST;
-                        this.chakraCd = CHAKRA_SPEND_STALL;
-                        this.lastLog.rigged = true;
-                        createSparks(this.lastLog.x + 11, this.lastLog.y + 10, "#f97316");
-                    }
-                    return;
-                }
-                if (this.stunTimer > 0 || this.kawarimiWindow > 0 || this.kawarimiCooldown > 0) return;
-                if (this.stamina < 35 + KAWARIMI_ARM_COST) return;
-                // Arm tax + re-arm cooldown: mashing now drains the same bar that pays for the poof
-                this.stamina -= KAWARIMI_ARM_COST;
-                this.chakraCd = CHAKRA_SPEND_STALL;
-                this.kawarimiWindow = 0.15;
-                createSparks(this.x + this.width/2, this.y + this.height/2, "#facc15");
-            }
-
-            performSubstitution(attacker, free = false) {
-                if (!free) { this.stamina -= 35; this.chakraCd = CHAKRA_SPEND_STALL; } // flagged escapes are earned, not bought
-                this.kawarimiWindow = 0;
-
-                // Phase 1 — VANISH: the player disappears completely (invisible +
-                // intangible) for a beat before reappearing behind the attacker.
-                this.state = STATE.SUBSTITUTION;
-                this.alpha = 0;               // fully gone, not semi-transparent
-                this.vanishTimer = 0.12;      // the "gone" moment
-                this.vanishAttacker = attacker;
-                this.vx = 0; this.vy = 0;     // no drifting while vanished
-                if (matchStats) matchStats.p[this.id === 1 ? 0 : 1].esc++;   // victory-screen stat
-                sfx('poof');
-                createSmokePuff(this.x + this.width/2, this.y + this.height/2);
-
-                // THE LOG: the decoy that "took" the hit — the reveal beat made physical.
-                this.lastLog = { x: this.x + this.width/2 - 11, y: this.y + this.height - 34,
-                                 w: 22, h: 34, life: LOG_LIFE, rigged: false, owner: this };
-                logs.push(this.lastLog);
-                hitstopRemaining = Math.max(hitstopRemaining, 120); // the fooled-you beat
-            }
-
-            // Phase 2 — REAPPEAR behind wherever the attacker is NOW.
-            finishSubstitution() {
-                const attacker = this.vanishAttacker;
-                this.vanishAttacker = null;
+            // Phase 2 of any VANISH (wire-step, Iai cross): fade back in where the
+            // mover already put itself. Kawarimi's teleport-behind-the-attacker was
+            // removed with the substitution mechanic; nothing sets an attacker now.
+            finishVanish() {
                 this.recoveryTimer = 0.15;
                 this.alpha = 0.3;             // fades back in via the existing recovery
-                // ⛔ NOT EVERY VANISH IS A SUBSTITUTION. `vanishTimer` is the shared "I am
-                // gone" timer and update() calls this the instant it expires, but only
-                // kawarimi ever sets vanishAttacker. WIRE-STEP borrows the timer and does its
-                // OWN teleport, so this ran with attacker null and threw on `attacker.x` —
-                // an uncaught TypeError that killed the REST OF THE FRAME (the other
-                // fighter's update, hit resolution, the whole render) on every single use.
-                // No attacker means there is nothing to reappear behind: the mover has
-                // already placed itself, so just fade back in where it stands.
-                if (!attacker) return;
-
-                // Teleport precisely 80px behind opponent's current direction
-                this.x = attacker.x - (attacker.facing * 80);
-                this.y = attacker.y - 15; // slightly airborne
-                this.vy = -150; // brief reset gravity hang
-
-                // Keep the reappear point inside the arena walls
-                this.x = clampLandX(this.x, this.width);
-
-                // Ensure target is oriented towards opponent
-                this.facing = attacker.x > this.x ? 1 : -1;
-
-                // Create arrival smoke
-                createSmokePuff(this.x + this.width/2, this.y + this.height/2);
             }
 
             get defenseFactor() {
@@ -10027,7 +9803,7 @@
                 // update() with no state guard, so a Mokurai stunned, thrown, substituted
                 // out or KO'd mid-hold still fired a 24-damage projectile out of the body
                 // that had already been interrupted.
-                // It lives HERE, not in the stun block below: the block and kawarimi
+                // It lives HERE, not in the stun block below: the block and dodge
                 // branches both RETURN before that, so a guarded or substituted hit would
                 // have leaked the blast. And it is below the intangibility returns, so a
                 // swing you phased through does NOT cost you your own pending move.
@@ -10166,7 +9942,7 @@
                 // KAESHI (Mizu, Hanbō no Kata): the catch window turns the hit — no
                 // damage, no counter-strike. The attacker is spun to face AWAY from
                 // her: water redirects force, it does not answer it. The free hit is
-                // whatever YOU do with their opened back. Follows the kawarimi
+                // whatever YOU do with their opened back. Follows the negation
                 // contract: the hit did not land, so the attacker's pay (cancel
                 // windows, DREAD, wire binds) is cleared with it.
                 if (this.kaeshiT > 0 && attacker && attacker.spec) {
@@ -10189,22 +9965,8 @@
                     return;
                 }
 
-                // Kawarimi: Poof tapped at the frame of impact — negate and relocate
-                if (this.kawarimiWindow > 0 && this.stamina >= 35) {
-                    // ⛔ THE HIT DID NOT LAND — it was negated and you teleported away.
-                    // hitConfirmed was stamped above (past the early intangibility list)
-                    // and processHitboxes pays the attacker on it: a Skullgirls cancel,
-                    // Oni's wire bind, the Executioner's DREAD. Clearing it here is the
-                    // documented contract at the pay site ("a swing the defender ...
-                    // kawarimi-vanished ... still handed the attacker a Skullgirls cancel
-                    // window" is listed as the bug being fixed).
-                    if (attacker) attacker.hitConfirmed = false;
-                    this.performSubstitution(attacker);
-                    return;
-                }
-
                 // Owner: every received hit stores force, including blocks and armor.
-                // Dodges/substitutions returned above; successful counters charge separately.
+                // Dodges returned above; successful counters charge separately.
                 this.gainKarma(dmg * KARMA_GAIN);
 
                 // BLOCK: chip damage only, no stun, no combo — the defensive baseline.
@@ -10363,27 +10125,7 @@
                 // Combo damage scaling: x0.875 per hit after the 3rd, floored — a ridden
                 // combo pays diminishing returns (design doc Pillar E). Combo = consecutive
                 // hits landing while still stunned from the previous one.
-                const wasAttacking = this.isAttackingState(); // for the counterhit rebate
                 this.comboHits = (this.stunTimer > 0) ? this.comboHits + 1 : 1;
-
-                // --- Substitution Game bookkeeping (design doc Pillar A.2) ---
-                this.lastAttacker = attacker;
-                if (this.comboHits === 1) {
-                    attacker.usedStarters = []; // fresh combo, fresh ledger
-                    if (wasAttacking) this.staggerMeter = Math.max(0, this.staggerMeter - COUNTERHIT_REBATE);
-                }
-                this.staggerMeter += sourceHitbox ? (STAGGER_VALUES[sourceHitbox.tier] || 15) : 10;
-                let flagged = false;
-                if (attacker.pendingChainStarter) {
-                    const t = attacker.pendingChainStarter;
-                    attacker.pendingChainStarter = null;
-                    if (attacker.usedStarters.includes(t)) flagged = true; // greedy repeat
-                    else attacker.usedStarters.push(t);
-                }
-                if (flagged || this.staggerMeter >= STAGGER_MAX) {
-                    this.freeKawarimiTimer = FLAG_WINDOW; // the earned escape — press poof
-                    createSparks(this.x + this.width/2, this.y + this.height/2, "#fbbf24");
-                }
 
                 const scale = Math.max(SCALE_FLOOR, Math.pow(SCALE_PER_HIT, Math.max(0, this.comboHits - 3)));
                 const healthDamage = this.damageToHealth(dmg * scale);
@@ -10633,19 +10375,10 @@
                 // and the motion trail (0.12 * alpha) both go to zero on their own, so there
                 // is nothing further to suppress here.
 
-                // A restrained contact shadow seats every differently-shaped sheet
-                // on the same floor line. Grounded-only avoids a fake shadow following
-                // airborne fighters through jumps and platform drops.
-                if (this.isGrounded) {
-                    const rs = this.spec.renderScale || 1;
-                    ctx.save();
-                    ctx.globalAlpha = 0.2 * this.alpha;
-                    ctx.fillStyle = "#000000";
-                    ctx.beginPath();
-                    ctx.ellipse(this.x + this.width / 2, this.y + this.height + 2, 15 * rs, 4.2 * rs, 0, 0, Math.PI * 2);
-                    ctx.fill();
-                    ctx.restore();
-                }
+                // ⛔ NO SHADOWS, ANYWHERE. Owner, Sep 11 2026: "just delete everybody's
+                // shadow in the game whether on the ground or in the air". The contact
+                // ellipse that used to seat grounded fighters on the floor line is GONE —
+                // not gated, not alpha-zeroed, deleted. Do not reintroduce it in any form.
 
                 // Highlight parry windows
                 if (this.state === STATE.PARRY_STANCE) {
@@ -13781,7 +13514,7 @@
                         return s[Math.floor(tick / 6) % s.length];
                     }
                     return tick % 5 === 4 ? F.idle2 : F.idle;
-                }   // IDLE + SUBSTITUTION
+                }   // IDLE
             }
         }
 
@@ -13927,25 +13660,17 @@
                 ctx.globalAlpha = 1;
             }
 
-            // MIZU SLICK: the popped water clone's puddle on the floor line
-            if (p.slick) {
-                ctx.save();
-                ctx.globalAlpha = 0.30 * Math.min(1, p.slick.t);
-                ctx.fillStyle = '#3b82f6';
-                ctx.beginPath();
-                ctx.ellipse(p.slick.x, p.slick.y - 3, p.slick.w / 2, 7, 0, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.restore();
-            }
-            // BUNSHIN: the fighter's own cells drawn dark + translucent — his shadow
+            // ⛔ KAGE-KAMI IS NO LONGER A SHADOW. Owner, Sep 11 2026: "delete delete
+            // delete". The echo used to draw at brightness(0.45) saturate(0.8) and
+            // 0.25-0.6 alpha — a dark translucent copy, i.e. a shadow of the fighter.
+            // Both are gone: it now draws as a SOLID, full-brightness copy. The render
+            // itself stays because the echo swings real hitboxes; deleting the draw
+            // would leave an invisible attacker, not a removed shadow.
             if (p.clone) {
                 const c = p.clone;
                 ctx.save();
-                ctx.globalAlpha = Math.min(0.6, 0.25 + c.t / BUNSHIN_LIFE * 0.35);
-                ctx.filter = 'brightness(0.45) saturate(0.8)';
-                // KAGE-KAMI (item 4) carries the EXACT cell the fighter was drawing a
-                // beat ago, off the tape — that is what makes it a replay rather than
-                // a looping idle. Every other clone still animates its scripted row.
+                // KAGE-KAMI carries the EXACT cell the fighter was drawing a beat ago,
+                // off the tape — that is what makes it a replay rather than a loop.
                 const ci = c.cell !== undefined ? c.cell
                          : c.cells[Math.floor(c.animT * 8) % c.cells.length];
                 const cloneScale = scaleFor(ci);
@@ -15421,7 +15146,7 @@
         // --- CPU DIFFICULTY TIERS — one brain, three personalities ---
         // reactMin/reactVar: decision cadence (Jonin thinks 3x faster than Genin);
         // atk/blk/jmp: action-roll thresholds; dashP/dashAt: shunshin eagerness;
-        // kawa: odds/frame of cashing the earned escape mid-combo; spc: chain-ender
+        // spc: chain-ender
         // rate; rSpc: Shin occasionally uses his one wire shuriken from range.
         // kick/air/thr/roll/pun/aa/duck: the SITUATIONAL tier — the whole move list
         // the brain used to ignore (command kicks, aerials, throws as a guard-break,
@@ -15429,17 +15154,17 @@
         // into them; a Jonin reads for them. Every one is a real player input, fired
         // through the same executeAttack path a human's keypress takes.
         const CPU_TIERS = [
-            { label: 'GENIN',  reactMin: 0.45, reactVar: 0.35, atk: 0.35, blk: 0.60, jmp: 0.80, dashP: 0.10, dashAt: 300, kawa: 0.02, spc: 0.15, rSpc: 0.00,
+            { label: 'GENIN',  reactMin: 0.45, reactVar: 0.35, atk: 0.35, blk: 0.60, jmp: 0.80, dashP: 0.10, dashAt: 300, spc: 0.15, rSpc: 0.00,
               kick: 0.15, air: 0.20, thr: 0.04, roll: 0.05, pun: 0.20, aa: 0.10, duck: 0.10 },
-            { label: 'CHUNIN', reactMin: 0.25, reactVar: 0.30, atk: 0.50, blk: 0.70, jmp: 0.85, dashP: 0.25, dashAt: 220, kawa: 0.08, spc: 0.40, rSpc: 0.10,
+            { label: 'CHUNIN', reactMin: 0.25, reactVar: 0.30, atk: 0.50, blk: 0.70, jmp: 0.85, dashP: 0.25, dashAt: 220, spc: 0.40, rSpc: 0.10,
               kick: 0.35, air: 0.45, thr: 0.22, roll: 0.20, pun: 0.55, aa: 0.42, duck: 0.35 },
-            { label: 'JONIN',  reactMin: 0.12, reactVar: 0.18, atk: 0.62, blk: 0.78, jmp: 0.88, dashP: 0.40, dashAt: 200, kawa: 0.20, spc: 0.65, rSpc: 0.22,
+            { label: 'JONIN',  reactMin: 0.12, reactVar: 0.18, atk: 0.62, blk: 0.78, jmp: 0.88, dashP: 0.40, dashAt: 200, spc: 0.65, rSpc: 0.22,
               kick: 0.55, air: 0.68, thr: 0.50, roll: 0.40, pun: 0.88, aa: 0.72, duck: 0.60 },
-            { label: 'KAGE',   reactMin: 0.08, reactVar: 0.12, atk: 0.70, blk: 0.84, jmp: 0.90, dashP: 0.50, dashAt: 190, kawa: 0.30, spc: 0.75, rSpc: 0.30,
+            { label: 'KAGE',   reactMin: 0.08, reactVar: 0.12, atk: 0.70, blk: 0.84, jmp: 0.90, dashP: 0.50, dashAt: 190, spc: 0.75, rSpc: 0.30,
               kick: 0.65, air: 0.78, thr: 0.58, roll: 0.50, pun: 0.94, aa: 0.82, duck: 0.70 },
             // ELITE — what the pit's hunger fights like. Selectable only after
             // all three seals are broken (the button hides until then).
-            { label: 'ELITE',  reactMin: 0.05, reactVar: 0.08, atk: 0.78, blk: 0.90, jmp: 0.92, dashP: 0.60, dashAt: 180, kawa: 0.42, spc: 0.85, rSpc: 0.38,
+            { label: 'ELITE',  reactMin: 0.05, reactVar: 0.08, atk: 0.78, blk: 0.90, jmp: 0.92, dashP: 0.60, dashAt: 180, spc: 0.85, rSpc: 0.38,
               kick: 0.75, air: 0.86, thr: 0.66, roll: 0.60, pun: 0.98, aa: 0.90, duck: 0.80 },
         ];
         let cpuTier = Number.isInteger(save.prefs.tier) ? Math.min(4, Math.max(0, save.prefs.tier)) : 1;
@@ -15832,8 +15557,6 @@
             }
             if (me.stunTimer > 0) {
                 keys[B.keyBlock] = false;
-                // flagged mid-combo? sometimes cash the earned escape (so you learn to bait it)
-                if (me.freeKawarimiTimer > 0 && Math.random() < T.kawa) me.executeKawarimi();
                 return;
             }
             // THROW TECH: grabbed — press L+H together (the throw input) to break out
@@ -16067,13 +15790,6 @@
                 // ---- REACTIONS, in priority order. Each one is a read on the
                 // opponent's current state, so they outrank the dice rolls below.
 
-                // BUNSHIN dice: chakra-rich at range, throw the shadow out ahead of the
-                // approach. This calls castBunshin() directly and never touches a key.
-                if (canAct && me.isGrounded && !me.clone
-                         && me.stamina > 70 && me.windedTimer <= 0 && dist > 150 && r < 0.10) {
-                    me.castBunshin();
-                    B.action = 'approach';
-                }
                 // ON A WALL with stars left (Exile or Shin): throw. Highest priority
                 // while it lasts — the position was paid for, so it gets used. When the
                 // magazine is empty, kick off rather than hang there.
@@ -16770,7 +16486,7 @@
 
             roundWins = [0, 0];
             roundNumber = 1;
-            matchStats = { p: [{ combo: 0, dmg: 0, esc: 0 }, { combo: 0, dmg: 0, esc: 0 }] };
+            matchStats = { p: [{ combo: 0, dmg: 0 }, { combo: 0, dmg: 0 }] };
             // release anything a CPU brain (or stale input) held from the last match —
             // a WATCH-mode brain that latched KeyA would walk P1 forever in the next fight.
             // ⛔ THE LIST WAS THE BUG. It named the walk, crouch and block keys and left
@@ -17469,9 +17185,7 @@
             if (code === 'KeyG' && player1.executeReprisal()) return;
             if (code === 'KeyG' && player1.isDefendHeld() && player1.executeShadowSlip()) return;
             if (code === 'KeyG') player1.executeAttack(STATE.ATTACK_HEAVY);
-            if (code === 'KeyH' && player1.isDefendHeld()) { player1.castBunshin(); return; }   // BUNSHIN
             if (code === 'KeyH') player1.executeAttack(STATE.ATTACK_SPECIAL);
-            if (code === 'KeyC') player1.executeKawarimi();
             if (code === 'KeyX') player1.executeTaunt();
 
             // Player 2 Combat Triggers — 2P + training (CPU/watch drive P2)
@@ -17482,9 +17196,7 @@
                 if (code === 'KeyO' && player2.executeReprisal()) return;               // see the P1 note on order
                 if (code === 'KeyO' && player2.isDefendHeld() && player2.executeShadowSlip()) return;
                 if (code === 'KeyO') player2.executeAttack(STATE.ATTACK_HEAVY);
-                if (code === 'KeyP' && player2.isDefendHeld()) { player2.castBunshin(); return; }   // BUNSHIN
                 if (code === 'KeyP') player2.executeAttack(STATE.ATTACK_SPECIAL);
-            if (code === 'KeyM') player2.executeKawarimi();
             if (code === 'KeyN') player2.executeTaunt();
             }
         }
@@ -18181,9 +17893,8 @@
                 }
             }
 
-            // Update kawarimi logs — a rigged log detonates when its fuse runs out.
-            // Punted logs slide (a rigged one is now a rolling bomb); Mizu's mist
-            // silhouettes pop at any body contact.
+            // Update floor decoys. Punted ones slide; Mizu's mist silhouettes pop
+            // at any body contact.
             for (let i = logs.length - 1; i >= 0; i--) {
                 const log = logs[i];
                 log.life -= dt;
@@ -18198,11 +17909,10 @@
                         if (!pl || pl.vanishTimer > 0) continue;
                         if (log.x < pl.x + pl.width && log.x + log.w > pl.x
                             && log.y < pl.y + pl.height && log.y + log.h > pl.y) {
-                            if (log.rigged) explodeLog(log);
-                            // M08 ninja puff: the substitution pop, centered on the
-                            // body being revealed, Foreground while it conceals (spec).
-                            else spawnFx('M08', log.x + log.w/2, log.y + log.h/2,
-                                         { layer: 'front' });
+                            // M08 ninja puff, centered on the body being
+                            // revealed, Foreground while it conceals (spec).
+                            spawnFx('M08', log.x + log.w/2, log.y + log.h/2,
+                                    { layer: 'front' });
                             logs.splice(i, 1);
                             popped = true;
                             break;
@@ -18211,8 +17921,7 @@
                     if (popped) continue;
                 }
                 if (log.life <= 0) {
-                    if (log.rigged) explodeLog(log);
-                    else createSmokePuff(log.x + log.w/2, log.y + log.h/2);
+                    createSmokePuff(log.x + log.w/2, log.y + log.h/2);
                     logs.splice(i, 1);
                 }
             }
@@ -18303,14 +18012,14 @@
         let moveListOpen = true;   // training per-fighter move list (L toggles; owner, Jul 29)
         const MOVES_LIST = {
             // Current Shodo inputs; historical art titles do not add commands.
-            'Executioner': ["F / J / G / H — light · medium · heavy · armored overhead", "Fwd+F — SHADOW SLICE (fast disjointed poke)", "Fwd+H — SMOKE-BOMB SHADOW STRIKE (vanish, cross-up, launch)", "Shadow Slice / Smoke Strike: clean hit → jump, dash or Special in the brief cancel window", "Up+H — SKY CLEAVE (owns the column above)", "Fwd+G — Drive Stab (PIERCES guard)", "Back+G — IAI QUICK-DRAW (PIERCES guard)", "Up+G — GYAKU KESA rising launcher", "Down+G — SUSO-GIRI (his only armed low)", "Down+H — HARAI OTOSHI (low sweeping cut, trips)", "C+G — SHADOW SLIP REVERSAL (i-frame slip; counters ONLY if he read your swing)", "G right after a BLOCK — IRON GUARD REPRISAL (riposte; spends DREAD)", "V — CHUDAN STANCE: rewrites F and G, and you cannot block", "Down/Back+F — sweep · heel kicks; Fwd+F in reverse grip retains push kick", "air Down+G — Meteor Break", "hold C+H — BUNSHIN (30): counter-double, stuns who strikes it", "F+G — throw"],
-            'Mizu':        ["F / J / G / H — light · medium · heavy · mist drop", "Fwd+G — BO THRUST (longest poke) · Down+G — BO LOW SWEEP (trips)", "Up+G — RISING STAFF (anti-air) · Back+G — GUARD-BREAK SPIN", "Back+H — REED WITHDRAW (retreating sweep)", "Fwd+H — Reed Pierce", "Down+H — mist silhouettes (needs her mist)", "Up+H — VAULTING STAFF SLAM", "Down/Fwd/Back+F — kicks", "air Down+G — Meteor Break", "hold C+H — BUNSHIN (30): pops into a slowing water slick", "F+G — throw"],
-            'Shin':        ["F / J / G / H — light · medium · heavy · flying kick", "Fwd+G — FUDO KEN · Down+G — SOKUYAKU KEN (low)", "Up+G — OMOTE SHUTO · Back+G — URA SHUTO", "Up+H — RISING ANTI-AIR", "Fwd+H — Wire Shuriken (yanks them in)", "Back+H — WIRE-STEP (teleport)", "Down+H — SHURIKEN FAN (3-star spread)", "wall cling — F throws SHURIKEN (x3)", "Down/Fwd/Back+F — kicks", "air Down+G — Meteor Break", "hold C+H — BUNSHIN (30): throws one star, then poofs", "F+G — throw"],
-            'Tsubasa':     ["F / J / G / H — light · medium · heavy · parry stance", "Fwd+G — REVERSE-GRIP RUSH (2 stabs) · Down+G — low tanto", "Up+G — RISING TWIN SLASH · Back+G — EVASIVE FLICK", "Down+H — AERIAL DIVE CUT · Up+H — AIR-THROW SETUP", "Fwd+H — pass-through slash", "Back+H — TANTO REVERSE FLURRY (4 rakes)", "Down/Fwd/Back+F — kicks", "air Down+G — Meteor Break", "hold C+H — BUNSHIN (30): rises — jump off its head", "F+G — throw", "X — TAUNT: he juggles both tanto. No hitbox; any input cancels it"],
-            'Ember':       ["F / J / G / H — light · medium · heavy · armored claw dash", "Fwd+H — SHRED CHARGE (armored, 2 hits)", "Down+H — GROUND RIP (low, trips)", "Up+H — CEILING HOOK (leaves the floor)", "Fwd+G — CLAW REND (2 tears) · Down+G — LOW CLAW RAKE", "Back+G — CLAW RETREAT SWIPE", "Up+G — rising double-claw launcher", "Back+H — BLADE-TRAP PARRY (catch -> X-shred)", "H on wall — pounce dive", "Down/Fwd/Back+F — kicks", "air Down+G — Meteor Break", "hold C+H — BUNSHIN (30): touch it and it detonates", "F+G — claw-slice throw"],
-            'Kael':        ["F / J / G / H — light · medium · heavy · double slash", "Fwd+H — TRAVELLING CROSS SLASH", "Up+H — SKYWARD FANG (planted anti-air)", "Fwd+G — TWIN CYCLONE (2 rings) · Down+G — LOW-HIGH SCISSOR", "Up+G — HIGH PARRY · Back+G — LOW PARRY", "Down+H — rising launcher (invuln start)", "Back+H — NITEN PARRY (wakizashi -> katana)", "Down/Fwd/Back+F — kicks", "air Down+G — Meteor Break", "hold C+H — BUNSHIN (30): sprint feint", "F+G — throw"],
-            'Mokurai':      ["F / J / G / H — light · medium · overhead slam · palm special", "Back+G — SAGE'S PALM (slow blast; hold Up/Down to aim)", "Up+G — BELL RINGER (planted anti-air, launches)", "Fwd+H — PRAYER ORBIT (armored spinning advance, 3 hits)", "Back+H — ZEN REFLECT (catch a hit, automatic palm counter)", "Up+H — neutral special on ground · in air — SKY CATCH (hand catch, spikes)", "KARMA — hits, blocks and counters store up to 15 power for your next damaging Special", "Down+H — temple bell (hits both sides) · in air — BELL TOLL (dive, rings on landing)", "Down/Fwd/Back+F — sweep · front · high kicks", "hold Down+C 2s on a SHORT karma bar — ENLIGHTENMENT (once/round)", "hold Down+C 2s on a FULL karma bar — THE CRACK: 6s of feint-rhythm madness", "   ...spends all 15 karma, +20% damage taken, ends in a punishable kneel","hold C+H — BUNSHIN (30): while it sits, chakra flows free", "F+G — throw"],
-            'Exile':       ["F / J / G / H — light · medium · heavy · heli spin", "V (P2: K) — CHAMPION MODE at a full CHAIN bar (5s: faster, quicker recovery, and she stops taking 1.25x)", "Fwd+H — chain-grapple to the wall", "Up+H — chain to the wall (anchor + kunai)", "Back+H — IAIJUTSU CROSS (blink corridor)", "Down+H — SERPENT'S TONGUE (floor chain, trips)", "Fwd+G — Side Reach · Back+G — Counter-Weight", "Up+G — Up Reach (anti-air) · Down+G — low slash", "Up+F — up-flick (fast anti-air poke)", "Down/Fwd/Back+F — sweep · push · heel kicks", "wall cling — F throws KUNAI (x3)", "air Down+G — Sky Down-Smash", "hold C+H — BUNSHIN (30): your echo, half a second late", "F+G — throw"],
+            'Executioner': ["F / J / G / H — light · medium · heavy · armored overhead", "Fwd+F — SHADOW SLICE (fast disjointed poke)", "Fwd+H — SMOKE-BOMB SHADOW STRIKE (vanish, cross-up, launch)", "Shadow Slice / Smoke Strike: clean hit → jump, dash or Special in the brief cancel window", "Up+H — SKY CLEAVE (owns the column above)", "Fwd+G — Drive Stab (PIERCES guard)", "Back+G — IAI QUICK-DRAW (PIERCES guard)", "Up+G — GYAKU KESA rising launcher", "Down+G — SUSO-GIRI (his only armed low)", "Down+H — HARAI OTOSHI (low sweeping cut, trips)", "C+G — SHADOW SLIP REVERSAL (i-frame slip; counters ONLY if he read your swing)", "G right after a BLOCK — IRON GUARD REPRISAL (riposte; spends DREAD)", "V — CHUDAN STANCE: rewrites F and G, and you cannot block", "Down/Back+F — sweep · heel kicks; Fwd+F in reverse grip retains push kick", "air Down+G — Meteor Break", "F+G — throw"],
+            'Mizu':        ["F / J / G / H — light · medium · heavy · mist drop", "Fwd+G — BO THRUST (longest poke) · Down+G — BO LOW SWEEP (trips)", "Up+G — RISING STAFF (anti-air) · Back+G — GUARD-BREAK SPIN", "Back+H — REED WITHDRAW (retreating sweep)", "Fwd+H — Reed Pierce", "Down+H — mist silhouettes (needs her mist)", "Up+H — VAULTING STAFF SLAM", "Down/Fwd/Back+F — kicks", "air Down+G — Meteor Break", "F+G — throw"],
+            'Shin':        ["F / J / G / H — light · medium · heavy · flying kick", "Fwd+G — FUDO KEN · Down+G — SOKUYAKU KEN (low)", "Up+G — OMOTE SHUTO · Back+G — URA SHUTO", "Up+H — RISING ANTI-AIR", "Fwd+H — Wire Shuriken (yanks them in)", "Back+H — WIRE-STEP (teleport)", "Down+H — SHURIKEN FAN (3-star spread)", "wall cling — F throws SHURIKEN (x3)", "Down/Fwd/Back+F — kicks", "air Down+G — Meteor Break", "F+G — throw"],
+            'Tsubasa':     ["F / J / G / H — light · medium · heavy · parry stance", "Fwd+G — REVERSE-GRIP RUSH (2 stabs) · Down+G — low tanto", "Up+G — RISING TWIN SLASH · Back+G — EVASIVE FLICK", "Down+H — AERIAL DIVE CUT · Up+H — AIR-THROW SETUP", "Fwd+H — pass-through slash", "Back+H — TANTO REVERSE FLURRY (4 rakes)", "Down/Fwd/Back+F — kicks", "air Down+G — Meteor Break", "F+G — throw", "X — TAUNT: he juggles both tanto. No hitbox; any input cancels it"],
+            'Ember':       ["F / J / G / H — light · medium · heavy · armored claw dash", "Fwd+H — SHRED CHARGE (armored, 2 hits)", "Down+H — GROUND RIP (low, trips)", "Up+H — CEILING HOOK (leaves the floor)", "Fwd+G — CLAW REND (2 tears) · Down+G — LOW CLAW RAKE", "Back+G — CLAW RETREAT SWIPE", "Up+G — rising double-claw launcher", "Back+H — BLADE-TRAP PARRY (catch -> X-shred)", "H on wall — pounce dive", "Down/Fwd/Back+F — kicks", "air Down+G — Meteor Break", "F+G — claw-slice throw"],
+            'Kael':        ["F / J / G / H — light · medium · heavy · double slash", "Fwd+H — TRAVELLING CROSS SLASH", "Up+H — SKYWARD FANG (planted anti-air)", "Fwd+G — TWIN CYCLONE (2 rings) · Down+G — LOW-HIGH SCISSOR", "Up+G — HIGH PARRY · Back+G — LOW PARRY", "Down+H — rising launcher (invuln start)", "Back+H — NITEN PARRY (wakizashi -> katana)", "Down/Fwd/Back+F — kicks", "air Down+G — Meteor Break", "F+G — throw"],
+            'Mokurai':      ["F / J / G / H — light · medium · overhead slam · palm special", "Back+G — SAGE'S PALM (slow blast; hold Up/Down to aim)", "Up+G — BELL RINGER (planted anti-air, launches)", "Fwd+H — PRAYER ORBIT (armored spinning advance, 3 hits)", "Back+H — ZEN REFLECT (catch a hit, automatic palm counter)", "Up+H — neutral special on ground · in air — SKY CATCH (hand catch, spikes)", "KARMA — hits, blocks and counters store up to 15 power for your next damaging Special", "Down+H — temple bell (hits both sides) · in air — BELL TOLL (dive, rings on landing)", "Down/Fwd/Back+F — sweep · front · high kicks", "hold Down+C 2s on a SHORT karma bar — ENLIGHTENMENT (once/round)", "hold Down+C 2s on a FULL karma bar — THE CRACK: 6s of feint-rhythm madness", "   ...spends all 15 karma, +20% damage taken, ends in a punishable kneel","F+G — throw"],
+            'Exile':       ["F / J / G / H — light · medium · heavy · heli spin", "V (P2: K) — CHAMPION MODE at a full CHAIN bar (5s: faster, quicker recovery, and she stops taking 1.25x)", "Fwd+H — chain-grapple to the wall", "Up+H — chain to the wall (anchor + kunai)", "Back+H — IAIJUTSU CROSS (blink corridor)", "Down+H — SERPENT'S TONGUE (floor chain, trips)", "Fwd+G — Side Reach · Back+G — Counter-Weight", "Up+G — Up Reach (anti-air) · Down+G — low slash", "Up+F — up-flick (fast anti-air poke)", "Down/Fwd/Back+F — sweep · push · heel kicks", "wall cling — F throws KUNAI (x3)", "air Down+G — Sky Down-Smash", "F+G — throw"],
         };
         function drawMoveList(ctx) {
             const col = (p, side) => {
@@ -18373,10 +18082,10 @@
             releaseAllKeys(); hitstopQueue.length = 0; hitstopRemaining = 0; clashFreezeRemaining = 0; clashShakeRemaining = 0; hitstopEase = 0;
             smokeFields.length = logs.length = slashes.length = fxSprites.length = strikes.length = particles.length = 0;
             for (const [p, sx] of [[player1, 150], [player2, canvas.width - 150 - player2.width]]) {
-                p.hp = p.maxHp ?? 150; p.stamina = 100; p.staggerMeter = 0;
+                p.hp = p.maxHp ?? 150; p.stamina = 100;
                 p.ghosts.length = 0;
                 p.thrustSlide = 0; p.speedTrail = 0; p.fxQueue = null;
-                p.clone = null; p.slick = null; p.echoTrail.length = 0;   // room reset clears the shadows too
+                p.clone = null;   // room reset clears the shadow echo too
                 // ...and the four stance slots with them. A lock or a tether that
                 // survives a reset points at a fighter who has been re-seated, which
                 // is exactly the class of stale-reference bug the room reset exists
@@ -18394,18 +18103,17 @@
                 p.ceilLatch = p.grappleT = p.jumpBufferTimer = p.flipTimer = 0;
                 p.latchPlat = p.jumpDir = null; p.headHopSpent = false;
                 p.recoveryTimer = p.recoveryTotal = p.attackT = p.chainComboTier = p.stringStep = p.stringT = 0;
-                p.bufferedAttack = p.pendingSlash = p.pendingChainStarter = p.attackDir = p.groundJumpStart = null;
+                p.bufferedAttack = p.pendingSlash = p.attackDir = p.groundJumpStart = null;
                 p.attackAir = p.attackHasConnected = p.upAtkPending = false;
                 p._lt = p._ht = p._tapT = -1e9; p._tapDir = 0;
                 p.wireBind = 0; p.wireBindFoe = p.wireConv = p.chain = p.rapidFire = null;
                 p.projectiles.length = p.fxSched.length = 0;
-                p.vanishTimer = p.kawarimiWindow = p.invulnTimer = p.armorTimer = p.blockPushTimer = p.parryFlashTimer = 0;
-                p.vanishAttacker = p.throwVictim = null; p.throwAir = p.throwReleased = false;
+                p.vanishTimer = p.invulnTimer = p.armorTimer = p.blockPushTimer = p.parryFlashTimer = 0;
+                p.throwVictim = null; p.throwAir = p.throwReleased = false;
                 p.tumbleT = p.tumbleOnLand = p.flooredT = p.landT = 0;
                 p.skySmash = p.skySlam = p.bellDive = p.spikedFall = false;
                 p.leanSmooth = p.leanVel = p.landSquash = 0; p.alpha = 1; p.hiddenInSmoke = false;
                 p.windedTimer = p.chakraCd = 0; p.windedLatch = false;
-                p.freeKawarimiTimer = p.kawarimiCooldown = 0; p.lastAttacker = null; p.usedStarters.length = 0;
                 p.riding = currentStage.abyss ? abyssSlabs[p.isP1 ? 0 : 1] : null;
                 p.x = p.riding ? p.riding.x + (p.riding.w - p.width) / 2 : clampLandX(sx, p.width);
                 p.y = (p.riding ? p.riding.y : GROUND_Y) - p.height; p.vx = p.vy = 0;
@@ -18419,34 +18127,6 @@
             player1.facing = 1; player2.facing = -1;
             trainingStats.last = 0; trainingStats.combo = 0; trainingStats.total = 0;
             if (fromKo) flashAmount = Math.max(flashAmount, 0.12);
-        }
-
-        // A rigged log's paper bomb goes off: hits the OPPONENT of the log's owner if in range
-        function explodeLog(log) {
-            const cx = log.x + log.w/2, cy = log.y + log.h/2;
-            createSparks(cx, cy, "#f97316");
-            createSmokePuff(cx, cy);
-            screenShakeAmount = 12;
-            sfx('bomb');
-            hitstopRemaining = Math.max(hitstopRemaining, 80);
-            // ⛔ ASK WHICH TEAM, NOT WHICH GLOBAL. This picked the victim with
-            // `log.owner === player1 ? player2 : player1`, which is only true in a 1v1.
-            // In a 2v2 an owner of teamP1[1] is not player1, so the bomb chose player1 —
-            // its own TEAMMATE — and the actual enemies standing in the blast were never
-            // considered at all. Same `isP1` team test brawlFoes uses, over the same pool,
-            // so it hits every living enemy in radius and no friendly. A PUNTED bomb-log
-            // still turns on its maker: your trap, kicked back at you.
-            const pool = (gameMode === 'brawl' && brawlAll.length) ? brawlAll : [player1, player2];
-            const victims = log.punted
-                ? [log.owner]
-                : pool.filter(v => v && v.hp > 0 && log.owner && v.isP1 !== log.owner.isP1);
-            for (const victim of victims) {
-                if (!victim) continue;
-                const vx = victim.x + victim.width/2, vy = victim.y + victim.height/2;
-                if (Math.hypot(vx - cx, vy - cy) < BOMB_RADIUS) {
-                    victim.takeDamage(BOMB_DMG, log.owner);
-                }
-            }
         }
 
         // ⛔ BLADE LOCK — tuning lives here, next to the clash it replaces.
@@ -18682,7 +18362,6 @@
                 p.lockWood = wood;
                 p.hitboxes.length = 0;
                 p.pendingSlash = null;
-                p.pendingChainStarter = null;
                 p.attackHasConnected = false;
                 p.state = STATE.BLADE_LOCK;
                 p.lockT = LOCK_DUR;
@@ -18840,7 +18519,6 @@
                     // point, then cancel it so no delayed whiff arc appears afterward.
                     if (a.pendingSlash) { spawnSlash(a, a.pendingSlash.type); a.pendingSlash = null; }
                     if (b.pendingSlash) { spawnSlash(b, b.pendingSlash.type); b.pendingSlash = null; }
-                    a.pendingChainStarter = b.pendingChainStarter = null;
                     a.attackHasConnected = b.attackHasConnected = false;
 
                     // The clash reads by MATERIAL, not by who threw it. Only two edges
@@ -18870,7 +18548,7 @@
                     const outward = a.x + a.width / 2 <= b.x + b.width / 2 ? -1 : 1;
                     for (const [p, dir] of [[a, outward], [b, -outward]]) {
                         p.clearMoveArt();
-                        p.hitboxes.length = 0; p.pendingSlash = null; p.pendingChainStarter = null;
+                        p.hitboxes.length = 0; p.pendingSlash = null;
                         p.fxSched.length = 0; p.fxQueue = null; p.bufferedAttack = null;
                         p.thrustSlide = 0; p.speedTrail = 0; p.dashTimer = 0;
                         p.stringStep = 0; p.stringT = 0; p.chainComboTier = 0;
@@ -18926,9 +18604,8 @@
         function processHitboxes(attacker, defender, dt, advance = true) {
             for (let i = attacker.hitboxes.length - 1; i >= 0; i--) {
                 const h = attacker.hitboxes[i];
-                // A callee reached from inside this loop (explodeLog → a rigged
-                // kawarimi log damages the attacker → takeDamage empties
-                // attacker.hitboxes) can shrink the array we're iterating. The
+                // A callee reached from inside this loop can shrink the array we
+                // are iterating by emptying attacker.hitboxes. The
                 // reused index then reads undefined and h.ox throws, aborting the
                 // rest of the sim frame. Tolerate ANY mid-iterate shrink here — one
                 // guard beats chasing every callee that might clear the array.
@@ -18943,7 +18620,7 @@
                 // ⛔ A BOX IN WINDUP TOUCHES NOTHING. This gate used to sit BELOW the two
                 // decoy passes, so a swing that had not started yet — the box exists from
                 // frame 1 of the move but is dead until `delay` runs out — still popped a
-                // kawarimi log or a bunshin clone on contact. The decoy's whole job is to
+                // floor decoy or a shadow echo on contact. The decoy's whole job is to
                 // eat a REAL hit, and instead it died to a wind-up pose: Ember's launcher
                 // telegraphs for 233ms, and for all 14 of those frames it was destroying
                 // decoys it had not swung at. Hoisted above every interaction so the one
@@ -18960,8 +18637,8 @@
                 }
                 const hx = attacker.x + h.ox, hy = attacker.y + h.oy;
 
-                // Kawarimi logs intercept swings: striking a decoy pops it (and a rigged
-                // one detonates in your face) — swinging at the log is the bait's cost.
+                // Floor decoys intercept swings: striking one pops it — swinging at
+                // the bait is its cost.
                 let struckLog = false;
                 for (let li = logs.length - 1; li >= 0; li--) {
                     const log = logs[li];
@@ -18971,27 +18648,21 @@
                         logs.splice(li, 1);
                         attacker.hitboxes.splice(i, 1);
                         hitstopRemaining = Math.max(hitstopRemaining, 60);
-                        if (log.rigged) explodeLog(log);
-                        else { createSmokePuff(log.x + log.w/2, log.y + log.h/2); createSparks(log.x + log.w/2, log.y + log.h/2, "#a16207"); }
+                        createSmokePuff(log.x + log.w/2, log.y + log.h/2);
+                        createSparks(log.x + log.w/2, log.y + log.h/2, "#a16207");
                         struckLog = true;
                         break;
                     }
                 }
                 if (struckLog) continue;
 
-                // BUNSHIN intercept: a swing that lands on the shadow clone pops it —
-                // eating the hit IS the decoy's job. The EXECUTIONER's double answers:
-                // the headsman's shadow stuns the hand that struck it.
+                // SHADOW ECHO intercept: a swing that lands on the Kage-Kami clone
+                // pops it — eating the hit IS the shadow's job.
                 const dc = defender.clone;
                 if (dc && strikeOverlaps(h, hx, hy, {x:dc.x,y:dc.y,w:defender.width,h:defender.height})) {
                     attacker.hitboxes.splice(i, 1);
                     hitstopRemaining = Math.max(hitstopRemaining, 60);
-                    if (defender.spec.id === 0) {
-                        attacker.stunTimer = Math.max(attacker.stunTimer || 0, 0.4);
-                        attacker.state = STATE.STUNNED;
-                        createSparks(dc.x + defender.width / 2, dc.y + defender.height * 0.4, '#f97316');
-                    }
-                    defender.popBunshin();
+                    defender.popClone();
                     continue;
                 }
 
@@ -19000,7 +18671,7 @@
                 if (strikeOverlaps(h, hx, hy, hurt)) {
                     // ⛔ GEOMETRIC OVERLAP IS NOT A LANDED HIT. These three payouts used to
                     // be granted right here, before takeDamage got a say — so a swing that
-                    // the defender ROLLED THROUGH, kawarimi-vanished, ate on Kael's
+                    // the defender ROLLED THROUGH, vanished, ate on Kael's
                     // invulnerable reversal startup or shrugged off while Enlightened still
                     // handed the attacker a Skullgirls cancel window, still armed Oni's wire
                     // bind, and still stacked the Executioner's DREAD toward the EXECUTION —
@@ -19195,7 +18866,7 @@
             }
 
             // --- build the results card ---
-            const S = matchStats || { p: [{combo:0,dmg:0,esc:0},{combo:0,dmg:0,esc:0}] };
+            const S = matchStats || { p: [{combo:0,dmg:0},{combo:0,dmg:0}] };
             const stat = (label, a, b) => `
                 <div class="flex justify-between items-center text-[11px] font-mono py-1 border-b border-gray-800/60">
                     <span class="text-purple-300 w-12 text-left">${a}</span>
@@ -19289,7 +18960,6 @@
                     </div>
                     ${stat('MAX COMBO', S.p[0].combo, S.p[1].combo)}
                     ${stat('DAMAGE', Math.round(S.p[0].dmg), Math.round(S.p[1].dmg))}
-                    ${stat('POOF ESCAPES', S.p[0].esc, S.p[1].esc)}
                 </div>
                 ${buttons}`;
             document.getElementById('game-over-screen').classList.remove('hidden');
@@ -19529,7 +19199,7 @@
         // ONE floor rule, read by physics AND renderer: ledge:N carves the
         // ground line N px short of each wall; abyss deletes it entirely.
         // Every teleport/blink lands through this: on a holed board the landing
-        // clamp tightens from the walls to the FLOORED span, so a kawarimi or
+        // clamp tightens from the walls to the FLOORED span, so a teleport or
         // fist-blink can't drop its user into the pit as a surprise (review).
         // The abyss has no floored span — there, landings stay wall-clamped and
         // the mover takes their chances like everyone else.
@@ -20321,9 +19991,8 @@
                     ctx.fill(); ctx.stroke();
                 }
             }
-            // Render kawarimi log decoys (brown log + rings; rigged = glowing tag).
-            // Mizu's mist silhouettes draw as HER, dimmed to the mist alpha — three
-            // identical shapes in the fog, one real.
+            // Render floor decoys (brown log + rings). Mizu's mist silhouettes draw
+            // as HER, dimmed to the mist alpha — three identical shapes, one real.
             logs.forEach(log => {
                 if (log.silhouette) {
                     const man = SPRITES['mizu'];
@@ -20350,10 +20019,6 @@
                 ctx.strokeStyle = "#78350f";
                 ctx.lineWidth = 1.5;
                 ctx.beginPath(); ctx.ellipse(log.x + log.w/2, log.y + 5, 7, 3, 0, 0, Math.PI*2); ctx.stroke();
-                if (log.rigged) {
-                    ctx.fillStyle = Math.floor(performance.now()/150) % 2 ? "#fde68a" : "#f97316";
-                    ctx.fillRect(log.x + log.w/2 - 3, log.y + 12, 6, 9); // the paper tag, blinking
-                }
                 ctx.restore();
             });
 
@@ -20368,13 +20033,10 @@
                     const heat = Math.min(1, tagHold / 10);
                     const pulse = 0.55 + 0.45 * Math.abs(Math.sin(t * (tagSudden ? 7 : 3.4)));
                     ctx.save();
-                    // ground ring
-                    ctx.globalAlpha = 0.30 + 0.35 * pulse;
-                    ctx.strokeStyle = tagSudden ? '#ff2a3c' : '#ef4444';
-                    ctx.lineWidth = 3 + 2 * heat;
-                    ctx.beginPath();
-                    ctx.ellipse(cx, fy - 2, 26 + 8 * pulse, 9 + 3 * pulse, 0, 0, Math.PI * 2);
-                    ctx.stroke();
+                    // ⛔ THE GROUND RING IS DELETED. Owner, Sep 11 2026: "delete delete
+                    // delete". It was an ellipse pinned to the fighter's OWN foot line,
+                    // so it rode up with him into the air — a ring under an airborne
+                    // body. The heat aura and the overhead caret still mark IT.
                     // body heat — grows with the speed bonus so the danger is visible
                     const g = ctx.createRadialGradient(cx, fy - it.height * 0.5, 4, cx, fy - it.height * 0.5, 46);
                     g.addColorStop(0, `rgba(255,60,60,${0.16 * (0.4 + heat) * pulse})`);
@@ -20565,17 +20227,6 @@
                 ctx.fillText(roundBanner.text, hudW/2, canvas.height/2 - 40);
             }
             ctx.restore();
-
-            // Stagger bars: the visible combo budget (design doc — limits must be legible)
-            [player1, player2].forEach(p => {
-                if (!p) return;
-                const frac = Math.min(1, p.staggerMeter / STAGGER_MAX);
-                const bx = p.x + p.width/2 - 15, by = p.y - 14;
-                ctx.fillStyle = "rgba(0,0,0,0.5)";
-                ctx.fillRect(bx, by, 30, 4);
-                ctx.fillStyle = frac >= 1 ? "#ef4444" : `rgb(${Math.round(234 + frac*21)}, ${Math.round(179 - frac*140)}, 8)`;
-                ctx.fillRect(bx, by, 30 * frac, 4);
-            });
 
             // ⛔ THE SMOKE SCREEN HAD NO PICTURE. Owner: "why isn't the smoke added to his
             // smoke screen bomb?" — because `smokeFields` was pure simulation. It faded

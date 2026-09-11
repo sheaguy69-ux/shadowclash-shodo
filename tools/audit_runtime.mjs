@@ -94,7 +94,7 @@ const testExpression = String.raw`(async () => {
     return { name: spec.name, width: sheet.img.width, height: sheet.img.height, cols: sheet.cols };
   });
 
-  const stateNames = ['IDLE','RUN','JUMP','WALL_CLING','ATTACK_LIGHT','ATTACK_HEAVY','ATTACK_SPECIAL','PARRY_STANCE','THROWING','THROWN','BLOCKING','CROUCH','ROLL','STUNNED','SUBSTITUTION'];
+  const stateNames = ['IDLE','RUN','JUMP','WALL_CLING','ATTACK_LIGHT','ATTACK_HEAVY','ATTACK_SPECIAL','PARRY_STANCE','THROWING','THROWN','BLOCKING','CROUCH','ROLL','STUNNED'];
   const routedStates = {};
   for (const spec of NINJA_ROSTER) {
     const fighter = new Player(1, 150, GROUND_Y - 48, spec, true);
