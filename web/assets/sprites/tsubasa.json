@@ -2,7 +2,7 @@
   "name": "tsubasa",
   "frameW": 301,
   "frameH": 320,
-  "cols": 461,
+  "cols": 463,
   "footY": 312,
   "scale": 0.3663,
   "frames": {
@@ -303,7 +303,13 @@
     "taunt5": 433,
     "taunt6": 434,
     "taunt7": 435,
-    "taunt8": 436
+    "taunt8": 436,
+    "dive1": 189,
+    "dive2": 190,
+    "dive3": 461,
+    "dive4": 462,
+    "dive5": 462,
+    "dive6": 462
   },
   "weapon_type": "Dual Tant\u014d Knives",
   "martial_art_discipline": "Tant\u014djutsu (Reverse-Grip)",
@@ -11036,7 +11042,9 @@
     "369": false,
     "370": false,
     "371": false,
-    "372": false
+    "372": false,
+    "461": false,
+    "462": false
   },
   "lockReach": 30,
   "footAdj": {

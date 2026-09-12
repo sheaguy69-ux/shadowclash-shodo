@@ -2,7 +2,7 @@
   "name": "shin",
   "frameW": 520,
   "frameH": 370,
-  "cols": 441,
+  "cols": 443,
   "footY": 330,
   "scale": 0.34507772020725386,
   "frames": {
@@ -246,7 +246,13 @@
     "adown5": 437,
     "adown6": 438,
     "adown7": 439,
-    "adown8": 440
+    "adown8": 440,
+    "dive1": 150,
+    "dive2": 150,
+    "dive3": 441,
+    "dive4": 442,
+    "dive5": 442,
+    "dive6": 442
   },
   "weapon_type": "Unarmed & Shuriken / Kunai",
   "martial_art_discipline": "Taijutsu & Shurikenjutsu",
@@ -312,7 +318,9 @@
     "389": false,
     "390": false,
     "391": false,
-    "392": false
+    "392": false,
+    "441": false,
+    "442": false
   },
   "frameClear": {
     "338": [

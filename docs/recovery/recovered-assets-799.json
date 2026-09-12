@@ -1,0 +1,71 @@
+{
+  "version": 799,
+  "approval": "Owner: Approve all eight and install; recorded September 11, 2026, 14:50 in shared channel. Installed799 report supersedes stale STAGED metadata.",
+  "files": {
+    "web/index.html": "875b287c49bf83b506560eaac7133ff0a92fb2bca965b43cf4cdc6aebc42bda0",
+    "web/assets/sprites/ember.png": "06e815ee6dd72573fc9bcb239ee4ebac0537a520a1cd8e84a34365940c8fbd21",
+    "web/assets/sprites/ember.json": "316f49a9cae8037c79f1ae2a516b85b833f51dd8058f96b58bdad92a8e5b9115",
+    "web/assets/sprites/executioner.png": "425e04a3adfbc7b18cf3b303c66f45d94a1ca5abc1ffd73fc23c5b14784aae35",
+    "web/assets/sprites/executioner.json": "fc625acd3498467040f29e13d04e300bfa18385b01b7d5e1f275d00413fc1675",
+    "web/assets/sprites/exile.png": "0637cda61259d9db335e5b012f5dd97741f8b35262b566a101a5ab805a0391fa",
+    "web/assets/sprites/exile.json": "4376aa3b33f4264a98b8afea9fcf6aa6462f4616d760b16809f4a3e2eedeb465",
+    "web/assets/sprites/kael.png": "d79b52dd0dd9c7d5a60012bbf9100564a78c4fe56d515f8ebbdff00666e83591",
+    "web/assets/sprites/kael.json": "76b86b67d8286cceeccd5cea33f4a25838462632634c0c74825fdf2ad6778333",
+    "web/assets/sprites/mizu.png": "de279365feec93224a235e7c539f19350a76c1abf49c3922ea88e095e774e377",
+    "web/assets/sprites/mizu.json": "f957cb73e180716b7ab75cd0c605846e046d51089213014a8d7a89cd10e60208",
+    "web/assets/sprites/mokurai.png": "248ea1e23df9739791600f762cff098421a74702c2a621cdb681f0fdafaa51ce",
+    "web/assets/sprites/mokurai.json": "27cf102bf7cbbb26e98032432ec4a0dfa81d8b64e5e196b0b43395ee74405c67",
+    "web/assets/sprites/shin.png": "53a8e22e505862c4f77d11dfa38f9b6923b30d63507b26debcecbbbab252bdd4",
+    "web/assets/sprites/shin.json": "ed947f46df48d69fc953b83854de71e728859e77cee904f4f16b6cb9b07abd87",
+    "web/assets/sprites/tsubasa.png": "a73785b7e26faf61abaf76776f69cd1abf7885c563be14cf44bc521e980a67c8",
+    "web/assets/sprites/tsubasa.json": "153924caa306d40a59de10e5cf26039ec236665f4e0a63a3e88445040eed3ba6",
+    "web/assets/stages/shodo/abyss-far.png": "7ee6384a0569c66aa143a2fca261a9e30cdadce429392e8c1df5e3ee46e9038f",
+    "web/assets/stages/shodo/bamboo-far.png": "89f2fa6745be1875bdf1084699fa7c47eabf99b78a2abb61f227b014ddc3fac0",
+    "web/assets/stages/shodo/drowned-far.png": "e22abde8dcbc4e8525e9c67bce0a7c8faa26c0c637a9baf8323fd77b6de18f50",
+    "web/assets/stages/shodo/hall-far.png": "58114539424c57562efd0145cb151a6d3d85864cc11017c694b72c67c33c3f9a",
+    "web/assets/stages/shodo/keep-far.png": "54d41c516feb9d645b00a05724d7df07c712631298e3f1afdc41a7d2fe5c0240",
+    "web/assets/stages/shodo/lantern-far.png": "fcbd9d1eca69773b35d0bce269d0251d33b45c3f816bd3b98577b49406053461",
+    "web/assets/stages/shodo/roof-far.png": "8ecb49987f667f94597260ea9757c898ed576b5c03e3862af94e0f571ca804d2",
+    "web/assets/stages/shodo/rooftops-far.png": "50a44a2789a3dd3b9f72372e1cd20907b50be65a93932f4e3ed5dc8927b52792",
+    "web/assets/stages/shodo/snow-far.png": "938ae9c0a48db60e73f334fb726dcac6a982c049839dde21075886e2621c9456",
+    "web/assets/stages/shodo/temple-far.png": "5eedcb33960c6b101da18a120defc49692b8afa6caeb105ce237e17b40b1909f",
+    "web/assets/stages/shodo/tollgate-far.png": "b5003651237735ccb98c86f404263ae18a35aa38889d018d810b72ccc10c7814",
+    "web/assets/stages/shodo/village-far.png": "6b9ec794aee2a15dd37dc7bff5508550c83ae5c01ab3538e3ec1b05f8d3353dc",
+    "web/assets/stages/shodo/volcano-far.png": "a4906ac7b3daf507f8e28eff6ee7fc75829bac0acb22d374ec3bf5a5265f1bad",
+    "web/assets/stages/shodo/warrant-far.png": "423373fa862fd8fed2675f93b2e3ec9372de0ab0844e0dc36618465fd80c481c",
+    "web/assets/ui/shodo/enso.png": "d4fa883c608ffe9eeb4d47eb097eb04613184236008394246aa3fee3ebf37506",
+    "web/assets/ui/shodo/frame.png": "065ed0f10aad5afe112988e21d42fba5711222cd173b64f49c267217925e74aa",
+    "web/assets/ui/shodo/plate.png": "71be76e7996c9a121b14b0cde6937e9da7cdaa2334ca5fc3b4d0cc2494146002",
+    "web/assets/ui/shodo/rule.png": "cc96cd851e7314f357520c513eed4358bdbc44a95b52bb3fb3949feb34d5eeaf",
+    "web/assets/ui/shodo/seal-fight.png": "3881b4fe07be68d32b1f9c2c7f4fa631e62fd17756fa0c4d282a352e50f89f4c",
+    "web/assets/ui/shodo/seal-pick.png": "61cf95bcd6b4643654f75bc12ad3dfefe79302dc18d463d57bd28f6dfb05876b",
+    "web/assets/ui/shodo/seal-stage.png": "24539875e1c4452996f12ffd38a5509a43b63df818bfb5146252f4b471ef37df",
+    "web/assets/ui/shodo/stroke.png": "2aa305f68cd2dd3205b7057819df0f57c76f9c8dc5a34889741a9ca132d3ccdc",
+    "web/assets/ui/shodo/washi.png": "fe3794e194999d68e8a4484ba3694f68a234318cd2ca87ba7ccd86902e130569",
+    "web/assets/vfx/crescent-20260906.png": "2ad8db204caebdda65c30c028be50becb0059900c8014f29ae60bc940117f178",
+    "web/assets/vfx/strike-20260906.png": "727aac117da942b6e5ef7f2bef5f2f7158a8bf7d7a9ba7236334b343ab8fa0aa"
+  },
+  "excluded": [
+    "Unapproved build800 transition, jump, landing, run and attack timing changes (preserved in working tree).",
+    "Mizu ForwardMedium and vault, Kael SkyFang, Mokurai Bell Toll, and remaining unapproved art candidates.",
+    "Deferred new FX palette work.",
+    "Unrelated existing deleted and untracked files."
+  ],
+  "limitations": [
+    "Eight approved DownHeavy rows do not complete the 320-input art backlog.",
+    "Approved source limitations and abrupt legacy recovery cuts retained.",
+    "25 existing runtime dependencies are tracked unchanged so fresh checkouts retain the current visuals."
+  ],
+  "preserved_existing_repairs": {
+    "mokurai": {
+      "cells": [
+        347,
+        348
+      ],
+      "alpha_pixels_restored": 323,
+      "rgb_changes": 0,
+      "reason": "Already-installed alpha-column repairs explicitly preserved by the final approved799 installation. Exact package bytes retained during recovery; no new repaint."
+    }
+  },
+  "optional_resources": "Music MP3 slots intentionally unbundled; game handles absent files as silence."
+}

@@ -2316,13 +2316,15 @@
             kael: { 207: [112,198,197], 236: [102,170,174] },
             mizu: { 168: [147,168,208], 170: [95,192,155], 172: [85,200,157] }
         };
-        function combatPose(p) {
+        function combatPose(p, visualCell) {
             const man = SPRITES[p.spec.name.toLowerCase()];
             if (!man?.ready) return null;
             const idle = man.combatReferenceIdle ?? (p.spec.name === 'Shin' ? (man.frames.xidle1 ?? man.frames.idle) : man.frames.idle);
-            const F = man.frames;
+            // These eight Down Heavy rows change drawings; combat keeps the prior poses.
+            const F = p.spec.id >= 0 && p.spec.id <= 7 && man.frames.dive1 !== undefined
+                ? (man.slamBodyFrames ??= { ...man.frames, dive1: undefined }) : man.frames;
             // Art-only Ember row: retain the existing move's body and strike geometry.
-            const idx = (p.spec.id === 4 && p.state === STATE.ATTACK_LIGHT && p.attackAir && p.attackDir === 'fwd' && F.eafwd1 !== undefined ? rosterAttackFrame(p, airAttackCells(F), F) : undefined) ?? spriteFrameIndex(p, F);
+            const idx = visualCell ?? ((p.spec.id === 4 && p.state === STATE.ATTACK_LIGHT && p.attackAir && p.attackDir === 'fwd' && F.eafwd1 !== undefined ? rosterAttackFrame(p, airAttackCells(F), F) : undefined) ?? spriteFrameIndex(p, F));
             if (idx == null) return null;
             const scale = i => man.scale * SHODO_DISPLAY_SCALE * (p.spec.renderScale || 1) * (man.frameScale?.[i] ?? 1);
             // Mizu idle75: hood begins at source y173; y149 is the staff tip.
@@ -3353,6 +3355,7 @@
             // counter specials, which bypass it — a stale flag here does not throw, it
             // silently draws the WRONG MOVE, which is the hardest kind of bug to see.
             clearMoveArt() {
+                    this.shodoDownArtBase = false;
                     if (this.attackAnim?.wireApproach) this.wireBindFoe = null;
                     this.wireConv = null;
                     this.lockOutcome = null; this.lockOutcomeT = 0;
@@ -4667,6 +4670,7 @@
             }
 
             applyPhysics(dt) {
+                if (this.shodoDownRestPaint && (!this.isGrounded || this.slamRecover <= 0 || this.state !== STATE.ATTACK_HEAVY)) this.shodoDownRestPaint = null;
                 // Apply snapped downward heavy gravity — gravity is a STANCE now:
                 // the meteor hang suspends it, the plunge anchors it at 2.5x, and a
                 // zero-g air light hangs the swing. Base pull everywhere else.
@@ -5014,6 +5018,10 @@
                     this.spawnHitbox(bw, 26, 9 * pow, 0.14, 190, { low: true, trip: true, tier: STATE.ATTACK_HEAVY });
                     this.spawnHitbox(bw, 26, 9 * pow, 0.14, 190, { low: true, trip: true, behind: true, tier: STATE.ATTACK_HEAVY });
                     if (sky) {
+                        if (this.spec.id === 7 && SPRITES.exile?.frames.dive3 === 422 && this.chain?.kind === 'down'
+                            && this.shodoDownArtBase === true && shodoBaseDownHeavyArt(this)) {
+                            this.shodoDownRestPaint = this.chain.pts.map(p => ({ x:p.x, y:p.y }));
+                        }
                         this.skySmash = false;
                         this.chain = null;
                         screenShakeAmount = Math.max(screenShakeAmount, 16);
@@ -7451,6 +7459,7 @@
             // landing shockwave both sides + a real recovery tax. The descent box
             // goes live exactly when the plunge starts (delay = the hang).
             startSlam(pow) {
+                this.shodoDownArtBase = this.state === STATE.ATTACK_HEAVY && shodoBaseDownHeavyArt(this);
                 this.slamPhase = 1;
                 this.slamTimer = SLAM_HANG;
                 this.recoveryTimer = 0;              // the tax is paid at the floor, not here
@@ -9233,7 +9242,15 @@
                         vx: (head.x - head.px) * 12, vy: (head.y - head.py) * 12,
                         len: 12, color: '#e8ecf2', life: 0.12, maxLife: 0.12 });
             }
-            drawChain(ctx) { Player._paint(ctx, this.chain.pts, !!this.chain.anchor); }
+            drawChain(ctx) {
+                if (this.spec.id === 7 && [422,423,425].includes(this.drawCell) && this.chain?.kind === 'down' && this.shodoDownVisualHand) {
+                    const q = ctx.getTransform().inverse().transformPoint(this.shodoDownVisualHand);
+                    const dx=q.x-this.chain.pts[0].x, dy=q.y-this.chain.pts[0].y, n=this.chain.pts.length-1;
+                    const points=this.chain.pts.map((p,i) => { const w=(1-i/n)**2;return {...p,x:p.x+dx*w,y:p.y+dy*w}; });
+                    Player._paint(ctx,points,!!this.chain.anchor);return;
+                }
+                Player._paint(ctx, this.chain.pts, !!this.chain.anchor);
+            }
 
             // The rope's LOOK, split out so the idle orbit can borrow it instead of
             // baking a second chain into the cells. Takes any point list.
@@ -10435,6 +10452,15 @@
                     this.chain.pts[0].x = this.chainHandX(); this.chain.pts[0].y = this.chainHandY(this.chain.low);
                     this.drawChain(ctx);
                 }
+                // The just-landed Down Heavy keeps only a visual copy of the last rope.
+                // Physics chain is already null; all later routes use the original renderer.
+                if (this.spec.id === 7 && this.drawCell === 424 && this.isGrounded && this.slamRecover > 0
+                    && this.state === STATE.ATTACK_HEAVY && !this.chain && this.shodoDownRestPaint?.length > 1 && this.shodoDownVisualHand) {
+                    const q = ctx.getTransform().inverse().transformPoint(this.shodoDownVisualHand);
+                    const P = this.shodoDownRestPaint, n = P.length-1, dx = q.x-P[0].x, dy = q.y-P[0].y;
+                    const points = P.map((p,i) => { const w=(1-i/n)**2;return {x:p.x+dx*w,y:p.y+dy*w}; });
+                    Player._paint(ctx, points);
+                }
                 // EXILE'S IDLE ORBIT (owner, Aug 5 2026: "put a spin in it"). Her breathing
                 // cells had the ball baked in and BARELY moving — a 16px bob across the
                 // whole cycle on the fighter whose weapon is a swinging chain. The baked
@@ -10649,7 +10675,7 @@
         // 777: approved Executioner Back Light row; full katana/boots, contact holds, retained strike reach. Body hurtboxes follow new poses.
         // 778: approved Executioner low cut; low contact4–5 then half-rise recovery, body bounds prevent sword-driven viewport shifts. Existing offensive mechanics retained; defensive poses change.
         // 791: Ember's approved air Forward+Light sequence; six appended drawings, existing body/strike geometry retained.
-        const SHEET_V = 798; // 798: NO SHADOWS, ANYWHERE. Owner, Sep 11 2026: "just delete everybody's shadow
+        const SHEET_V = 799; // 798: NO SHADOWS, ANYWHERE. Owner, Sep 11 2026: "just delete everybody's shadow
         // in the game whether on the ground or in air". Three engine deletions (the grounded contact
         // ellipse, the tag ground ring, KAGE-KAMI's brightness(0.45) darkening) plus 155 sheet cells
         // repacked with their BAKED cast shadow erased: executioner 87, tsubasa 26, ember 20, kael 14,
@@ -11822,7 +11848,20 @@
             return oneShot(c, (animClock - p.ceremony.t0) / CEREMONY_TIME);
         }
 
+        function shodoBaseDownHeavyArt(p) {
+            return p.spec.id >= 0 && p.spec.id <= 7
+                && p.attackAir && p.attackDir === 'down'
+                && !p.chudan && !p.cracked && !p.kageNui && !p.sakate && !p.hanbo && !p.gyakute
+                && !(p.muki > 0) && !(p.frenzyTimer > 0) && !(p.enlightenTimer > 0);
+        }
+
         function spriteFrameIndexRaw(p, F) {
+            const useDiveArt = p.spec.id > 7 || (p.shodoDownArtBase === true && shodoBaseDownHeavyArt(p));
+            // Keep the final Ember landing exposure only while its old selector still draws106.
+            if (useDiveArt && p.spec.id === 4 && F.dive1 !== undefined && p.slamRecover > 0 && p.slamRecover <= 1e-6) {
+                const baseline = spriteFrameIndexRaw(p, { ...F, dive1: undefined });
+                if (baseline === 106) return F.dive6;
+            }
             const lockFrame = bladeLockFrame(p, F);
             if (lockFrame !== undefined) return lockFrame;
             // Above everything but the lock: the taunt holds STATE.IDLE, so any branch
@@ -12590,7 +12629,7 @@
                     // how hdown6, a cell belonging to his air Down+Heavy, ended up standing
                     // in for the biggest beat of the move. Four of his six drawn cells never
                     // appeared at all.
-                    if (F.dive1 !== undefined && (p.slamPhase || p.slamRecover > 0)) {
+                    if (useDiveArt && F.dive1 !== undefined && (p.slamPhase || p.slamRecover > (p.spec.id === 4 ? 1e-6 : 0))) {
                         if (p.slamPhase === 1)                       // the hang, 150ms
                             return p.slamTimer > SLAM_HANG * 0.5 ? F.dive1 : F.dive2;
                         if (p.slamPhase === 2) return F.dive3;       // the plunge
@@ -13559,7 +13598,7 @@
             if (idx === undefined || idx === null) return false;
             // Match independently drawn rows to the idle body, with uniform XY scale.
             const scaleFor = i => man.scale * SHODO_DISPLAY_SCALE * (p.spec.renderScale || 1) * (man.frameScale?.[i] ?? 1);
-            const S = scaleFor(idx), fw = man.frameW, fh = man.frameH, t = animClock;
+            const S = scaleFor(idx), fw = man.frameW, fh = p.spec.id === 4 && idx < 385 ? 377 : man.frameH, t = animClock;
             // ⛔ NO RUNTIME X-STRETCH ON THE ART (owner, Aug 13 2026: "make sure nobody
             // have that warping xstretch effect to none of their frames"). The `thicken`
             // manifest knob — a constant horizontal multiplier on every drawn cell — is
@@ -13690,7 +13729,30 @@
             }
 
             ctx.save();
-            const pose = combatPose(p);
+            // Only the reviewed new contact/landing cells use their own drawing bounds.
+            const visualCell = (
+                (p.spec.id === 0 && (idx === 445 || idx === 446))
+                || (p.spec.id === 1 && idx === 243)
+                || (p.spec.id === 2 && (idx === 441 || idx === 442))
+                || (p.spec.id === 3 && (idx === 461 || idx === 462))
+                || (p.spec.id === 4 && idx === 386)
+                || (p.spec.id === 5 && (idx === 343 || idx === 344))
+                || (p.spec.id === 7 && idx === 422)
+            ) ? idx : undefined;
+            const pose = combatPose(p, visualCell);
+            if (p.spec.id === 0 && idx === 445 && pose) {
+                pose.shiftX += Math.max(-16 * S, Math.min(16 * S, combatPose(p).shiftX - pose.shiftX));
+            }
+            if (p.spec.id === 4 && idx === 386 && pose) {
+                const base = combatPose(p).shiftX;
+                pose.shiftX = base + Math.max(-19 * S, Math.min(19 * S, pose.shiftX - base));
+            }
+            if (p.spec.id === 5 && idx === 343 && pose) {
+                pose.shiftX += Math.max(-23 * S, Math.min(23 * S, combatPose(p).shiftX - pose.shiftX));
+            }
+            if (p.spec.id === 7 && idx === 422 && pose) {
+                pose.shiftX += Math.max(-37.5 * S, Math.min(37.5 * S, combatPose(p).shiftX - pose.shiftX));
+            }
             if (footsiesFrame(p) || p.attackAnim?.strikeWindows || pose?.shiftX) { lunge = 0; lean = 0; breath = 0; attackStretch = 0; }
             ctx.translate(p.x + p.width / 2 + p.facing * lunge + (pose?.shiftX || 0), p.y + p.height);
             // Cling art grips the wall; ordinary attacks face out into the arena.
@@ -13872,6 +13934,11 @@
             }
             ctx.save();
 
+            if (p.spec.id === 7 && [422,423,424,425].includes(idx)) {
+                const hand = idx === 422 ? [59.25,-41.625] : idx === 424 ? [50.5,-41] : idx === 423 ? [31,-42] : [32,-67];
+                const t = ctx.getTransform(), x = hand[0] * S, y = hand[1] * S;
+                p.shodoDownVisualHand = { x: t.a*x + t.c*y + t.e, y: t.b*x + t.d*y + t.f };
+            }
             drawShodoFrame(ctx, man.img, idx * fw, 0, fw, fh,
                            -fw * S / 2, -anchorFor(idx), fw * S, fh * S);
             ctx.restore();

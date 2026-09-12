@@ -2,7 +2,7 @@
   "name": "kael",
   "frameW": 300,
   "frameH": 320,
-  "cols": 343,
+  "cols": 345,
   "footY": 312,
   "scale": 0.4046242774566474,
   "frames": {
@@ -214,7 +214,13 @@
     "ko5": 339,
     "ko6": 340,
     "ko7": 341,
-    "ko8": 342
+    "ko8": 342,
+    "dive1": 291,
+    "dive2": 292,
+    "dive3": 343,
+    "dive4": 344,
+    "dive5": 344,
+    "dive6": 344
   },
   "weapon_type": "Katana & Wakizashi / Tant\u014d",
   "martial_art_discipline": "Niten Ichi-ry\u016b & Tant\u014djutsu",
@@ -381,7 +387,9 @@
     "295": true,
     "296": true,
     "297": true,
-    "298": true
+    "298": true,
+    "344": true,
+    "343": true
   },
   "frameClear": {
     "16": [
@@ -7142,5 +7150,9 @@
   "lockReach": 47,
   "wallContactX": {
     "135": 179
+  },
+  "frameOffsetX": {
+    "344": -4,
+    "343": -4
   }
 }
