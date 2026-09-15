@@ -7948,6 +7948,7 @@
                     w: sw,
                     h: sh,
                     strikeShape: { behind: !!opts.behind, burst: !!opts.burst, low: !!opts.low, up: !!opts.up,
+                        launch: !!opts.launch,
                         down: !!opts.down || isDownwardPogo, kick: opts.tier === 'KICK', orbit: !!opts.orbit,
                         skip: !!opts.echo || !!opts.gap || !!opts.corridor || !!this.chain },
                     // strike-frame gate: damage goes live when the blade VISIBLY swings,
@@ -19011,7 +19012,11 @@
             }
             const dir = p.facing * (shape.behind ? -1 : 1);
             const vertical = shape.up || shape.down;
-            const key = idx + '|' + (vertical ? (shape.up ? 'up' : 'down') : dir * sign) + '|' + shape.low + '|' + shape.kick;
+            // `launch` changes the region this function computes, so it MUST be part of
+            // the cache key: without it the first caller on a given cell decides the shape
+            // for every later one, and a poke and a launcher sharing a pose would hand
+            // each other the wrong hitbox.
+            const key = idx + '|' + (vertical ? (shape.up ? 'up' : 'down') : dir * sign) + '|' + shape.low + '|' + shape.kick + '|' + shape.launch;
             man.strikeFits ??= new Map();
             const region = COMBAT_STRIKE_REGIONS[p.spec.name.toLowerCase()]?.[idx];
             const pad = 2 / S;
@@ -19054,6 +19059,37 @@
                 man.strikeFits.set(key, fit);
             }
             if (!fit) return;
+            // ⛔ A RISING STRIKE IS A LINE, THE SAME WAY A HORIZONTAL ONE IS. The rule
+            // above — the region runs from the HAND to the TIP, never past the drawing —
+            // was only ever applied on the horizontal axis. A vertical strike kept just
+            // the topmost 12px of ink: the blade at the very top of its travel, and none
+            // of the swing that got it there. That is why every `up` launcher whiffed a
+            // man standing next to it.
+            //
+            // Swept all eight Up+Heavies against a grounded foe at gap 35 before touching
+            // anything. The two that already LAND — Executioner 18.4 dmg / 97px launch,
+            // Ember 15.1 / 192px — both author ordinary FRONT boxes and take the
+            // horizontal branch. Every move that reached this vertical branch failed:
+            // Mizu, Mokurai and Exile dealt 0 damage and 0 rise, and Shin scraped 4.5
+            // only because his move also steps in at vx 30 and rises at vy -300. The
+            // branch was the difference, not the fighter.
+            //
+            // It sits HERE, below both sources of `fit`, and not inside the art-scanning
+            // branch where I first wrote it: three fighters carry hand-authored
+            // COMBAT_STRIKE_REGIONS that skip that scan entirely, and Exile's Up+Heavy is
+            // one of them — 14x16 and 59x16 slivers that no scan ever sees. One rule, both
+            // paths, or the data-driven fighters silently keep the bug.
+            //
+            // Extended to the HAND — not to the floor, and never past the drawing. ~0.62
+            // of body height is where the fist sits at the start of a rising sweep, so the
+            // region now covers the arc a foe standing beside him is genuinely in.
+            // LAUNCHERS ONLY: a pure up-poke (`up` with no `launch`) is authored as an
+            // anti-air and keeps the tip-only region it was designed with.
+            if (vertical && shape.up && shape.launch) {
+                const hand = (body.y + body.h * 0.62 - originY) / S;
+                const fy0 = Math.min(fit.y, hand), fy1 = Math.max(fit.y + fit.h, hand);
+                fit = { x: fit.x, y: fy0, w: fit.w, h: fy1 - fy0 };
+            }
             const x1 = originX + fit.x * S * sign, x2 = originX + (fit.x + fit.w) * S * sign;
             Object.assign(h, { ox: Math.min(x1,x2)-p.x, oy: originY+fit.y*S-p.y, w: fit.w*S, h: fit.h*S });
             h.strikeCell = idx;
