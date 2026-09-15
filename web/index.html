@@ -2930,7 +2930,26 @@
         // tier applied to everyone it would slow every fighter's first 150ms with NOTHING
         // drawn to explain it — a balance change nobody asked for, hidden inside an art
         // feature. It arrives per fighter, with his frames, visibly.
-        const WALK_TIME = 0.15;
+        // ⛔ ONE FULL CYCLE, WHOEVER IS WALKING. Owner, Sep 15 2026, handed this one over:
+        // "I agree I trust your decision". At a flat 0.15 the tier lasted 8 frames and showed
+        // about three consecutive cells of a drawn cycle — measured — so an eight-beat walk
+        // board would have been five-eighths unseen. A single roster-wide replacement cannot
+        // fix it either: a full cycle costs 0.514s at speed 10 and 1.029s at speed 5, so any
+        // one number is wrong for six of the eight.
+        //
+        // THE CELLS CANCEL. animPhase advances at min(3, |vx|/150) * cycle cells per game
+        // second and a cycle is `cycle` cells long, so the time to walk one complete loop is
+        // 1 / min(3, |vx|/150) — independent of how many beats the artist drew. That is the
+        // honest unit, it needs no per-fighter table, it stays right for a fighter added
+        // later, and because it reads curSpeed it self-corrects for frenzy, tag heat, kage
+        // haste and winded (a winded shuffle takes longer to come round, which is true).
+        //
+        // ⛔ AND IT CHANGES NOTHING TODAY. The WALK tier is art-gated on `walk1`, which no
+        // sheet has, so no fighter can enter the state at all: this is a value waiting for
+        // the first board, not a movement change shipped ahead of one. The moment a row
+        // packs, that fighter walks exactly one loop and then breaks into the run.
+        const WALK_CYCLES = 1;    // loops before the push breaks into a run — THE dial for feel
+        const WALK_TIME = 0.15;   // fallback only: a sheet with a walk row always uses walkTime
         const WALK_FRAC = 0.5;    // of that fighter's own moveSpeed
         const PHANTOM_MOVE_ID = 3;
         const PHANTOM_DASH_MUL = 1.34;
@@ -3384,7 +3403,7 @@
                 this.clingTime = 0;          // continuous wall-cling seconds (drain after 1s)
                 this.dashTimer = 0;          // >0 = shunshin in flight (clippable, no i-frames)
                 this.dashDir = 0;
-                this.walkT = WALK_TIME;   // lean-out clock; a push walks before it runs
+                this.walkT = this.walkTime;   // lean-out clock; a push walks before it runs
                 this.rushT = 0;           // SCARLET PHANTOM RUSH window
                 this.phantomQ = null;     // ...and the blink stations still owed inside it
                 this.rushDir = 0;         // ...latched, so a mid-rush facing flip cannot steer it
@@ -3476,6 +3495,15 @@
             }
 
             // Movement/recovery speed: the roster stat.
+            // Seconds of walk before the push breaks into a run: exactly WALK_CYCLES full
+            // loops of this fighter's own drawn cycle. See the WALK_CYCLES note — the beat
+            // count cancels out, so this is right for a 4-cell row and a 12-cell row alike.
+            get walkTime() {
+                const vx = 350 * (this.curSpeed / 6)
+                         * (this.windedTimer > 0 ? 0.5 : 1) * WALK_FRAC;
+                const rate = Math.min(3, Math.abs(vx) / 150);   // cycles per game-second
+                return rate > 0 ? WALK_CYCLES / rate : WALK_TIME;
+            }
             get curSpeed() {
                 // CHAIN FRENZY: the first boss's second wind — a quicker step.
                 const frenzy = this.frenzyTimer > 0 ? 1.2 : 1;
@@ -4919,7 +4947,7 @@
                     // Standing still rearms the walk, so the NEXT push leans out again.
                     // (The skid above is deliberately left on RUN only — a walk that stops
                     // has no momentum to brake and should not slide.)
-                    this.walkT = WALK_TIME;
+                    this.walkT = this.walkTime;
                     this.vx = 0; // Instant ground stop
                     // A guard that leaves the ground (shoved off a ledge, platform gone)
                     // is no guard: BLOCKING is grounded-only, and takeDamage reads the

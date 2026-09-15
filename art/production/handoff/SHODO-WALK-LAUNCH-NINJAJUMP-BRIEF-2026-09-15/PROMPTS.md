@@ -116,7 +116,10 @@ lands on the in-betweens.
 *(An earlier draft of this brief said only beats 1–3 are ever seen and told you to front-load
 them. That was wrong and is corrected — see `MEASUREMENTS.md` §1.)*
 
-Draw a true loop: beat 8 must flow back into beat 1 with no jump.
+**RULED Sep 15 2026:** each fighter now walks exactly **one full loop** before breaking into
+the run — 0.514s (Shin, Exile) to 1.029s (Mokurai), derived per fighter, no table. All eight
+beats are seen in order every push. Draw a true loop: beat 8 must flow back into beat 1 with
+no jump, and make every beat count.
 
 Second rule: the walk is paced **flat**. A run has contact holds because a sprint slams; a
 stroll does not. Even cadence, even spacing.

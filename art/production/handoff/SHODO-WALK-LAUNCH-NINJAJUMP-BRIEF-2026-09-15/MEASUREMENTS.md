@@ -65,9 +65,11 @@ normal play.
 | Shin | 10 | 291.7 | 0.311 | 3–4 |
 | Exile | 10 | 291.7 | 0.311 | 3–4 |
 
-**A full cycle in one push would need `WALK_TIME` between 0.514s (Shin, Exile) and 1.029s
-(Mokurai)** — so a single roster-wide constant cannot serve all eight. Per-fighter is a spec
-field plus a lookup, roughly three lines. **Owner's ruling, not a bug.**
+**RULED and shipped.** A full cycle needs between 0.514s (Shin, Exile) and 1.029s (Mokurai),
+so no single constant serves all eight. `WALK_TIME` is now derived per fighter as
+`WALK_CYCLES / min(3, |vx|/150)` — the beat count cancels, so it is right for any row length
+and any future fighter, and it self-corrects for frenzy, tag heat, kage haste and winded.
+Art-gated, so it changes nothing until the first walk row packs. Verified both ways.
 
 ### One more art constraint from the same code
 

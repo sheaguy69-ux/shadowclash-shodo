@@ -70,15 +70,32 @@ A full cycle in one push needs `WALK_TIME` between **0.514s** (Shin, Exile) and 
 Also from the same code: `footDust`, body lean and travel-facing are **`STATE.RUN`-only**, so
 the walk row **plays forward while backpedalling**. Upright, weight-centred, no strong lean.
 
-### What the owner has to rule on
+### ⛔ RULED, Sep 15 2026 — one full cycle, derived per fighter
 
-| | `WALK_TIME` | the feel |
-|---|---|---|
-| leave it | `0.15` | a lean-out. Three beats ship |
-| show the cycle | `~0.57` | a real walk that breaks into a run after half a second |
-| make it a stance | gate on stick deflection, not a timer | a held walk, like a traditional fighter |
+Owner handed the call over ("*I agree I trust your decision*"). `WALK_TIME` is gone as a flat
+constant; each fighter now walks **exactly one full loop** of their own cycle and then breaks
+into the run.
 
-All three are one line. **Not my call.**
+**The beat count cancels out of the maths.** `animPhase` advances at `min(3, |vx|/150) * cycle`
+cells per game-second and a cycle is `cycle` cells long, so one complete loop always costs
+`1 / min(3, |vx|/150)` seconds — **independent of how many beats the artist drew**. So there is
+no per-fighter table to maintain and a 4-cell row and a 12-cell row are both correct.
+
+| | Mokurai | Executioner | Mizu | Kael | Tsubasa | Ember | Shin · Exile |
+|---|---|---|---|---|---|---|---|
+| walk before running | 1.029s | 0.857s | 0.686s | 0.643s | 0.571s | 0.541s | 0.514s |
+
+`WALK_CYCLES = 1` is the single dial if the feel wants changing later.
+
+Because it reads `curSpeed` it self-corrects for frenzy, tag heat, kage haste and winded — a
+winded shuffle takes longer to come round, which is true.
+
+**It changes nothing today.** The tier is art-gated on `walk1` and no sheet has one, so no
+fighter can enter `STATE.WALK` at all. Verified live both ways: with no walk art, 0 walk frames
+and the state never leaves `RUN`; with an 8-cell row faked in, 29 walk frames and **all eight
+beats in a single push**, then the run.
+
+**So: draw a true loop and make every beat count.** All eight are now seen, in order, every time.
 
 ---
 
