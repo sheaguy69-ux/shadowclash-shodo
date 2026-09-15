@@ -9440,7 +9440,6 @@
             startRoll(dir) {
                 this.rollTimer = ROLL_TIME;
                 this.dashDir = dir;
-                this.facing = dir;
                 // ⛔ LATCH "AM I ROLLING AWAY" AT THE START — a roll CROSSES BODIES, so the
                 // sign of "which way is the opponent" flips the instant he passes through
                 // them. The frame picker used to recompute it every frame, which meant a
@@ -9451,6 +9450,17 @@
                 const foe = this.opponent;
                 const toFoe = foe ? Math.sign((foe.x + foe.width / 2) - (this.x + this.width / 2)) : 0;
                 this.rollAway = dir !== 0 && toFoe !== 0 && toFoe !== dir;
+                // ⛔ A BACKDASH KEEPS ITS EYES ON YOU. `facing = dir` is right for a roll,
+                // which turns the body into the travel and tumbles through it — but Tsubasa's
+                // roll_1..8 (cells 238-245, backdash-8f-v5) is not a tumble. It is a drawn
+                // BACKDASH: guard held, blade up, the whole retreat taken facing forward.
+                // With the flip on, travelling away spun him to face the wrong way and the
+                // art read as a forward hop into nothing. So a sheet that says its roll row
+                // is a backdash keeps facing when the roll travels AWAY; travelling THROUGH
+                // still flips, because crossing a body IS a turn. Travel is unchanged either
+                // way — handleMovement rides `dashDir`, not facing.
+                const bdash = SPRITES[this.spec.name.toLowerCase()]?.rollIsBackdash;
+                if (!(bdash && this.rollAway)) this.facing = dir;
                 this.rollStale++;                       // this roll counts against the next
                 this.rollStaleT = ROLL_STALE_WINDOW;
                 if (this.isGrounded) spawnFx('M07', this.x + this.width / 2, this.y + this.height, { mirror: -dir });
@@ -10675,7 +10685,7 @@
         // 777: approved Executioner Back Light row; full katana/boots, contact holds, retained strike reach. Body hurtboxes follow new poses.
         // 778: approved Executioner low cut; low contact4–5 then half-rise recovery, body bounds prevent sword-driven viewport shifts. Existing offensive mechanics retained; defensive poses change.
         // 791: Ember's approved air Forward+Light sequence; six appended drawings, existing body/strike geometry retained.
-        const SHEET_V = 799; // 798: NO SHADOWS, ANYWHERE. Owner, Sep 11 2026: "just delete everybody's shadow
+        const SHEET_V = 805; // 805: TSUBASA'S BACKDASH FACES YOU. Owner, Sep 14 2026: "install his backdash and cutout the negative black space". BOTH WERE ALREADY HALF-DONE AND THE MEASUREMENTS SAY SO. backdash-8f-v5 is packed at cells 238-245 under roll_1..8 - beat for beat in order, silhouette IoU 0.71/0.86/0.75/0.94/0.93/0.92/0.94/0.70 against the source board (the three low beats are the drawn foot-dust the pack trimmed, not a mismatch) - and those cells measure 87.3-89.6% transparent, so the black card came off at pack time. A sweep of all 463 tsubasa cells finds ten under the 70%-clear line the runtime keyer needs (29, 61-68, 261) and ALL TEN ARE ORPHANS: every live cell is keyed, there was nothing left to cut. WHAT WAS ACTUALLY MISSING IS THE MOVE. startRoll sets `facing = dir`, which is right for a tumble - the body turns into the travel - but roll_1..8 is not a tumble. It is a drawn BACKDASH: guard held, blade up, the whole retreat taken facing forward. With the flip on, retreating spun him around and the art read as a forward hop into nothing. So a sheet that declares `rollIsBackdash` keeps its facing when the roll travels AWAY; travelling THROUGH still flips, because crossing a body IS a turn. Travel is untouched either way - handleMovement rides `dashDir`, not facing. ONE manifest flag and ONE conditional; no new cells, no repack, no key repointed, nothing stripped. DRIVEN IN THE LIVE ENGINE, both branches: rolling away from a foe on the left with dir +1 leaves facing at -1 and plays 238,239,...,245 in order across the window; rolling through with dir -1 from facing +1 still lands facing -1. Shin, who carries no flag, still flips on an away roll - regression clean. // 800-804 are co-tenant passes staged uncommitted in this tree (transition beats, ember feral idle, the chudan/power fixes, the cell-302 strip); they are NOT in this commit and 800 is still waiting on its own review artifact. // 798: NO SHADOWS, ANYWHERE. Owner, Sep 11 2026: "just delete everybody's shadow
         // in the game whether on the ground or in air". Three engine deletions (the grounded contact
         // ellipse, the tag ground ring, KAGE-KAMI's brightness(0.45) darkening) plus 155 sheet cells
         // repacked with their BAKED cast shadow erased: executioner 87, tsubasa 26, ember 20, kael 14,
