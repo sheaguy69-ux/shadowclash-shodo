@@ -103,6 +103,15 @@ def main():
                          'idle-like beat (a round intro that ends sword-out, a KO that ends '
                          'on the floor) the anchor ruler has nothing fair to measure against; '
                          '784 hit this and corrected all four executioner rows the same way.')
+    ap.add_argument('--floor-beat', type=int, default=0,
+                    help='anchor the floor on THIS beat\'s own ink bottom instead of the '
+                         'union bottom. For a board whose FX reaches below the feet — a '
+                         'ground-sweeping slash, a dust plume — the union bottom is the '
+                         'EFFECT, so welding it to footY lifts every standing beat off the '
+                         'floor (measured: the scarlet tendon cut floated its stance beats '
+                         '13px). Name a beat that is standing and the feet land where every '
+                         'other cell on the sheet lands; the arc then crosses the ground '
+                         'line, which is what a floor-sweeping cut should do.')
     ap.add_argument('--dry', action='store_true')
     args = ap.parse_args()
 
@@ -141,9 +150,16 @@ def main():
         sys.exit(f'REFUSE: scaled window {uw}x{uh} exceeds cell {W}x{H} (footY {FY}) — grow the cell')
 
     dx = (W - uw) // 2 - round(ux0 * scale)
-    dy = (FY - FOOT_GAP) - round(uy1 * scale)
+    floor_y = uy1
+    if args.floor_beat:
+        fb = masks[args.floor_beat - 1]
+        floor_y = int(np.nonzero(fb.any(1))[0].max())
+    dy = (FY - FOOT_GAP) - round(floor_y * scale)
 
     ruler = 'EXPLICIT --scale' if args.scale else f'anchor beat {args.anchor} {areas[args.anchor-1]}px'
+    if args.floor_beat:
+        print(f'  floor anchored on beat {args.floor_beat} (its own ink bottom {floor_y}), '
+              f'not the union bottom {uy1} — FX below the feet may cross footY')
     print(f'{args.fighter}/{args.prefix}: idle canon {canon:.0f}px  {ruler} '
           f'-> scale {scale:.4f}   window {uw}x{uh}  beats {len(frames)}')
 
