@@ -2122,6 +2122,10 @@
         // inked black with red; this is the same family pushed to a light source so the
         // counter reads as a glowing mark rather than more of the same ink.
         const FANG_NEON = "#ff1f3a";
+        // How far past the foe's far edge the crossing riposte lands. His answer box is
+        // 105 wide and he steps 80/s into it, so this only has to clear the body — any
+        // further and he blinks behind a man he can no longer reach.
+        const REPRISAL_CROSS_GAP = 26;
         // What the weapon is MADE OF — decides the clash sound and whether the edge
         // throws sparks. Steel is the default (most of the roster swings it); only the
         // exceptions are listed, so a new bladed fighter needs no entry.
@@ -2688,8 +2692,36 @@
                               [54, 40, 7, 0.18, 140, {}]] },
             '3:down': { art: 'lowtanto',  dur: 340, rec: 0.38, vx: 30,
                         box: [[70, 20, 10, 0.10, 90, { low: true, trip: true }]] },
-            '3:up':   { art: 'ristwin',   dur: 380, rec: 0.44, vx: 0,
-                        box: [[42, 120, 12, 0.11, 110, { up: true, launch: true, launchVy: -390 }]] },
+            // ⛔ ASCENSION MEANS HE ASCENDS. Owner, Sep 15 2026: "he doesn't actually
+            // rise. Let's fix that and make it into a launcher". The box already threw
+            // the OPPONENT up (launch + launchVy -390); what was missing was Tsubasa,
+            // who stayed planted through a move his own board draws airborne — beats 5
+            // and 6 leave the ground and beat 7 is a landing crouch. `vy` here is the
+            // same field Shin's '2:up' uses, so no new mechanism: DIR_MOVES already
+            // clears isGrounded and switches the sfx to 'jump' when a move carries one.
+            // NO vyAir: pressed in the air this must not re-launch him, and with no
+            // vyAir key the air branch falls through to the same rise, which the
+            // `de.air || isGrounded || vy < -180` gate above already refuses mid-fall.
+            // ⛔ AND IT NEEDED A SECOND BOX TO BE A LAUNCHER AT ALL. `up: true` does not
+            // mean "this launches" — spawnHitbox reads it as `ox = (width - sw)/2,
+            // oy = -sh`, i.e. the box sits ENTIRELY ABOVE HIS HEAD in his own 30px column.
+            // Measured on the live sim, geometry not inference: box [550,538 42x120]
+            // against a grounded foe at [524,664] gives ZERO overlap frames across the
+            // whole move, while a foe placed overhead overlaps for 6. It was a pure
+            // anti-air, so the one thing the owner asked for — "hit people and launch
+            // them up" — was the one thing it could not do to anyone standing up.
+            // The FRONT box is the catch: ordinary geometry, no `up`, carrying the same
+            // launch and launchVy, 30ms earlier so a grounded foe is taken at the start of
+            // the rise and carried by it. The overhead box stays exactly as it was, so the
+            // anti-air he already had is untouched.
+            // ⚠️ THE FLAG IS SHARED AND I DID NOT TOUCH IT. Shin, Ember, Kael, Exile and
+            // the Executioner all spawn `up: true` launchers with the same overhead-only
+            // geometry, so on the evidence above none of theirs can launch a grounded
+            // opponent either. Fixing that means moving the flag itself and rewriting five
+            // moves nobody asked about — owner's call, reported not done.
+            '3:up':   { art: 'ristwin',   dur: 380, rec: 0.44, vx: 0, vy: -330,
+                        box: [[52, 68, 12, 0.04, 110, { launch: true, launchVy: -390 }],
+                              [42, 120, 12, 0.11, 110, { up: true, launch: true, launchVy: -390 }]] },
             '3:back': { art: 'eflick',    dur: 400, rec: 0.42, vx: -180,
                         box: [[66, 40, 11, 0.20, 150, {}]],
                         track: [0, 0.08, 0.18, 0.30, 0.50, 0.78] },
@@ -3638,6 +3670,56 @@
                 this.reprisalAnim = true;
                 this.attackAnim = { start: animClock * 1000, dur: 420 };
                 this.armorTimer = Math.max(this.armorTimer, 0.25);
+                // ⛔ THE FANG CROSSES UP. Owner, Sep 15 2026: "is it possible that you
+                // could make it so when he counter, he appeared behind a person". PHANTOM
+                // ONLY — the Executioner's Iron Guard Reprisal is a man planting his feet
+                // and answering, and teleporting him would rewrite a move nobody asked
+                // about, so this is gated to the fighter whose whole kit already blinks.
+                //
+                // NO NEW SYSTEM: this is the Scarlet Phantom Rush's blink — reposition,
+                // ghost trail, smoke both ends, ledge-clamped — fired once instead of four
+                // times. And it happens HERE, above the hitbox and the trail, because 823
+                // taught this the hard way: a box that spawns before the body moves lands
+                // where the body USED to be. Everything downstream now reads the new x and
+                // the new facing, `vx = facing * 80` included, so he still steps into the
+                // cut — just from the other side.
+                //
+                // THE CORNER IS THE HONEST LIMIT. With his back near a wall there is no
+                // room behind the foe, so the clamp would drop him short of crossing and
+                // he would blink INTO them instead of past them. Measured against where he
+                // actually lands, not assumed: if the landing spot is not genuinely on the
+                // far side, the blink is abandoned and the counter fires exactly as it did
+                // before. A cornered riposte still works; it just does not cross up.
+                if (this.spec.id === PHANTOM_MOVE_ID && this.opponent) {
+                    const foe = this.opponent;
+                    const fc = foe.x + foe.width / 2;
+                    const me = this.x + this.width / 2;
+                    const side = me <= fc ? 1 : -1;            // the far side of him
+                    const m = (currentStage && !currentStage.abyss && currentStage.ledge)
+                            ? currentStage.ledge + 4 : 10;
+                    const want = fc + side * (foe.width / 2 + REPRISAL_CROSS_GAP) - this.width / 2;
+                    const dest = Math.max(m, Math.min(canvas.width - m - this.width, want));
+                    // ...and "past him" has to mean CLEAR of him. There is no body
+                    // collision in this engine, so a threshold of half the foe's width
+                    // passes a clamped landing that leaves the two of them standing inside
+                    // each other: measured against the left ledge, he crossed by 2px and
+                    // the sprites stacked. Half of EACH body is the honest bar.
+                    if ((dest + this.width / 2 - fc) * side > (foe.width + this.width) / 2) {
+                        const man = SPRITES[this.spec.name.toLowerCase()];
+                        if (man && man.ready) {
+                            const idx = spriteFrameIndex(this, man.frames);
+                            for (let k = 0; k < 4; k++)
+                                this.ghosts.push({ x: this.x + side * k * 15, y: this.y - k * 2,
+                                                   idx, facing: this.facing,
+                                                   life: GHOST_LIFE * (1 - k / 6) });
+                        }
+                        createSmokePuff(me, this.y + this.height / 2, 8);
+                        this.x = dest;
+                        this.facing = -side;                   // turn and face his back
+                        createSmokePuff(this.x + this.width / 2, this.y + this.height / 2, 8);
+                        sfx('poof');
+                    }
+                }
                 this.vx = this.facing * 80;       // he steps INTO it, absorbing then answering
                 this.recoveryTimer = 0.44;
                 this.recoveryTotal = this.recoveryTimer;
