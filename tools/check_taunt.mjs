@@ -70,11 +70,16 @@ need(withArt > 0, 'not one sheet carries a taunt row — the feature can never f
 
 // --- 4. the countdown gets cleared -------------------------------------------
 for (const [label, re] of [
-  ['grapple bite',   /this\.dashTimer = this\.rollTimer = this\.tauntT = 0;\n\s*this\.isGrounded = false;/],
-  ['throw start',    /this\.dashTimer = this\.rollTimer = this\.tauntT = 0;\s*\/\/ no 800px\/s lurch/],
-  ['throw victim',   /opp\.dashTimer = opp\.rollTimer = opp\.tauntT = 0;/],
+  // ⛔ THESE MATCH "tauntT IS CLEARED HERE", NOT ONE EXACT LIST OF TIMERS. They used to
+  // pin the whole assignment chain down to its final `= 0;`, so adding ANY new committed
+  // timer beside tauntT failed all four — which is exactly what happened when the Scarlet
+  // Phantom Rush's rushT joined the chain, with the taunt still being cleared correctly at
+  // every one of the five sites. The tail is now open.
+  ['grapple bite',   /this\.dashTimer = this\.rollTimer = this\.tauntT =[^;]*0;\n\s*this\.isGrounded = false;/],
+  ['throw start',    /this\.dashTimer = this\.rollTimer = this\.tauntT =[^;]*0;\s*\/\/ no 800px\/s lurch/],
+  ['throw victim',   /opp\.dashTimer = opp\.rollTimer = opp\.tauntT =[^;]*0;/],
   ['took damage',    /this\.dashTimer = 0; this\.rollTimer = 0; this\.tauntT = 0;/],
-  ['round reset',    /p\.dashTimer = p\.rollTimer = p\.rollRecover = p\.wallJumpLock = p\.clingTime = p\.tauntT = 0;/],
+  ['round reset',    /p\.dashTimer = p\.rollTimer = p\.rollRecover = p\.wallJumpLock = p\.clingTime = p\.tauntT =[^;]*0;/],
 ]) need(re.test(src), `tauntT is not cleared at the ${label} reset — an interrupted taunt resumes`);
 need(/this\.tauntT > 0 && \(axis !== 0/.test(src),
   'the taunt cancel is not in handleMovement — nothing ends a taunt early');
