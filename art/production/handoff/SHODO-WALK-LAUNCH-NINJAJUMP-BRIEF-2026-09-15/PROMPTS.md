@@ -20,14 +20,14 @@ check the fighter against this table and against `refs/<fighter>-refs.png`.
 | **Mizu** | ONE long tan wooden bo staff, both hands | hood | purple robe `#7e22ce`, `#a855f7`, `#c084fc` scarf, white eyes | never a blade |
 | **Shin** | bare hands + ONE four-point wire shuriken, chainmail head to toe | dark-green hood | deep-teal scarf, pale-cyan eyes | **no blades**; **ONE eye is canon — never "fix" it** |
 | **Tsubasa** | exactly TWO small tantō, **reverse grip** | **NO HOOD** — spiky black hair, red streaks | black / dark red, red scarf | never a hood, never three knives |
-| **Ember** | tekkō-kagi claws — blade count **CONTESTED, see below** | hood | ⛔ **GREY / achromatic — not green** | **never a sword** |
+| **Ember** | tekkō-kagi claws, **THREE** blades per hand (thumb blades removed) | hood | ⛔ **GREY / achromatic — not green** | **never a sword**; never "correct" three up to four |
 | **Kael** | ONE **long** katana + ONE **short** wakizashi — difference obvious at a glance | gold/amber hood | black body, gold scarf + sash, glowing amber eyes | never two equal blades |
 | **Mokurai** | **BARE HANDS**, prayer beads wrapped round the fists | no hood, gray carved stone mask, red forehead jewel | saffron/ochre, maroon scarf | **never a staff, ever** |
 | **Exile** | long-bladed kusarigama, **SPIKED** iron ball, long chain | **UNHOODED** — huge black-and-silver mane, tan cloth eye-wrap, dark-red kanji | red iris `#B94828` | never hooded; never a smooth ball |
 
 **Purple belongs to the Executioner and Mizu only.** It is forbidden on the other six.
 
-### ⛔ Two Ember corrections, both caught late and both measured
+### ⛔ Two Ember notes, both measured
 
 **1 — Ember is GREY, not green.** Owner ruling 2026-09-11 (the story-bible merge): *"Ember is
 grey, with grey eyes. The roster row saying Green is wrong and is never used."* The sheet
@@ -36,18 +36,21 @@ agrees — measured on his newest idle cell 505, saturation spread averages **4.
 roster data (`#84cc16` / `#3f6212` / `#15803d`) drive the **UI and the vector fallback**, not
 the shodō sheet. **Do not put a green in an Ember prompt.**
 
-**2 — His blade count is genuinely contested and is an OWNER RULING, not mine to make.**
+**2 — THREE claws per hand. Already ruled, and not blocking.**
 
-| evidence | says |
-|---|---|
-| his **newest** packed idle, cells 505 / 509 (`SHEET_V 836–837`, days old) | **THREE** per hand |
-| older attack rows — `clawrend4` (287), `erake4` (318) | **FOUR** per hand |
-| his newest source boards, named `…three-claw-corrected` | **THREE** |
-| the standing note in my own memory | **FOUR**, "never shrink to three" |
+The owner asked for **both thumb blades removed** — recorded in
+`media/ember-idle-redraw-20260906/QC.md` ("Three main claws per hand; both thumb blades absent
+as requested"), and every board he has delivered since is named for it
+(`…-three-claw-corrected`, `ghost-claw-reap-8f-v4-three-claw`). His newest packed idle, cells
+505 / 509 at `SHEET_V 836–837`, draws three.
 
-Both are on the sheet right now. The prompts in `prompts/ember.md` say **three**, because a new
-row has to match the art it will sit beside and the newest approved art is three — **but if the
-owner says four, it is a one-word change in three places.** Ask before generating Ember.
+Older attack rows — `clawrend4` (287), `erake4` (318) — still draw **four**, so his sheet is
+mixed and it shows the moment he stops moving. Owner, Sep 15 2026, asked directly:
+
+> *"It's all good — if it really bothered me, I'll come back and fix it."*
+
+So: **draw three, do not stop to ask, and never "correct" a three-claw board up to four.**
+The mixed sheet is a known, accepted state, not a defect to chase.
 
 Pronouns: Mizu and Exile are **she/her**. Everyone else is he/him. Ember is **male** —
 this has been got wrong before.
@@ -222,7 +225,7 @@ claws-first**. Predatory, not schooled.
 
 > …A hooded ninja in **achromatic warm greys — black, ash and bone, no green anywhere**, pale
 > grey eyes, wearing **tekkō-kagi claw gauntlets with THREE long parallel silver blades on each
-> hand — claws, never swords** (see the blade-count note in §0 before generating), curling into
+> hand — claws, never swords**, curling into
 > a feral ball in mid-air like an animal.
 > Frame 1: spine rounding first, shoulders hunching, head dropping — the curl starts at the back.
 > Frame 2: knees driving up outside the elbows, all six claw blades drawn in tight across the chest.
