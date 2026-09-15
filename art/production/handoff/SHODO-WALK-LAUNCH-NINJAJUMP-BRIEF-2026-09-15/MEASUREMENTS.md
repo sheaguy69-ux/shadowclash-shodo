@@ -6,52 +6,74 @@ the command given.
 
 ---
 
-## 1. The walk tier lives 8 frames and shows 3 cells of 8
+## 1. The walk tier lives 8 frames and shows a MOVING 3-beat window
 
-The `WALK` state is already built and gated purely on the `walk1` key. But it is a
-**lean-out before the run**, not a persistent walk:
+⛔ **This section was wrong in the first draft of this brief and is corrected here.** The
+first version said only ~3 cells of 8 are *ever* reachable and told the generator to
+front-load the character into beats 1–3. **That advice would have produced a cycle with
+three good frames and five filler ones**, and the filler would show.
+
+### What is true
+
+The `WALK` tier is a **lean-out before the run**, not a walk you hold:
 
 ```js
 const WALK_TIME = 0.15;   // seconds of walk before the push breaks into a run
 const WALK_FRAC = 0.5;    // of that fighter's own moveSpeed
 ```
 
-Measured by faking `walk1..8` onto Tsubasa in memory and driving a held push:
+One push is **8 frames** in `STATE.WALK` and shows about **three consecutive cells**.
+
+### What is ALSO true, and changes the instruction
+
+**`animPhase` is never reset.** It is written once at init and accumulates for the whole
+round, so each push resumes the cycle wherever the last one left it. Driven live, six
+consecutive pushes from a standing stop with a fake 8-cell row:
 
 ```
-0 WALK walkT=0.130 vx=263 phase=20.40 cell A
-1 WALK walkT=0.110 vx=263 phase=20.68 cell A
-2 WALK walkT=0.090 vx=263 phase=20.96 cell A
-3 WALK walkT=0.070 vx=263 phase=21.24 cell B
-4 WALK walkT=0.050 vx=263 phase=21.52 cell B
-5 WALK walkT=0.030 vx=263 phase=21.80 cell B
-6 WALK walkT=0.010 vx=263 phase=22.08 cell C
-7 WALK walkT=0.000 vx=263 phase=22.36 cell C
-8 RUN  ...
+push 1  phase 24.38  ->  walk5 walk6 walk7
+push 2  phase 28.42  ->  walk1 walk2 walk3
+push 3  phase 30.74  ->  walk5 walk6
 ```
 
-- **8 frames in `STATE.WALK`**, held or tapped — identical either way.
-- **3 distinct cells reached**, out of 8.
-- `animPhase` advances **0.28 per frame** at walk speed.
+**All eight beats are reachable. Which three you see is different every push.**
 
-The arithmetic, from `web/index.html`:
+> ⛔ **So every beat must be equally strong.** There is no "first" beat in practice — the
+> player sees a random three-beat window of a loop. A cycle with two hero poses and six
+> in-betweens will stutter every time a push lands on the in-betweens.
+
+### The arithmetic, and it is per fighter
 
 ```
-walk vx   = 350 * (curSpeed / 6) * WALK_FRAC        // Tsubasa, speed 9  -> 262.5
-animPhase += dt * min(3, |vx| / 150) * cycle        // 0.02 * 1.75 * 8   -> 0.28 / frame
-frames in WALK = WALK_TIME / dt                     // 0.15 / 0.02       -> 7.5
-cells shown    = 7.5 * 0.28                         //                   -> ~2.1, measured 3
+walk vx   = 350 * (curSpeed/6) * 0.5 * (winded ? 0.5 : 1)
+animPhase += dt * min(3, |vx|/150) * cycle          // dt = 0.02 game-seconds (COMBAT_TEMPO 1.2)
+frames in WALK = ceil(0.15 / 0.02) = 8
 ```
 
-To show all eight beats, `WALK_TIME` would have to be about **0.57s** — and longer still for
-the slower bodies, because their walk `vx` is lower and `animPhase` advances slower.
+`curSpeed` is **not** the roster stat — frenzy (×1.2), tag heat (up to ×1.65) and kage haste
+(×1.15) all scale it. The `min(3, …)` clamp needs `curSpeed >= 15.4`, so it never binds in
+normal play.
 
-**Consequence for the art, and it is the single most important line in this brief:**
-draw a full 8-beat loopable cycle, but put the character in **beats 1–3**. Those are the
-only ones that ship until the owner rules on `WALK_TIME`. A walk whose personality lives in
-beat 6 will never be seen.
+| fighter | speed | walk vx | Δphase/frame | cells per push |
+|---|---|---|---|---|
+| Mokurai | 5 | 145.8 | 0.156 | 2–3 |
+| Executioner | 6 | 175.0 | 0.187 | 2–3 |
+| Mizu | 7.5 | 218.8 | 0.233 | 2–3 |
+| Kael | 8 | 233.3 | 0.249 | 2–3 |
+| Tsubasa | 9 | 262.5 | 0.280 | 3–4 |
+| Ember | 9.5 | 277.1 | 0.296 | 3–4 |
+| Shin | 10 | 291.7 | 0.311 | 3–4 |
+| Exile | 10 | 291.7 | 0.311 | 3–4 |
 
----
+**A full cycle in one push would need `WALK_TIME` between 0.514s (Shin, Exile) and 1.029s
+(Mokurai)** — so a single roster-wide constant cannot serve all eight. Per-fighter is a spec
+field plus a lookup, roughly three lines. **Owner's ruling, not a bug.**
+
+### One more art constraint from the same code
+
+`footDust`, the body lean and travel-facing are all **`STATE.RUN`-only**. So the walk row
+**plays forward while backpedalling**. Draw it upright and weight-centred, with no strong
+forward lean that would read as wrong when walking backwards.
 
 ## 2. Air-hit art does not exist. Every fighter is drawing the throw-grab pose
 

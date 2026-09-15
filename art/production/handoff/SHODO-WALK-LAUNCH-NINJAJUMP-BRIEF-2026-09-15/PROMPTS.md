@@ -1,7 +1,11 @@
 # Prompts — per fighter, per row
 
-Paste-ready. Read `§0` before generating anything and `BOARD-SPEC.md` before delivering
-anything.
+Read `§0` before generating anything and `BOARD-SPEC.md` before delivering anything.
+
+**The paste-ready per-fighter prompts live in `prompts/<fighter>.md`** — one self-contained
+file per character, carrying all three rows, that fighter's beats, prompt text, pitfalls and
+packing notes. This file is the shared law they all assume: the canon table (§0), the scaffold
+and the packing traps (§1), and the per-row rules (§2–§4).
 
 ---
 
@@ -16,12 +20,34 @@ check the fighter against this table and against `refs/<fighter>-refs.png`.
 | **Mizu** | ONE long tan wooden bo staff, both hands | hood | purple robe `#7e22ce`, `#a855f7`, `#c084fc` scarf, white eyes | never a blade |
 | **Shin** | bare hands + ONE four-point wire shuriken, chainmail head to toe | dark-green hood | deep-teal scarf, pale-cyan eyes | **no blades**; **ONE eye is canon — never "fix" it** |
 | **Tsubasa** | exactly TWO small tantō, **reverse grip** | **NO HOOD** — spiky black hair, red streaks | black / dark red, red scarf | never a hood, never three knives |
-| **Ember** | tekkō-kagi claws, **FOUR** silver blades per hand | hood | lime `#84cc16`, `#3f6212` tunic, `#15803d` scarf, pale-green eyes | **never a sword**; never three blades |
+| **Ember** | tekkō-kagi claws — blade count **CONTESTED, see below** | hood | ⛔ **GREY / achromatic — not green** | **never a sword** |
 | **Kael** | ONE **long** katana + ONE **short** wakizashi — difference obvious at a glance | gold/amber hood | black body, gold scarf + sash, glowing amber eyes | never two equal blades |
 | **Mokurai** | **BARE HANDS**, prayer beads wrapped round the fists | no hood, gray carved stone mask, red forehead jewel | saffron/ochre, maroon scarf | **never a staff, ever** |
 | **Exile** | long-bladed kusarigama, **SPIKED** iron ball, long chain | **UNHOODED** — huge black-and-silver mane, tan cloth eye-wrap, dark-red kanji | red iris `#B94828` | never hooded; never a smooth ball |
 
 **Purple belongs to the Executioner and Mizu only.** It is forbidden on the other six.
+
+### ⛔ Two Ember corrections, both caught late and both measured
+
+**1 — Ember is GREY, not green.** Owner ruling 2026-09-11 (the story-bible merge): *"Ember is
+grey, with grey eyes. The roster row saying Green is wrong and is never used."* The sheet
+agrees — measured on his newest idle cell 505, saturation spread averages **4.7** and peaks at
+**24**, with **zero** pixels above 40. It is achromatic warm grey. The greens still in the
+roster data (`#84cc16` / `#3f6212` / `#15803d`) drive the **UI and the vector fallback**, not
+the shodō sheet. **Do not put a green in an Ember prompt.**
+
+**2 — His blade count is genuinely contested and is an OWNER RULING, not mine to make.**
+
+| evidence | says |
+|---|---|
+| his **newest** packed idle, cells 505 / 509 (`SHEET_V 836–837`, days old) | **THREE** per hand |
+| older attack rows — `clawrend4` (287), `erake4` (318) | **FOUR** per hand |
+| his newest source boards, named `…three-claw-corrected` | **THREE** |
+| the standing note in my own memory | **FOUR**, "never shrink to three" |
+
+Both are on the sheet right now. The prompts in `prompts/ember.md` say **three**, because a new
+row has to match the art it will sit beside and the newest approved art is three — **but if the
+owner says four, it is a one-word change in three places.** Ask before generating Ember.
 
 Pronouns: Mizu and Exile are **she/her**. Everyone else is he/him. Ember is **male** —
 this has been got wrong before.
@@ -42,25 +68,68 @@ this or the board will not pack:
 The "no ground shadow" clause is not stylistic. The packer welds the board's **lowest ink**
 to the floor line, so a painted shadow *becomes* the feet and the fighter hovers above it.
 
+### ⛔ Generate as a ROW, deliver as EIGHT FILES
+
+The prompts ask for one horizontal row on purpose — eight beats generated in one pass hold
+one body size, and the packer applies **one scale to the whole board**, so a size drift
+between beats ships as a fighter who changes size mid-animation. But the packer globs
+`frame-01.png … frame-08.png`, **one file per beat**. So: generate the row, then **slice it
+into eight equal files** at even gutters before delivering. `BOARD-SPEC.md` has the layout.
+
+### ⛔ Two packing traps, and one of them hits 16 of the 24 rows
+
+**1 — the scale anchor.** `pack_keyed_board.py` measures ink area on **beat 1** by default and
+applies that scale to the whole row. That is right for a walk, where beat 1 is a stance. It is
+**wrong for every launched row and every second-jump row**, because beat 1 there is the pop or
+the launch — the most extended frame in the board — and anchoring on it packs the whole row
+too small. The banner in the tool says it outright: *"DO NOT ANCHOR ON THE LARGEST BEAT."*
+For those 16 rows pass an explicit `--scale` taken from that fighter's idle, or `--anchor` at
+the most neutral beat in the row. **Always `--dry` first and read the deviation column.**
+
+**2 — the cell is not tall enough for an airborne arc.** The union of eight airborne beats is
+taller than a standing pose, and the packer refuses rather than crop: `REFUSE: scaled window
+exceeds cell — grow the cell`. Budget `grow_frame.py --down` (this is how Tsubasa went 320→332).
+It is not a reason to shrink the fighter.
+
+### Cell aspect, per fighter
+
+Frame the board to the fighter's own cell or the pack wastes resolution:
+
+| shin | executioner | mokurai | exile | kael · mizu | tsubasa | ember |
+|---|---|---|---|---|---|---|
+| 1.41 | 1.30 | 1.21 | 1.11 | 0.94 | 0.91 | 0.87 |
+
 ---
 
 ## §2 — Row A · `walk1..8` · the walk cycle
 
-*(Per-fighter prompts follow in §2.1–§2.8.)*
+*Per-fighter prompts: **`prompts/<fighter>.md`**, Row A.*
 
-**The one rule that overrides everything else in this row:** the walk tier lives ~8 frames and
-only about **three cells are reachable** (`MEASUREMENTS.md` §1). **Put the character in beats
-1–3.** Draw all eight as a true loopable cycle — beat 8 must flow back into beat 1 — but
-assume beats 4–8 are insurance against a future `WALK_TIME` ruling.
+**The one rule that overrides everything else in this row: every beat must be equally strong.**
+
+One push lasts ~8 frames and shows about three consecutive cells — but **`animPhase` is never
+reset**, so each push resumes the cycle wherever the last one stopped. Driven live: push 1
+showed beats 5·6·7, push 2 showed 1·2·3, push 3 showed 5·6. **All eight are reachable and the
+window moves.** A cycle with two hero poses and six in-betweens will stutter every time a push
+lands on the in-betweens.
+
+*(An earlier draft of this brief said only beats 1–3 are ever seen and told you to front-load
+them. That was wrong and is corrected — see `MEASUREMENTS.md` §1.)*
+
+Draw a true loop: beat 8 must flow back into beat 1 with no jump.
 
 Second rule: the walk is paced **flat**. A run has contact holds because a sprint slams; a
 stroll does not. Even cadence, even spacing.
+
+Third rule, from the same code: `footDust`, body lean and travel-facing are **`STATE.RUN`-only**,
+so **the walk row plays forward while backpedalling**. Upright, weight-centred, no strong
+forward lean.
 
 ---
 
 ## §3 — Row B · `airhurt1..8` · the launched hurt arc
 
-*(Per-fighter prompts follow in §3.1–§3.8.)*
+*Per-fighter prompts: **`prompts/<fighter>.md`**, Row B.*
 
 **Beat 1 is on screen for more than half the launch.** Measured against a −390 launcher with
 0.5s of hitstun: `airhurt1` covers roughly **0 → 0.28s** (the entire rise), beat 2 gets 0.14s
@@ -71,6 +140,13 @@ carry the move**. A launched pose that only becomes interesting at beat 6 is was
 intent**. A rag, not a pose. This is the only row in the game where the silhouette should
 read as broken rather than composed. Weapons stay in hand — nobody is disarmed — but they
 hang loose and trail.
+
+⛔ **"Launched" is the name, not the trigger.** The engine cannot tell a launcher from any
+other air hit: a plain airborne hit already forces `vy = min(vy, -250)`, which lands in the
+same band as a −390 uppercut. `launch` only changes the **attacker's** impact FX. So **this row
+plays on every air hit, including a light air jab** — draw violence the fighter can survive
+being shown for a poke as well as for a 192px launch. Do not make beat 1 so extreme it reads
+as absurd on a jab.
 
 ---
 
@@ -141,11 +217,12 @@ Backward tuck, arms wrapped round the shins, chainmail bunching at the joints.
 a gymnast.* Spine-first curl, claws drawn in tight against the chest, then he **snaps open
 claws-first**. Predatory, not schooled.
 
-> …A hooded ninja in lime-green `#84cc16` and dark-green `#3f6212`, pale-green eyes, wearing
-> **tekkō-kagi claw gauntlets with FOUR parallel silver blades on each hand — claws, never
-> swords**, curling into a feral ball in mid-air like an animal.
+> …A hooded ninja in **achromatic warm greys — black, ash and bone, no green anywhere**, pale
+> grey eyes, wearing **tekkō-kagi claw gauntlets with THREE long parallel silver blades on each
+> hand — claws, never swords** (see the blade-count note in §0 before generating), curling into
+> a feral ball in mid-air like an animal.
 > Frame 1: spine rounding first, shoulders hunching, head dropping — the curl starts at the back.
-> Frame 2: knees driving up outside the elbows, all eight claw blades drawn in tight across the chest.
+> Frame 2: knees driving up outside the elbows, all six claw blades drawn in tight across the chest.
 > Frame 3: quarter turn forward, a hunched irregular ball, claws glinting inside the tuck.
 > Frame 4: half turn, inverted, body coiled and tense — compressed, not relaxed.
 > Frame 5: three-quarter turn, the coil beginning to release, claws leading.

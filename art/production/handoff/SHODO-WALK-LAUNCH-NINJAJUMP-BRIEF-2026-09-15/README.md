@@ -51,14 +51,24 @@ key existing: pack the row, the tier turns on, nothing to change. It runs at hal
 fighter's own run speed and is paced **flat** — an even cadence, because a stroll does not
 slam the way a sprint does.
 
-**But it lives 8 frames and shows 3 cells of 8.** Measured, not assumed — `MEASUREMENTS.md` §1.
-`WALK_TIME` is `0.15s`, which is a *lean-out before the run*, not a walk you hold. So:
+**But one push lasts 8 frames and shows only about three consecutive cells** — and
+**`animPhase` is never reset**, so each push resumes the cycle where the last one stopped.
+Driven live: push 1 showed beats 5·6·7, push 2 showed 1·2·3, push 3 showed 5·6.
 
-> ⛔ **Put the character in beats 1–3.** They are the only ones that ship until the owner
-> rules on `WALK_TIME`. A walk whose personality lives in beat 6 will never be seen.
+> ⛔ **All eight beats are reachable, and which three you see changes every push. So every
+> beat must be equally strong.** The player sees a random three-beat window of a loop — a
+> cycle with two hero poses and six in-betweens will stutter whenever a push lands on the
+> in-betweens.
 
-Draw the full loopable eight anyway — the boards come in eights, beat 8 must flow back into
-beat 1, and if `WALK_TIME` goes up later the whole cycle is already there.
+*(An earlier draft of this brief said only beats 1–3 are ever seen and told the generator to
+front-load them. That was wrong, it was caught by the verification pass, and it is corrected
+in `MEASUREMENTS.md` §1.)*
+
+A full cycle in one push needs `WALK_TIME` between **0.514s** (Shin, Exile) and **1.029s**
+(Mokurai) — so one roster-wide constant cannot serve everybody.
+
+Also from the same code: `footDust`, body lean and travel-facing are **`STATE.RUN`-only**, so
+the walk row **plays forward while backpedalling**. Upright, weight-centred, no strong lean.
 
 ### What the owner has to rule on
 
