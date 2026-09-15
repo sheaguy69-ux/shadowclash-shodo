@@ -2,7 +2,7 @@
   "name": "tsubasa",
   "frameW": 301,
   "frameH": 320,
-  "cols": 479,
+  "cols": 487,
   "footY": 312,
   "scale": 0.3663,
   "frames": {
@@ -317,7 +317,15 @@
     "skid1": 244,
     "skid2": 245,
     "turn1": 466,
-    "dive6": 462
+    "dive6": 462,
+    "cfang1": 479,
+    "cfang2": 480,
+    "cfang3": 481,
+    "cfang4": 482,
+    "cfang5": 483,
+    "cfang6": 484,
+    "cfang7": 485,
+    "cfang8": 486
   },
   "rollIsBackdash": true,
   "weapon_type": "Dual Tant\u014d Knives",
