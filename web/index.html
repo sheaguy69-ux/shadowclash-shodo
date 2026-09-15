@@ -4740,6 +4740,10 @@
                     && axis !== this.dashDir) {
                     this.dashTimer = 0;
                     this.vx = 0;
+                    // ...and THIS is the exit most dashes actually take — a tap-dash brakes
+                    // here at dashMinTime, never reaching the expiry below — so it owes the
+                    // same skid. Measured before: dash ended at frame 3, xidle1 on frame 4.
+                    this.skidT = SKID_T; this.skidDir = this.dashDir;
                 }
                 // Instant zero-friction movement (Hollow Knight movement snap).
                 // ponytail: during the wall-jump lock we preserve the kick's momentum and
@@ -4762,6 +4766,20 @@
                     this.vx = this.dashDir * DASH_SPEED
                              * (this.spec.id === PHANTOM_MOVE_ID ? PHANTOM_DASH_MUL : 1);
                     if (this.isGrounded) this.state = STATE.RUN;
+                    // ⛔ THE DASH EXIT OWES THE SKID. Owner, Sep 15 2026: "fix" — a shunshin
+                    // ran at full speed and then stood in idle on the very next frame. The
+                    // run-stop skid (skid1 brake -> skid2 recover) exists and is wired, but
+                    // it arms in the STOP branch off `state === RUN && |vx| > 200`, and by
+                    // the frame after expiry the state resolver has already put him in
+                    // IDLE, so a dash never reached it — measured: skidT 0.00 on every frame
+                    // after the dash, straight to xidle. Armed HERE, on the frame the clock
+                    // runs out, facing the dash. The STOP is still instant (footsies law,
+                    // same as the run) — only the body shows the brake. If the stick is
+                    // still held he goes on running and the skid picker never fires, because
+                    // it only draws over IDLE.
+                    if (this.dashTimer <= 0 && this.isGrounded) {
+                        this.skidT = SKID_T; this.skidDir = this.dashDir;
+                    }
                 } else if (this.rollTimer > 0) {
                     // Dodge roll in flight: committed low dash, steering locked
                     this.rollTimer -= dt;
