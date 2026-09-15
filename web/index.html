@@ -1846,6 +1846,13 @@
         // which is already more forgiving than a coyote window.
         const ATTACK_BUFFER = 0.133;   // game seconds; retries keep the original deadline
         const JUMP_BUFFER = 0.12;      // early press fires on landing or after attack recovery
+        // TRANSITION BEATS (owner, Sep 11 2026: "fluid and smooth with a bouncy effect").
+        // Four short moments between the loops, drawn from beats the sheets already
+        // carry — turn1, jsquat1..2, land1..3, skid1..2 in each manifest. Art or nothing.
+        const JUMP_SQUAT = 0.05;       // a ground takeoff LOADS for 3 ticks before it fires (jsquat cells)
+        const LAND_T = 0.15;           // touchdown: land1 squash -> land2 overshoot -> land3 settle
+        const SKID_T = 0.10;           // run released at speed: skid1 brake -> skid2 recover, facing the run
+        const TURN_T = 0.07;           // a grounded about-face holds turn1 (the front-view beat) for 4 ticks
         const JUMP_CUT = 0.5;          // release jump while rising -> ascent multiplier
         // Chakra economy (design doc Pillar B): every jutsu costs, one shared 100-pt pool
         // ⛔ EVERY spec.id NEEDS A ROW. Oni (8) had none, and the miss is silent in both
@@ -3278,6 +3285,7 @@
                 this.animPhase = 0;          // per-player anim cycle (game-time, no rate-change flicker)
                 this.leanSmooth = 0;         // spring-damped body lean (velocity-scaled, never snaps)
                 this.landSquash = 0;         // 1->0 landing-impact squash (weight)
+                this.jumpSquatT = 0; this.skidT = 0; this.turnT = 0; this.skidDir = 1;   // transition beats
                 this.parryFlashTimer = 0;
                 this.crouchAt = -9;            // animClock the crouch was entered (sink beats)
                 this.parriedAt = -9;           // animClock of the last successful parry catch
@@ -4616,6 +4624,11 @@
                         : (axis > 0 ? 1 : -1);
                     if (this.isGrounded) this.state = STATE.RUN;
                 } else if (!this.isAttackingState()) {
+                    // RUN-STOP SKID: the stop itself stays instant (footsies law); the BODY
+                    // shows the brake — skid1/skid2 drawn facing the direction he was running.
+                    if (this.isGrounded && this.state === STATE.RUN && Math.abs(this.vx) > 200) {
+                        this.skidT = SKID_T; this.skidDir = Math.sign(this.vx);
+                    }
                     this.vx = 0; // Instant ground stop
                     // A guard that leaves the ground (shoved off a ledge, platform gone)
                     // is no guard: BLOCKING is grounded-only, and takeDamage reads the
@@ -4635,8 +4648,40 @@
                 // Refresh jumps on landing; fire a buffered jump the moment we touch down
                 if (this.landT > 0) this.landT -= dt;
                 if (this.tumbleT > 0) this.tumbleT -= dt;
+                if (this.turnT > 0) this.turnT -= dt;
+                if (this.skidT > 0) {
+                    this.skidT -= dt;
+                    // the brake ran out facing the run; if he now faces the other way, turn
+                    if (this.skidT <= 0 && this.facing !== this.skidDir) this.turnT = TURN_T;
+                }
+                // THE ABOUT-FACE: the VISUAL facing (run direction while running, else
+                // facing) flipping on the ground stamps turnT; transitionFrame holds the
+                // front-view turn1 over it. Off attacks and stun so a hit never paints a
+                // stance cell; off the skid so the brake beat wins and re-stamps above.
+                const vf = (this.state === STATE.RUN && Math.abs(this.vx) > 1) ? Math.sign(this.vx) : this.facing;
+                if (this._prevVf !== undefined && vf !== this._prevVf && this.isGrounded
+                    && !this.isAttackingState() && this.stunTimer <= 0 && this.skidT <= 0) this.turnT = TURN_T;
+                this._prevVf = vf;
+                // JUMP SQUAT, part two: the press armed it in executeJump; it fires here.
+                if (this.jumpSquatT > 0) {
+                    this.jumpSquatT -= dt;
+                    if (this.jumpSquatT <= 0) {
+                        this.jumpSquatT = 0;
+                        if (this.isGrounded && this.stunTimer <= 0 && !this.isAttackingState()) {
+                            this._squatLaunch = true; this.executeJump(); this._squatLaunch = false;
+                            if (this._cutQueued) this.cutJump();   // released during the load = short hop, as before
+                        }
+                        this._cutQueued = false;
+                    }
+                }
                 if (this.isGrounded) {
-                    if (!this._wasGrounded) this.landT = 0.08;   // touchdown -> landing squash beat
+                    if (!this._wasGrounded) {
+                        // A real fall earns the three-beat landing; the spawn tick and a
+                        // ledge step-off (landSquash ~0) keep the old short beat, so the
+                        // round does not open on a squash.
+                        this.landHard = this.landSquash > 0.2;
+                        this.landT = this.landHard ? LAND_T : 0.08;
+                    }
                     // Slice-throw landing: convert the flight into a visible ground
                     // tumble/roll that rides out inside the same stun (no new state).
                     if (this.tumbleOnLand > 0) {
@@ -5645,6 +5690,14 @@
                 // hole it closes. Only the ordinary standing/air jump is committed.
                 if (this.canFootsiesCancel('JUMP')) this.finishFootsiesMove();
                 if (this.isAttackingState()) { this.jumpBufferTimer = JUMP_BUFFER; return; }
+                // JUMP SQUAT, part one: a GROUND takeoff loads first. The press arms
+                // jumpSquatT and returns; handleMovement calls back with _squatLaunch set
+                // when it runs out. Air jumps stay instant. A second press mid-load is
+                // absorbed here, so it can neither double-arm nor double-fire.
+                if (this.isGrounded && !this._squatLaunch) {
+                    if (!(this.jumpSquatT > 0)) { this.jumpSquatT = JUMP_SQUAT; this._cutQueued = false; }
+                    return;
+                }
                 if (this.isGrounded || this.jumpsLeft > 0) {
                     this.jumpBufferTimer = 0;
                     // ⛔ DIRECTION IS CAPTURED AT TAKEOFF, never sampled in the air. Airborne,
@@ -5688,6 +5741,7 @@
             // Variable jump height: releasing jump while rising cuts the ascent
             // (Hollow Knight's cancelable jump — hold for full arc, tap for a hop).
             cutJump() {
+                if (this.jumpSquatT > 0) { this._cutQueued = true; return; }   // applied the tick it fires
                 if (this.state === STATE.JUMP && this.vy < 0) this.vy *= JUMP_CUT;
             }
 
@@ -10685,7 +10739,7 @@
         // 777: approved Executioner Back Light row; full katana/boots, contact holds, retained strike reach. Body hurtboxes follow new poses.
         // 778: approved Executioner low cut; low contact4–5 then half-rise recovery, body bounds prevent sword-driven viewport shifts. Existing offensive mechanics retained; defensive poses change.
         // 791: Ember's approved air Forward+Light sequence; six appended drawings, existing body/strike geometry retained.
-        const SHEET_V = 805; // 805: TSUBASA'S BACKDASH FACES YOU. Owner, Sep 14 2026: "install his backdash and cutout the negative black space". BOTH WERE ALREADY HALF-DONE AND THE MEASUREMENTS SAY SO. backdash-8f-v5 is packed at cells 238-245 under roll_1..8 - beat for beat in order, silhouette IoU 0.71/0.86/0.75/0.94/0.93/0.92/0.94/0.70 against the source board (the three low beats are the drawn foot-dust the pack trimmed, not a mismatch) - and those cells measure 87.3-89.6% transparent, so the black card came off at pack time. A sweep of all 463 tsubasa cells finds ten under the 70%-clear line the runtime keyer needs (29, 61-68, 261) and ALL TEN ARE ORPHANS: every live cell is keyed, there was nothing left to cut. WHAT WAS ACTUALLY MISSING IS THE MOVE. startRoll sets `facing = dir`, which is right for a tumble - the body turns into the travel - but roll_1..8 is not a tumble. It is a drawn BACKDASH: guard held, blade up, the whole retreat taken facing forward. With the flip on, retreating spun him around and the art read as a forward hop into nothing. So a sheet that declares `rollIsBackdash` keeps its facing when the roll travels AWAY; travelling THROUGH still flips, because crossing a body IS a turn. Travel is untouched either way - handleMovement rides `dashDir`, not facing. ONE manifest flag and ONE conditional; no new cells, no repack, no key repointed, nothing stripped. DRIVEN IN THE LIVE ENGINE, both branches: rolling away from a foe on the left with dir +1 leaves facing at -1 and plays 238,239,...,245 in order across the window; rolling through with dir -1 from facing +1 still lands facing -1. Shin, who carries no flag, still flips on an away roll - regression clean. // 800-804 are co-tenant passes staged uncommitted in this tree (transition beats, ember feral idle, the chudan/power fixes, the cell-302 strip); they are NOT in this commit and 800 is still waiting on its own review artifact. // 798: NO SHADOWS, ANYWHERE. Owner, Sep 11 2026: "just delete everybody's shadow
+        const SHEET_V = 806; // 806: EMBER GETS HIS FACE BACK. The idle keys come off the feral row and go back on the void-face idle - eidle1..8, idle, idle2, xidle1..6 and land3 repoint from cells 377-384 to 369-376. JSON ONLY: no cell written, no pixel touched, no engine change. fc04943 installed a 'feral idle' whose head is a WHITE MASK WITH A RED SLIT EYE inside the hood; every other row on this sheet - light, erake, taunt, intro, win, ko - draws a BLACK VOID HOOD WITH ONE BONE-WHITE EYE, and so does 369-376, the row 8980abe had keyed the paper slab out of and the row the idle keys pointed at until fc04943. The white-mask-and-red-eye face is ONI's identity (white skull mask, red eyes, per the roster canon), not Ember's, and the Sep 13 roster-consistency audit had already logged the idle/attack face split as an unresolved source defect; the owner ruled it on Sep 14 - Ember has a VOID face. MEASURED, post-runtime-keyer: 369-376 reads ink area 14756px median, 0.919x the light/erake/taunt/intro median, body height 197-198px - a 0.5% spread - and a uniform 4px foot gap; the feral row it replaces read 14206px, 0.902x, and 182-208px, a 14% height spread that bobs. So the correct face is also the steadier row. land3 came along because it is the landing tail's settle beat and pointed at 377 only because 377 WAS the idle cell. NOT STRIPPED: 377-384 stay on the sheet as orphans - old art leaves in two steps and the strip is the owner's call, not this pass's. 805: TSUBASA'S BACKDASH FACES YOU. Owner, Sep 14 2026: "install his backdash and cutout the negative black space". BOTH WERE ALREADY HALF-DONE AND THE MEASUREMENTS SAY SO. backdash-8f-v5 is packed at cells 238-245 under roll_1..8 - beat for beat in order, silhouette IoU 0.71/0.86/0.75/0.94/0.93/0.92/0.94/0.70 against the source board (the three low beats are the drawn foot-dust the pack trimmed, not a mismatch) - and those cells measure 87.3-89.6% transparent, so the black card came off at pack time. A sweep of all 463 tsubasa cells finds ten under the 70%-clear line the runtime keyer needs (29, 61-68, 261) and ALL TEN ARE ORPHANS: every live cell is keyed, there was nothing left to cut. WHAT WAS ACTUALLY MISSING IS THE MOVE. startRoll sets `facing = dir`, which is right for a tumble - the body turns into the travel - but roll_1..8 is not a tumble. It is a drawn BACKDASH: guard held, blade up, the whole retreat taken facing forward. With the flip on, retreating spun him around and the art read as a forward hop into nothing. So a sheet that declares `rollIsBackdash` keeps its facing when the roll travels AWAY; travelling THROUGH still flips, because crossing a body IS a turn. Travel is untouched either way - handleMovement rides `dashDir`, not facing. ONE manifest flag and ONE conditional; no new cells, no repack, no key repointed, nothing stripped. DRIVEN IN THE LIVE ENGINE, both branches: rolling away from a foe on the left with dir +1 leaves facing at -1 and plays 238,239,...,245 in order across the window; rolling through with dir -1 from facing +1 still lands facing -1. Shin, who carries no flag, still flips on an away roll - regression clean. // 800: TRANSITION BEATS + HOLDS — turn/jsquat/land/skid keys on the six (salvage cells, no new art), run/idle/8-cell attack holds. 798: NO SHADOWS, ANYWHERE. Owner, Sep 11 2026: "just delete everybody's shadow
         // in the game whether on the ground or in air". Three engine deletions (the grounded contact
         // ellipse, the tag ground ring, KAGE-KAMI's brightness(0.45) darkening) plus 155 sheet cells
         // repacked with their BAKED cast shadow erased: executioner 87, tsubasa 26, ember 20, kael 14,
@@ -10917,6 +10971,11 @@
         // 5-cell kenjutsu timing law (K3 research): windup 80 / launch 50 /
         // IMPACT HELD 180 / follow 100 / recover 120 ms — the kime owns the swing.
         const ATTACK_EXPOSURES_5 = [0, 0.151, 0.245, 0.585, 0.774];
+        // 8-cell rows without a track (most light/medium/special boards) played as eight
+        // equal slices. Same law as the 5- and 6-cell tables: the wind-up reads, the cut
+        // is a flash, the contact and the follow-through HOLD.
+        //   1 load 12% · 2 coil 12% · 3 cut 6% · 4 contact 22% · 5 through 8% · 6 hold 16% · 7-8 recover 12%+12%
+        const ATTACK_EXPOSURES_8 = [0, 0.12, 0.24, 0.30, 0.52, 0.60, 0.76, 0.88];
         // GODOT-GUIDED ANIM TRACKS (owner order: use the scaffold's discipline):
         // per-fighter, per-move keyframe holds — cumulative start fractions per
         // cell, exactly like an AnimationPlayer track. A move with a track here
@@ -11030,6 +11089,12 @@
             if (count === 5) {
                 for (let i = ATTACK_EXPOSURES_5.length - 1; i >= 0; i--) {
                     if (progress >= ATTACK_EXPOSURES_5[i]) return i;
+                }
+                return 0;
+            }
+            if (count === 8) {
+                for (let i = ATTACK_EXPOSURES_8.length - 1; i >= 0; i--) {
+                    if (progress >= ATTACK_EXPOSURES_8[i]) return i;
                 }
                 return 0;
             }
@@ -11823,6 +11888,32 @@
         function oneShot(cells, t) {
             return cells[Math.min(cells.length - 1, Math.floor(Math.max(0, t) * cells.length))];
         }
+        // TRANSITION BEATS — turn1 / jsquat1..2 / land1..3 / skid1..2. Every key points at
+        // a beat the sheet already carried (Sep 11 2026: both fal accounts locked on an
+        // exhausted balance, so zero new art; the rows are salvage, manifest-only).
+        // Art or nothing: a sheet without the key draws exactly what it drew before.
+        function transitionFrame(p, F) {
+            if (!p.isGrounded || ceremonyBusy(p) || p.stunTimer > 0 || p.lock) return undefined;
+            if (p.jumpSquatT > 0 && F.jsquat1 !== undefined)
+                return (p.jumpSquatT < JUMP_SQUAT * 0.5 && F.jsquat2 !== undefined) ? F.jsquat2 : F.jsquat1;
+            if (p.landT > 0 && p.landHard && F.land1 !== undefined
+                && (p.state === STATE.IDLE || p.state === STATE.RUN || p.state === STATE.JUMP)
+                && !(p.state === STATE.RUN && p.landT < LAND_T - 0.05))   // landing INTO a run: only the squash shows
+                return oneShot(rowCells(F, 'land'), 1 - p.landT / LAND_T);
+            if (p.skidT > 0 && p.state === STATE.IDLE && F.skid1 !== undefined)
+                return p.skidT > SKID_T * 0.5 ? F.skid1 : (F.skid2 ?? F.skid1);
+            if (p.turnT > 0 && (p.state === STATE.IDLE || p.state === STATE.RUN) && F.turn1 !== undefined)
+                return F.turn1;
+            return undefined;
+        }
+        // HOLDS. A loop of equal slices reads as a metronome; a cycle with held contact
+        // beats and fast passing beats reads as weight. `starts` = the phase (0..1) at
+        // which each cell takes over.
+        const RUN_HOLDS_8 = [0, 0.16, 0.26, 0.36, 0.50, 0.66, 0.76, 0.86];   // contact 16% · down 10 · pass 10 · up 14, per leg
+        function heldIndex(u, starts) {
+            for (let i = starts.length - 1; i >= 0; i--) if (u >= starts[i]) return i;
+            return 0;
+        }
         // ⛔ EVERY POSE HERE IS A STANDING-STILL POSE, so each one yields the moment the
         // body is doing something else. In a match that costs nothing — inputs are locked
         // for the whole intro and the round is over by the time win/ko run — but this
@@ -12068,6 +12159,8 @@
                     return p.stunTimer > 0.05 ? F.cguard3 : (F.cguard6 ?? F.cguard3);
                 }
             }
+            const tr = transitionFrame(p, F);
+            if (tr !== undefined) return tr;
             switch (p.state) {
                 case STATE.BLADE_LOCK:
                     return F.xblkguard ?? F.block ?? F.idle;
@@ -12085,9 +12178,11 @@
                     // Owner APPROVED the frames 2026-07-12 after seeing the strips
                     // (his earlier "revert" was the cache-skeleton bug, not this art).
                     const run = runCells(F);
-                    const idx = Math.floor(p.animPhase) % run.length;
+                    // 8-cell Williams cycle: the CONTACT beats (1 and 5) HOLD, the passing
+                    // beats flash — eight equal 41ms slices read as a metronome.
                     // Both travel directions use forward stride order; the renderer turns the body.
-                    return run[idx];
+                    if (run.length === 8) return run[heldIndex((p.animPhase % 8) / 8, RUN_HOLDS_8)];
+                    return run[Math.floor(p.animPhase) % run.length];
                 }
                 case STATE.WALL_CLING:
                     // Projectiles spawn on press: begin on the release pose, then recover.
@@ -12116,7 +12211,7 @@
                         const u = Math.min(0.999, Math.max(0, 1 - p.grappleT / (p.grappleT0 || p.grappleT)));
                         return xa[Math.floor(u * xa.length)];
                     }
-                    if (p.isGrounded) return F.jland ?? F.crouch_3 ?? F.idle;
+                    if (p.isGrounded) return F.land1 ?? F.jland ?? F.crouch_3 ?? F.idle;
                     return F['jflight' + (jumpBand(p.vy) + 1)]
                         ?? (p.vy < 0 ? (F.jump1 ?? F.jump) : F.fall);
                 }
@@ -13542,8 +13637,11 @@
                     }
                     if (F.xidle1 !== undefined) {
                         const poses = [F.xidle1, F.xidle2, F.xidle3, F.xidle4, F.xidle5, F.xidle6].filter(Number.isInteger);
-                        const cyc = poses.concat(poses.slice(1, -1).reverse());
-                        return cyc[Math.floor(p.animPhase / 2) % cyc.length];
+                        // A BREATH, not a slideshow: the old cut held every cell 667ms flat.
+                        // Cosine-paced out-and-back over the drawn beats — the two ends (full
+                        // in, full out) HOLD, the middle passes — one breath every 3.2s.
+                        const u = 0.5 - 0.5 * Math.cos(p.animPhase / 3 * (2 * Math.PI / 3.2));
+                        return poses[Math.min(poses.length - 1, Math.floor(u * poses.length))];
                     }
                     // EXILE BREATHES (xbreath1..3 + her original idle as beat 1). Hers was ONE
                     // static drawing — idle and idle2 both cell 0 — so the only life she had was
@@ -13595,7 +13693,36 @@
             if (footsiesFrame(p)?.sprite === null) { p.drawCell = null; return true; }
             const man = SPRITES[p.spec.name.toLowerCase()];
             if (!man || !man.ready) return false;
-            const idx = spriteFrameIndex(p, man.frames);
+            let idx = spriteFrameIndex(p, man.frames);
+            // Recover the approved victory poses from incorrectly sliced source cards.
+            if (p.spec.id === 0 && p.ceremony?.row === 'win' && idx >= 386 && idx <= 393) idx += 61;
+            // Neutral air Medium art is local to drawing; retain Shin's existing collision poses.
+            if (p.spec.id === 2 && p.state === STATE.ATTACK_MEDIUM && p.attackAir && !p.attackDir) {
+                if ([150, 151, 152].includes(idx)) idx = 443;
+                else if (idx === 153) idx = 444;
+                else if ([154, 218].includes(idx)) idx = 445;
+                else if ([156, 157].includes(idx)) idx = 446;
+            }
+            // Neutral air Medium art is local to drawing; preserve the shared collision selector.
+            if (p.spec.id === 1 && p.state === STATE.ATTACK_MEDIUM && p.attackAir && !p.hanbo && !p.attackDir) {
+                if ([198, 199, 200].includes(idx)) idx = 253;
+                else if (idx === 201) idx = 254;
+                else if ([202, 203, 205].includes(idx)) idx = 255;
+            }
+            // Approved Forward Medium art uses drawing-only cells; collision keeps the original selector.
+            const mizuForwardMedium = p.spec.id === 1 && p.state === STATE.ATTACK_MEDIUM
+                && !p.hanbo && p.isGrounded && !p.attackAir && p.attackDir === 'fwd';
+            if (mizuForwardMedium) {
+                if ([190, 191, 234].includes(idx)) idx = 246;
+                else if (idx === 193) idx = 245;
+                else if (idx === 194) idx = 248;
+                else if (idx === 195) idx = 247;
+                else if (idx === 196 || idx === 197) {
+                    const turning = p.opponent
+                        && (p.opponent.x + p.opponent.width / 2 - p.x - p.width / 2) * p.facing < 0;
+                    idx = p.inputAxis !== 0 ? 251 : p.recoveryTimer > .05 ? 249 : turning ? 252 : 250;
+                }
+            }
             // KAGE-KAMI's tape (item 4) needs the cell that was ACTUALLY drawn, and
             // this is the only place that number exists — spriteFrameIndex resolves
             // state, mode, direction and combo step together, and re-deriving it in
@@ -13764,6 +13891,17 @@
                 pose.shiftX += Math.max(-37.5 * S, Math.min(37.5 * S, combatPose(p).shiftX - pose.shiftX));
             }
             if (footsiesFrame(p) || p.attackAnim?.strikeWindows || pose?.shiftX) { lunge = 0; lean = 0; breath = 0; attackStretch = 0; }
+            if (mizuForwardMedium && idx >= 245 && idx <= 252) {
+                const eyes = [[162,179],[163,179],[161,178],[162,179],[162,178],[149,172],[125,141],[128,144]][idx - 245];
+                const e0 = -p.facing * (eyes[0] - 150) * S;
+                const e1 = -p.facing * (eyes[1] - 150) * S;
+                const physical = p.x + p.width / 2, hb = p.hurtbox();
+                let desired = Math.max(85 * S, Math.min(canvas.width - 85 * S, physical));
+                if (idx === 252) desired -= p.facing * 34.141364605543714 * S;
+                if (hb) desired = Math.max(hb.x - Math.min(e0,e1) + .05,
+                    Math.min(hb.x + hb.w - Math.max(e0,e1) - .05, desired));
+                if (Number.isFinite(desired)) ctx.translate(desired - (physical + (pose?.shiftX || 0)), 0);
+            }
             ctx.translate(p.x + p.width / 2 + p.facing * lunge + (pose?.shiftX || 0), p.y + p.height);
             // Cling art grips the wall; ordinary attacks face out into the arena.
             // Keep the contact/release frame covered while physics updates wallDir/state.
@@ -13779,7 +13917,8 @@
             // turns toward its victim and must keep the ordinary draw direction.
             const reverseWire = false;
             // Runs face travel. Gameplay facing stays opponent-relative for attack inputs.
-            const drawFacing = p.state === STATE.RUN && Math.abs(p.vx) > 1
+            const drawFacing = p.skidT > 0 && p.state === STATE.IDLE ? p.skidDir
+                : p.state === STATE.RUN && Math.abs(p.vx) > 1
                 ? Math.sign(p.vx) : (reverseHeel || reverseWire ? -p.facing : p.facing);
             p.drawMirror = onWall ? p.facing : -drawFacing;
             ctx.scale(p.drawMirror, 1);
@@ -18194,7 +18333,7 @@
                 p.projectiles.length = p.fxSched.length = 0;
                 p.vanishTimer = p.invulnTimer = p.armorTimer = p.blockPushTimer = p.parryFlashTimer = 0;
                 p.throwVictim = null; p.throwAir = p.throwReleased = false;
-                p.tumbleT = p.tumbleOnLand = p.flooredT = p.landT = 0;
+                p.tumbleT = p.tumbleOnLand = p.flooredT = p.landT = p.jumpSquatT = p.skidT = p.turnT = 0;
                 p.skySmash = p.skySlam = p.bellDive = p.spikedFall = false;
                 p.leanSmooth = p.leanVel = p.landSquash = 0; p.alpha = 1; p.hiddenInSmoke = false;
                 p.windedTimer = p.chakraCd = 0; p.windedLatch = false;
