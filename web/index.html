@@ -2118,6 +2118,10 @@
             // No Mokurai entry: he is bare hands and prayer beads, so he draws no arc at all.
         };
         const bladeSheen = p => BLADE_SHEEN[p.spec.id] || BLADE_STEEL;
+        // Crimson Fang's own red. Tsubasa is RED in the Story Bible and his cells are
+        // inked black with red; this is the same family pushed to a light source so the
+        // counter reads as a glowing mark rather than more of the same ink.
+        const FANG_NEON = "#ff1f3a";
         // What the weapon is MADE OF — decides the clash sound and whether the edge
         // throws sparks. Steel is the default (most of the roster swings it); only the
         // exceptions are listed, so a new bladed fighter needs no entry.
@@ -2510,7 +2514,12 @@
             // clashes, his hand still holds nothing, so he draws no crescent.)
             if (bladeless(mat)) return;
             // Tsubasa's normal special is a PARRY, not a cut — no streak for it.
-            if (type === STATE.ATTACK_SPECIAL && p.spec.id === 3) return;
+            // ⛔ BUT CRIMSON FANG IS THE ANSWER, AND THE ANSWER IS A CUT. Owner, Sep 15
+            // 2026: "can you just be all red like a glowing neon red". The riposte runs
+            // as ATTACK_SPECIAL, so this one line was eating its trail and leaving the
+            // counter as bare drawn ink — the whole reason it read flat. The parry keeps
+            // its silence; the swing that answers it does not.
+            if (type === STATE.ATTACK_SPECIAL && p.spec.id === 3 && !p.reprisalAnim) return;
             // ⛔ A THRUST IS NOT A SLASH. The Executioner's neutral special drives the point
             // straight forward, so it gets NO crescent — owner: "the thrust should ONLY have
             // that shiny star." The star fires on connect (see thrustStar). His back+Heavy
@@ -3634,6 +3643,17 @@
                 this.recoveryTotal = this.recoveryTimer;
                 this.spawnHitbox(105, 50, 30, 0.14, 210,
                                  { delay: 0.06, tier: STATE.ATTACK_SPECIAL });
+                // THE FANG IS RED AND IT GLOWS. His twin tanto resolve to the W03
+                // twin-X crop, which is the move's own red X — it just drew in steel
+                // white before. Tinted to his canon red and flagged `neon` so
+                // drawSlashes lays an additive bloom under it. Same slashes[] entry,
+                // same lifecycle, same hitstop freeze: one tag, no second FX system.
+                const _nS = slashes.length;
+                spawnSlash(this, STATE.ATTACK_SPECIAL);
+                if (slashes.length > _nS) {
+                    const _s = slashes[slashes.length - 1];
+                    _s.color = FANG_NEON; _s.neon = true;
+                }
                 sfx('whoosh_heavy');
                 return true;
             }
@@ -21048,6 +21068,22 @@
                     // draws a tinted copy, built once per material and cached.
                     const src = (s.color && s.color !== BLADE_STEEL)
                         ? tintedCrop(id, s.color) : null;
+                    // NEON BLOOM: two additive copies under the mark, scaled out and
+                    // faded. 'lighter' cannot draw black — the comment above says so and
+                    // that is exactly what is wanted HERE: the outlines drop away and the
+                    // copies read as light around the drawing, not as a second drawing.
+                    if (s.neon && src) {
+                        ctx.save();
+                        ctx.globalCompositeOperation = 'lighter';
+                        for (const g of [1.30, 1.12]) {
+                            ctx.globalAlpha = fade * (g > 1.2 ? 0.30 : 0.45);
+                            ctx.drawImage(src, 0, 0, r[2], r[3],
+                                          -r[4] * sc * g, -r[5] * sc * g,
+                                          r[2] * sc * g, r[3] * sc * g);
+                        }
+                        ctx.restore();
+                        ctx.globalAlpha = fade;
+                    }
                     if (id === 'W02' && !src && FX_CRESCENT.ready) {
                         const w = r[2] * sc;
                         ctx.drawImage(FX_CRESCENT.img, -w / 2, -w / 2, w, w);
