@@ -1,12 +1,14 @@
 # START HERE — how to run this with GPT
 
-Three new animation rows, eight fighters. **24 boards** if the whole roster ships.
+Three new animation rows, eight fighters. **24 boards** if the whole roster ships — plus one
+replacement row: **Kael's run cycle** (`prompts/kael.md`, Row D), added Sep 15.
 
 ## The loop, per board
 
 1. **Open `prompts/<fighter>.md`.** One self-contained file per character, carrying all three
    rows: **Row A `walk1..8`**, **Row B `airhurt1..8`** (the launched hurt), **Row C `njump1..8`**
-   (the second jump — the curl into a ball).
+   (the second jump — the curl into a ball). Kael also has **Row D `run_clean1..8`**, a
+   replacement for a run cycle that is measurably four poses drawn twice.
 2. **Paste the `Prompt` block for the row you want** into the generator. It is written to be
    used verbatim. Attach `refs/<fighter>-refs.png` so it can match the body, and
    `refs/ROSTER-true-scale.png` so it gets the size right.

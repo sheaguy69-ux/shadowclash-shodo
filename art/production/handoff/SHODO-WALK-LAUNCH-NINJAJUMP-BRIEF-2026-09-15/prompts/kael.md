@@ -170,3 +170,147 @@ swords are held out and away from the tuck through the whole revolution.
 
 ⛔ **Packing: no stance beat here either.** Same `--scale` / `--anchor` rule as Row B, and
 the rotation makes the union taller still.
+
+---
+
+## Row D — `run_clean1..8` — THE RUN, REPLACED
+
+> **Owner, Sep 15 2026:** *"yeah let's give him a more epic serious run cycle."*
+
+**Zero engine work.** The run picker reads `run_clean1..8` and already paces them on
+`RUN_HOLDS_8`. Pack eight cells, repoint, done.
+
+### What is actually wrong with the current one — measured, not opinion
+
+**His eight-beat run is a four-beat cycle drawn twice.** Ink area per beat:
+
+```
+beats 1-4   8752  7646  7996  7656
+beats 5-8   8782  7623  7991  7614
+difference  0.3%  0.3%  0.1%  0.5%
+```
+
+Beat 5 *is* beat 1. Beat 6 *is* beat 2. He has **four distinct poses**, so the left-lead and
+the right-lead stride are the same drawing, and a run that does not alternate its lead leg
+reads as a loop rather than as travel. That is the single biggest reason it looks small.
+
+Second: he is **hunched and compact** — 119–137px wide by 124–146px tall in a 300×320 cell,
+head down, shoulders rolled forward. It reads as scurrying. His head swings 21px on screen,
+which is fine; the problem is posture and stride length, not bounce.
+
+Third: **both blades are inert.** A two-sword fighter is running with his swords parked. They
+never lead, never trail, never counterweight.
+
+**What is already right and must survive:** beats **4 and 8 are genuine flight** — both feet
+clear, knees tucked, 31px up. That is the two-stride structure and it is correct. Do not plant
+them.
+
+### The beats that actually carry the animation
+
+`RUN_HOLDS_8` gives the cycle uneven exposure — beats **1, 4, 5 and 8** hold longest:
+
+| beat | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+|---|---|---|---|---|---|---|---|---|
+| share of cycle | **16%** | 10% | 10% | **14%** | **16%** | 10% | 10% | **14%** |
+
+So the two **contacts** (1, 5) and the two **leaps** (4, 8) are 60% of the screen time between
+them. Put the drama there. Beats 2, 3, 6, 7 are the passing frames and can be quieter.
+
+### Intent
+
+He is the last student of a school that no longer exists, and the youngest of the six. His run
+should read as **trained**, not eager — a swordsman covering ground with economy and intent,
+long low strides, blades carried like he knows exactly where both of them are. Serious, not
+heroic; no cape-flare, no showboating. Grounded weight on the contacts, real extension in the air.
+
+### Beats — EIGHT DISTINCT POSES, alternating lead
+
+1. **LEFT CONTACT (held, 16%).** Left boot strikes flat and takes the full load, knee stacked
+   over it, back straight and pitched forward about 15°. Long katana carried low and back in
+   the right hand, tip trailing near the ankle. Short wakizashi tucked across the chest, blade
+   flat. Hood settled back off the face, amber eye visible. Gold sash snapped forward past the hip.
+2. **LEFT DOWN (10%).** Weight sinking through the left leg, knee flexing deepest in the cycle,
+   right leg swinging through low and close. Torso drops with it. Both blades hold their line —
+   the long one steady, no swing. Sash falling back to vertical.
+3. **LEFT PASS (10%).** Left leg driving straight, right knee coming forward and high, body
+   rising. Long katana beginning to sweep forward with the drive. Hood starting to lift off the
+   shoulders.
+4. **LEFT LEAP — FULL EXTENSION (held, 14%).** **Both feet clear.** Front leg reaching far
+   forward and nearly straight, rear leg fully extended behind — the widest stride in the cycle,
+   a real split, not a tuck. Body long and level, not balled. Long katana swept back and up
+   behind him in a straight line with the rear leg; short blade forward across the chest. Hood
+   and sash streaming straight back. **This is the money frame.**
+5. **RIGHT CONTACT (held, 16%).** The mirror of beat 1 in *stride*, but **not the same drawing**
+   — this is the other lead, so the arms swap: long katana now forward-low in front of the body,
+   short blade drawn back at the hip. Right boot lands flat, left arm counterweights forward.
+   The silhouette must be plainly different from beat 1 at a glance.
+6. **RIGHT DOWN (10%).** Weight sinking through the right leg, left leg swinging through. Long
+   katana held low and forward, tip just off the floor. Shoulders squarer to camera than beat 2.
+7. **RIGHT PASS (10%).** Right leg driving, left knee high, rising. Long blade drawing back
+   toward the hip in preparation. Hood lifting.
+8. **RIGHT LEAP — FULL EXTENSION (held, 14%).** Both feet clear again, opposite legs to beat 4,
+   and the blades opposite too: long katana thrown *forward* and level this time, short blade
+   trailing back. Same airtime and same stride width as beat 4 so the cycle is even, different
+   arms so it is not beat 4 again. Lands back into beat 1 with no jump.
+
+**Packing:** beat 1 is a full-weight contact stance, so the default beat-1 anchor is correct.
+`--dry` first — the leaps are the tallest beats and the union may want `grow_frame.py --down`.
+
+### Prompt
+
+```text
+Sumi-e / ink-brush shodo character sheet, side-on 2D fighting-game view. 8 frames in one
+horizontal row, evenly spaced, identical camera, identical character scale in every frame,
+full body with both feet visible in every frame, plain flat background, no ground line, no
+cast shadow, no floor bar, no dust, no speed lines running off the frame edge.
+
+CHARACTER, exact, no deviation: KAEL, male. A compact chibi ninja roughly 2.5 head-heights
+tall. Black body, black tunic and black trousers. A GOLD-AMBER HOOD and a long GOLD scarf,
+with a gold sash knotted at the waist and gold wrist and ankle wraps. One glowing AMBER eye
+visible inside the hood shadow. He carries TWO SWORDS AND THEY ARE DIFFERENT LENGTHS: ONE LONG
+KATANA and ONE CLEARLY SHORTER WAKIZASHI, roughly half its length — the difference must be
+obvious at a glance in every single frame. Never two equal blades. No purple anywhere.
+
+A DISCIPLINED, SERIOUS RUN — a trained swordsman covering ground with economy and intent.
+Long low strides, real extension, body pitched slightly forward, head up and level. Not
+eager, not comic, not scurrying, no cape-flare, no showboating.
+
+EIGHT DISTINCT POSES. Frames 5-8 are the OPPOSITE lead leg AND the opposite arm carriage to
+frames 1-4 — swap which hand leads and which blade is forward, so frame 5 is plainly a
+different drawing from frame 1 and not a copy.
+
+Frame 1: LEFT FOOT CONTACT. Left boot flat, taking full weight, knee stacked over it, spine
+straight and pitched forward. Long katana low and BACK in the trailing hand, tip near the
+ankle; short wakizashi tucked flat across the chest. Gold sash snapped forward past the hip.
+Frame 2: weight sinking through the left leg, deepest knee bend of the cycle, right leg
+swinging through low and close, torso dropping. Both blades steady, no swing.
+Frame 3: left leg driving straight, right knee coming forward and high, body rising, long
+katana beginning to sweep forward.
+Frame 4: THE LEAP. Both feet completely off the ground. Front leg reaching far forward almost
+straight, rear leg fully extended behind — the widest split of the cycle, body LONG and level,
+never balled or tucked. Long katana swept back and up in one straight line with the rear leg;
+short blade forward across the chest. Hood and scarf streaming straight back.
+Frame 5: RIGHT FOOT CONTACT, and the arms have SWAPPED. Long katana now FORWARD and low in
+front of the body, short wakizashi drawn back at the hip, left arm counterweighting forward.
+Right boot flat and loaded. Clearly a different silhouette from frame 1.
+Frame 6: weight sinking through the right leg, left leg swinging through, long katana low and
+forward with the tip just off the floor, shoulders squarer to camera.
+Frame 7: right leg driving, left knee high, body rising, long blade drawing back toward the hip.
+Frame 8: THE SECOND LEAP. Both feet clear again, opposite legs to frame 4, and the blades
+opposite too — long katana thrown FORWARD and level, short blade trailing back. Same airtime
+and same stride width as frame 4. Flows straight back into frame 1.
+```
+
+### Pitfalls for this row
+
+- **Two equal blades.** The commonest Kael failure. The wakizashi must read as roughly half the
+  katana in every frame, including both leaps where the arms are extended.
+- **Frames 5–8 coming back as copies of 1–4.** That is the exact defect being replaced. If the
+  ink areas of 1 and 5 land within 1% of each other, reject the board.
+- **Tucking the leaps.** Beats 4 and 8 are a long extended split, not a ball — the ball belongs
+  to Row C, the second jump, and the two must not look alike.
+- **Planting the leaps.** Both feet clear on 4 and 8, 30px up. Do not let a toe touch.
+- **A drawn ground smear** under the contact beats. The packer welds the lowest ink to the floor
+  line — a smear becomes the feet.
+- **Purple.** Forbidden on Kael; gold and amber only.
+- Hood swallowing the face on every frame — the amber eye should read on at least the contacts.
