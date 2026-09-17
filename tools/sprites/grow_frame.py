@@ -48,6 +48,29 @@ def main():
     out.save(pf)
 
     new_foot = footY if down else footY + d
+    # ⛔ GROWING UP MOVES THE ART, SO IT MOVES EVERY Y IN THE MANIFEST. The pixel maps are
+    # in CELL coordinates, and `out.paste(sheet, (0, d))` has just shifted every cell's
+    # content down by d -- so a card-mark rect or a weapon polygon written against the old
+    # rows now points d px too high and erases, or spares, the wrong pixels. Ember carries
+    # 25 frameClear rects and 6 weaponNoOutline polygons, all on cells below 385, and they
+    # sit at y 266-359: the rows the floor used to be in.
+    # NOT footAdj, frameScale, wallContactX, frameOffsetX or bodyBoundsX: the first two are
+    # offsets/multipliers relative to footY, which moves with the art, and the rest are X.
+    if not down:
+        for cell, rects in (m.get('frameClear') or {}).items():
+            for r in rects:
+                r[1] += d
+        for cell, polys in (m.get('weaponNoOutline') or {}).items():
+            for poly in polys:
+                for pt in poly:
+                    pt[1] += d
+        for cell, pt in (m.get('handAnchor') or {}).items():
+            pt[1] += d
+        shifted = (len(m.get('frameClear') or {}), len(m.get('weaponNoOutline') or {}),
+                   len(m.get('handAnchor') or {}))
+        if any(shifted):
+            print(f'  shifted +{d}px: frameClear {shifted[0]} cells, '
+                  f'weaponNoOutline {shifted[1]}, handAnchor {shifted[2]}')
     m['frameH'], m['footY'] = new_h, new_foot
     jf.write_text(json.dumps(m, indent=2) + '\n')
     print(f'  {fighter}: frameH {old_h} -> {new_h}, footY {footY} -> {new_foot} '

@@ -146,15 +146,25 @@ def main():
     ux0 = min(b[0] for b in boxes); uy0 = min(b[1] for b in boxes)
     ux1 = max(b[2] for b in boxes); uy1 = max(b[3] for b in boxes)
     uw, uh = round((ux1 - ux0 + 1) * scale), round((uy1 - uy0 + 1) * scale)
-    if uw > W or uh > H - (H - FY) - FOOT_GAP:
-        sys.exit(f'REFUSE: scaled window {uw}x{uh} exceeds cell {W}x{H} (footY {FY}) — grow the cell')
-
     dx = (W - uw) // 2 - round(ux0 * scale)
     floor_y = uy1
     if args.floor_beat:
         fb = masks[args.floor_beat - 1]
         floor_y = int(np.nonzero(fb.any(1))[0].max())
     dy = (FY - FOOT_GAP) - round(floor_y * scale)
+
+    # ⛔ THE FIT TEST IS ABOUT THE FLOOR, NOT THE WINDOW. This used to require the whole
+    # union window to fit ABOVE footY, which is right only when the union bottom IS the
+    # floor. With --floor-beat the window deliberately hangs below it -- that is the flag's
+    # whole purpose -- and the old form refused boards that fit: Ember's eightfold-burial
+    # super needs 405px above the line and 63 below, and his cell offers 408 and 67, but a
+    # 469px window read as 61px too tall. Measure the two sides separately.
+    above = round((floor_y - uy0) * scale)
+    below = round((uy1 - floor_y) * scale)
+    if uw > W or above > FY - FOOT_GAP or below > H - 1 - (FY - FOOT_GAP):
+        sys.exit(f'REFUSE: scaled window {uw}x{uh} needs {above}px above the floor '
+                 f'(cell offers {FY - FOOT_GAP}) and {below}px below (offers '
+                 f'{H - 1 - (FY - FOOT_GAP)}) in a {W}x{H} cell — grow the cell')
 
     ruler = 'EXPLICIT --scale' if args.scale else f'anchor beat {args.anchor} {areas[args.anchor-1]}px'
     if args.floor_beat:
