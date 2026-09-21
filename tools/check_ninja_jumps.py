@@ -29,8 +29,13 @@ async def main():
                     const flight=Array.from({length:6},(_,i)=>F['jflight'+(i+1)]);
                     if(flight.some(i=>!Number.isInteger(i))||!Number.isInteger(F.jland))failures.push('missing flight/landing art');
                     // Independently inspected artwork, not an inferred ordinal cutoff.
+                    // EMBER's row moved 303-306 -> 433-437 with the 839-846 board campaign:
+                    // 303-306 are the generic ajump2..6/fall cells he no longer uses, 433-437
+                    // are his own drawn flight beats. Inspected through the keyer before the
+                    // swap — tucked body, legs up, hood streaming, feet clear of footY on all
+                    // five, rise at 433, apex at 435, descent at 437. jland (439) stays out.
                     const allowed=[[276,277,278,279],[228,229,230,231,232],[301,304,303,305,306],
-                        [347,348,349,350,351,352],[303,304,305,306],[299,300,301,302,303,304],
+                        [347,348,349,350,351,352],[433,434,435,436,437],[299,300,301,302,303,304],
                         [291,292,293],[346,347,348,349],[403,404,405,406]][id];
                     if(flight.some(i=>!allowed.includes(i))||flight.includes(F.jland))failures.push('unreviewed/ground art in flight map');
                     Object.assign(p,{state:STATE.JUMP,isGrounded:false,wallDir:0,wallJumpLock:0,grappleT:0});

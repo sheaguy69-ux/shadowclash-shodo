@@ -42,7 +42,11 @@ CORE_ROUTES = {
     "dodge": ("roll", "roll_1", "slide1", "mroll1"),
     "recover": ("getup", "getup1", "bgetup1"),
 }
-PROHIBITED_PREFIXES = ("f2_", "hb", "gk")
+# ⛔ THE UNDERSCORE IS THE RULE. The bare "gk" caught gkburial1..8 — Ember's EIGHTFOLD
+# BURIAL, which the owner ordered plugged in on Sep 17 and which executeBurial() routes
+# to live at index.html:3772. Eight of this check's twelve failures were that one move.
+# The second-form rows this is guarding are f2_, hb_ and gk_; nothing else.
+PROHIBITED_PREFIXES = ("f2_", "hb_", "gk_")
 TOLERANCE_PX = 0.5
 
 

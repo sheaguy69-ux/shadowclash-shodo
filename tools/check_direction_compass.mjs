@@ -57,10 +57,17 @@ try{
  // Sep7 native-frame review: these attack sources point right before rendering.
  const attackRight={"mizu":[166,167,168,169,170,171,172,173,109,110,111,112,113,114,115,116,198,199,200,201,202,203,205],"ember":[239,240,241,242,243,244,245,246,147,148,149,150,151,152,153,154,284,285,286,287,288,289,99,100,101,102,103,104,105,106],"kael":[222,223,224,225,226,227,228,236,194,195,196,197,198,199,200,201,202,203,204,205,206,207,305,209,291,292,293,294,295,296,297,298],"exile":[231,232,233,234,235,236],"tsubasa":[331,332,333,334,335,336,280,281,176,177,178]};
  for(const [name,cells] of Object.entries(attackRight))(rightAuthored[name]||=[]).push(...cells);
+ // ⛔ TSUBASA 314 AND 321 CAME OFF THIS LIST, and the SHEET is what proved it. They are
+ // kpush1 and kpush8 — the stance bookends of the push kick — and both are DRAWN facing
+ // left: white eye on the left of the mask, scarf tails to the right. kpush2..7 are drawn
+ // facing right. Their manifest flags say exactly that (false on the two, true on the six),
+ // and flipping 314 lands it on top of 315 beat for beat. The review row claimed all eight
+ // were right-authored; it was wrong about the two, and it threw on 314 before the check
+ // reached anything else.
  // Source-reviewed replacement cells; direction comes from the drawings, not manifest flags.
  rightAuthored.oni=[601, 602, 603, 604, 605, 606, 607, 608, 609, 610, 611, 612, 613, 614, 615, 616, 617, 618, 619, 620, 621, 622, 623, 624, 625, 626, 627, 628, 629, 630, 635, 636, 637, 639, 640, 641, 642, 643, 647, 648, 649, 650, 651, 652, 653, 654, 655, 656, 657, 658, 659];
  // Independently viewed right-authored ground families (source recovery 722–723).
- const groundRight={"mokurai":[371,372,373,374,375,376,377,378,379,380,381,382,383,384,385,386],"exile":[377,378,379,380,381,382,383,384,252,138,139,140,393,394,395,253,254,154,155,156,396,158,159,160],"oni":[584,585,578,579,580,581,582,583,362,363,364,365,589,590,368,369,232,233,234,591,592,329,238,239,386,593,388,389,390,391,392,393,586,587,588,378,379,380,594,595,596,384,385],"tsubasa":[314,315,316,319,320,321,355,356],"shin":[222,378,224,225,226]};
+ const groundRight={"mokurai":[371,372,373,374,375,376,377,378,379,380,381,382,383,384,385,386],"exile":[377,378,379,380,381,382,383,384,252,138,139,140,393,394,395,253,254,154,155,156,396,158,159,160],"oni":[584,585,578,579,580,581,582,583,362,363,364,365,589,590,368,369,232,233,234,591,592,329,238,239,386,593,388,389,390,391,392,393,586,587,588,378,379,380,594,595,596,384,385],"tsubasa":[315,316,319,320,355,356],"shin":[222,378,224,225,226]};
  // A retired fighter's review rows have no sheet to check — SKIP them, do not delete the
  // recorded review. Reading SPRITES.oni.mirror is what took this whole check down.
  for(const [name,cells] of Object.entries(groundRight)){if(!SPRITES[name])continue;for(const cell of cells)if(!SPRITES[name].mirror?.[cell])throw Error(name+' ground attack faces backward: '+cell);}
@@ -77,7 +84,7 @@ try{
  const wait=()=>new Promise(r=>requestAnimationFrame(r));
  const reset=(side)=>{dismissTitle();stagePick='bamboo';gameMode='2p';cpuMode=false;spectate=false;p1Pick=${id};p2Pick=${id===0?1:0};startNewGame();roundIntroTimer=0;paused=false;cutscene=null;for(const k in keys)keys[k]=false;physKeys.clear();player1.x=side===1?200:600;player2.x=side===1?600:200;for(const p of [player1,player2]){p.y=GROUND_Y-p.height;p.isGrounded=true;}};
  const take=(label,side)=>{const p=player1,man=SPRITES[p.spec.name.toLowerCase()];const c=document.createElement('canvas');c.width=c.height=480;g=c.getContext('2d');g.fillStyle='#e6e0d5';g.fillRect(0,0,480,480);g.save();g.translate(240-p.x-p.width/2,400-p.y-p.height);g.strokeStyle='#916b40';g.lineWidth=2;if(label.startsWith('wall')){const wx=side===-1?10:canvas.width-10;g.beginPath();g.moveTo(wx,0);g.lineTo(wx,GROUND_Y);g.stroke();}drawSprite(g,p);g.restore();const idx=p.drawCell;
- if(label.startsWith('run-')){const phase=p.animPhase,cells=runCells(man.frames);for(let i=0;i<cells.length;i++){p.animPhase=i+0.01;if(spriteFrameIndexRaw(p,man.frames)!==cells[i])throw new Error('run cycle plays backwards');}p.animPhase=phase;}
+ if(label.startsWith('run-')){const phase=p.animPhase,cells=runCells(man.frames);/* @800 put TRANSITION BEATS above the state switch. Turning round to backpedal arms turnT, so run-away sampled turn1 and reported the Executioner's correct run as backwards. Those beats are a different row with their own gate; settle them first and this assertion is about the run cycle again. */p.turnT=0;p.skidT=0;p.landT=0;p.jumpSquatT=0;/* An 8-cell run is NOT one beat per animPhase unit — RUN_HOLDS_8 gives it authored exposures (contact 16%, down 10, pass 10, up 14, per leg), so animPhase=1.01 is still INSIDE beat 1 and this read the Executioner's correct cycle as backwards. Sample the middle of each beat's own hold window, the way the engine bands it. */const mid=i=>{const a=RUN_HOLDS_8[i],b=i+1<RUN_HOLDS_8.length?RUN_HOLDS_8[i+1]:1;return (a+b)/2*8;};for(let i=0;i<cells.length;i++){p.animPhase=cells.length===8?mid(i):i+0.01;if(spriteFrameIndexRaw(p,man.frames)!==cells[i])throw new Error('run cycle plays backwards: '+p.spec.name+' '+label+' beat '+(i+1)+' drew '+spriteFrameIndexRaw(p,man.frames)+' wanted '+cells[i]+' of ['+cells+']');}p.animPhase=phase;}
  const row={name:p.spec.name,label,side,facing:p.facing,vx:p.vx,wallDir:p.wallDir,wallJumpLock:p.wallJumpLock,ground:p.isGrounded,state:p.state,cell:idx,keys:Object.keys(man.frames).filter(k=>man.frames[k]===idx),scaleX:lastSign,wallFacing:lastSign*((rightAuthored[p.spec.name.toLowerCase()]||[]).includes(idx)?1:-1),visualFacing:lastSign*((rightAuthored[p.spec.name.toLowerCase()]||[]).includes(idx)?1:-1)};if(p.spec.id===2&&label==='run-away'){
  const tape=p.kageTape,timer=p.kageTapeT;p.kageTape=[];p.kageTapeT=0;p.recordKageTape(1/60);const echo={played:animClock};p.updateKageEcho(0,echo);
  if(echo.drawMirror!==p.drawMirror||echo.facing!==p.facing)throw new Error('echo lost visual/combat facing separation');p.kageTape=tape;p.kageTapeT=timer;row.echoMirrorPassed=true;
@@ -102,6 +109,11 @@ try{
  return {name:player1.spec.name,rows,strips,errors};
  })()`);
  const dir=path.join(root,out.name.toLowerCase());await mkdir(dir,{recursive:true});for(const s of out.strips){await writeFile(path.join(dir,s.label+'-'+s.side+'.png'),Buffer.from(s.png,'base64'));delete s.png;}
+ // ⛔ EMBER'S run- ROWS ARE A DETECTOR FAULT, NOT BACKWARD ART — checked twice, do not
+ // 'fix' his flags. visualFacing reads -1 on run-toward while cells 517-524 are DRAWN
+ // facing right (hood and lit eye right, claws trailing left, streaks trailing left)
+ // and this check's OWN run-toward-1.png strip renders him facing right at game size.
+ // Two facing detectors have already failed on this sheet. Read the art or the strip.
  // Wall-kick momentum is protected by simulation time, not five render frames.
  // Held into-wall input is intentionally effective again after the lock expires.
  const failures=out.rows.filter(r=>r.label.startsWith('run-')?r.visualFacing!==Math.sign(r.vx):['idle','stop','crossup','crouch','guard'].includes(r.label)?(r.facing!==r.side||r.visualFacing!==r.side):r.label==='wall-cling'&&r.state==='WALL_CLING'?r.wallFacing!==r.side:r.label==='wall-cling'&&r.wallDir!==0?r.visualFacing!==r.side:r.label==='wall-release'?(r.state==='WALL_CLING'?r.wallFacing!==r.side:r.visualFacing!==-r.side):r.label==='wall-heavy'&&r.state==='ATTACK_HEAVY'?r.visualFacing!==-r.side:r.label==='wall-jump'?(r.wallJumpLock>0?(r.facing!==-r.side||Math.sign(r.vx)!==-r.side||r.visualFacing!==-r.side):(Math.abs(r.vx)>.1&&r.visualFacing!==Math.sign(r.vx))):false);
