@@ -20,7 +20,8 @@ from keyer_emu import keyed_cell
 ROOT = Path(__file__).resolve().parents[1]
 SPRITES = ROOT / "web/assets/sprites"
 TARGETS = {
-    "oni": 87.5,
+    # Oni retired with NINJA_ROSTER; his sheet left the tree and this table
+    # crashed the whole roster check on the missing file.
     "mokurai": 75.0,
     "executioner": 72.5,
     "exile": 72.3,

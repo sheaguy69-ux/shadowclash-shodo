@@ -16,8 +16,9 @@ vm.runInContext(source + '\n' + hud, context);
 const fixtures = [
     [0,'Executioner','executioner'], [1,'Mizu','mizu'], [2,'Shin','shin'],
     [3,'Tsubasa','tsubasa'], [4,'Ember','ember'], [5,'Kael','kael'],
-    [6,'Mokurai','mokurai'], [7,'Exile','exile','exile-eye-wrap-v2'],
-    [8,'Oni','oni-new-look']
+    [6,'Mokurai','mokurai'], [7,'Exile','exile','exile-eye-wrap-v2']
+    // Oni retired with the roster; his portrait left the tree with him, and this
+    // fixture crashed the whole check on the missing file instead of reporting one.
 ];
 const hash = data => createHash('sha256').update(data).digest('hex');
 for (const [id,name,file,review = name.toLowerCase()] of fixtures) {
@@ -38,7 +39,12 @@ for (const [id,name,file,review = name.toLowerCase()] of fixtures) {
         assert.equal(typeof nodes[`hud-p${side}-portrait`].onerror,'function');
     }
 }
-for (const match of html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)) {
-    if (match[1].trim()) new vm.Script(match[1]);
+// ONLY THE JS BLOCKS. `<script type="application/json">` holds the footsies frame data;
+// feeding that to vm.Script threw a SyntaxError on the data, not on any code, and took
+// the whole portrait check down with it after every fixture had already passed.
+for (const match of html.matchAll(/<script(\s[^>]*)?>([\s\S]*?)<\/script>/g)) {
+    const type = match[1]?.match(/\btype\s*=\s*["']([^"']+)/)?.[1];
+    if (type && !/^(text|application)\/(java|ecma)script$|^module$/.test(type)) continue;
+    if (match[2].trim()) new vm.Script(match[2]);
 }
 console.log(`${fixtures.length} approved portraits: local/server hashes match; both HUD sides update; inline JS parses.`);

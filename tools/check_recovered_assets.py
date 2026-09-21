@@ -8,8 +8,20 @@ import subprocess
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
-REF = sys.argv[1] if len(sys.argv) > 1 else 'HEAD'
 MANIFEST = 'docs/recovery/recovered-assets-799.json'
+
+# ⛔ NOT 'HEAD'. This verifies a FROZEN checkpoint — the build799 digests recorded in the
+# manifest — and HEAD moved on to 846, so the default ref failed on web/index.html before
+# it had checked a single sprite. The commit that ADDED the manifest is the state those
+# digests describe, so it is the ref to default to; an explicit argument still wins.
+def _checkpoint_ref():
+    out = subprocess.check_output(
+        ['git', 'log', '--format=%H', '--diff-filter=A', '--', MANIFEST], cwd=ROOT)
+    refs = out.split()
+    assert refs, f'{MANIFEST} has no adding commit — pass a git ref explicitly'
+    return refs[0].decode()
+
+REF = sys.argv[1] if len(sys.argv) > 1 else _checkpoint_ref()
 
 def read(path):
     return subprocess.check_output(['git', 'show', f'{REF}:{path}'], cwd=ROOT)

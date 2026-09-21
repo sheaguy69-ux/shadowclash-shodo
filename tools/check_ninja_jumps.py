@@ -18,7 +18,11 @@ async def main():
                 for _ in range(400):
                     if await c.js("return typeof SPRITES!=='undefined'&&NINJA_ROSTER.every(s=>SPRITES[s.name.toLowerCase()]?.ready)"):break
                     await asyncio.sleep(.1)
-                for fighter in ([int(os.environ['FIGHTER'])] if 'FIGHTER' in os.environ else range(9)):
+                # ⛔ NOT range(9). The roster is eight since Oni retired, so id 8 selected
+                # nobody and every run died on `p.spec.name` of undefined before the first
+                # fighter's result was read. Ask the page how many there are.
+                roster_n=await c.js('return NINJA_ROSTER.length')
+                for fighter in ([int(os.environ['FIGHTER'])] if 'FIGHTER' in os.environ else range(roster_n)):
                     r=await c.js('const id='+str(fighter)+r''';
                     dismissTitle();gameMode='2p';spectate=false;cpuMode=false;stagePick='bamboo';p1Pick=id;p2Pick=id===0?1:0;startNewGame();roundIntroTimer=0;paused=true;cutscene=null;
                     const p=player1,m=SPRITES[p.spec.name.toLowerCase()],F=m.frames,failures=[];
@@ -36,7 +40,11 @@ async def main():
                         if(!flight.includes(idx)){if(failures.length<10)failures.push('non-flight cell '+idx+' at '+vy);}
                     }
                     p.vy=0;p.isGrounded=true;
-                    if(spriteFrameIndex(p,F)!==F.jland)failures.push('grounded jump does not land');
+                    // ⛔ THE LANDING BEAT, not jland. @800 gave the sheets a drawn land1..3 row and
+                    // the touchdown draws its FIRST beat; only a sheet without one still shows jland.
+                    // Four fighters were reported as 'does not land' for landing correctly.
+                    {const want=Number.isInteger(F.land1)?F.land1:F.jland,got=spriteFrameIndex(p,F);
+                     if(got!==want)failures.push('grounded jump does not land: drew '+got+', wanted '+want);}
                     p.isGrounded=false;p.wallJumpLock=.1;
                     if(F.walljump!==undefined&&spriteFrameIndex(p,F)!==F.walljump)failures.push('wall kick lost precedence');
                     p.wallJumpLock=0;

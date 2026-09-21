@@ -17,10 +17,11 @@
 // Also runs the picker's arithmetic directly, which is the only real logic here: a
 // one-shot row must start on beat 1, reach its LAST beat, and never index past it.
 import { readFileSync } from 'node:fs';
+import { ROSTER } from './roster.mjs';
 
 const ROOT = new URL('../', import.meta.url);
 const src = readFileSync(new URL('web/index.html', ROOT), 'utf8');
-const NAMES = ['executioner', 'mizu', 'shin', 'tsubasa', 'ember', 'kael', 'mokurai', 'exile', 'oni'];
+const NAMES = ROSTER;   // roster.mjs reads NINJA_ROSTER; a retired fighter leaves with it
 const ROWS = ['intro', 'win', 'ko'];
 
 const fails = [];

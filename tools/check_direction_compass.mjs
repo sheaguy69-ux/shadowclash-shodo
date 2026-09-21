@@ -1,9 +1,10 @@
 #!/usr/bin/env node
-// Review all nine fighters using real DOM inputs and consecutive live-loop captures.
+// Review the whole roster using real DOM inputs and consecutive live-loop captures.
 import {mkdir,writeFile,mkdtemp} from 'node:fs/promises';
 import { spawn, spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
+import { ROSTER } from './roster.mjs';
 
 const port = +(process.env.PORT || 9101), dbg = 9385;
 const who = await fetch(`http://127.0.0.1:${port}/whoami`).then(r => r.json()).catch(() => null);
@@ -50,16 +51,25 @@ const root=path.resolve(process.env.OUT||'media/direction-review-20260905');awai
 const results=[];
 try{
  if(!ready)throw new Error('sheets unavailable');
- for(let id=0;id<9;id++){
+ for(let id=0;id<ROSTER.length;id++){   // roster.mjs, not a hardcoded 9: id 8 is nobody since Oni retired
  const out=await ev(`(async()=>{
  const rightAuthored={"ember": [247, 248, 249, 250, 251, 252, 253, 254], "kael": [6, 7, 8, 9, 10, 11, 12, 13, 19, 20, 21, 22, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 135, 136, 191, 192], "mokurai": [98, 99, 100, 101, 186, 281, 282, 283, 284, 285, 286, 287, 288, 289, 290, 291, 292, 293, 294, 295, 324, 325, 326, 327, 328, 329, 330, 331, 355, 356, 357, 358, 359, 360, 361, 362], "mizu": [102], "shin": [339], "exile": [313]};
+ // Sep7 native-frame review: these attack sources point right before rendering.
+ const attackRight={"mizu":[166,167,168,169,170,171,172,173,109,110,111,112,113,114,115,116,198,199,200,201,202,203,205],"ember":[239,240,241,242,243,244,245,246,147,148,149,150,151,152,153,154,284,285,286,287,288,289,99,100,101,102,103,104,105,106],"kael":[222,223,224,225,226,227,228,236,194,195,196,197,198,199,200,201,202,203,204,205,206,207,305,209,291,292,293,294,295,296,297,298],"exile":[231,232,233,234,235,236],"tsubasa":[331,332,333,334,335,336,280,281,176,177,178]};
+ for(const [name,cells] of Object.entries(attackRight))(rightAuthored[name]||=[]).push(...cells);
  // Source-reviewed replacement cells; direction comes from the drawings, not manifest flags.
  rightAuthored.oni=[601, 602, 603, 604, 605, 606, 607, 608, 609, 610, 611, 612, 613, 614, 615, 616, 617, 618, 619, 620, 621, 622, 623, 624, 625, 626, 627, 628, 629, 630, 635, 636, 637, 639, 640, 641, 642, 643, 647, 648, 649, 650, 651, 652, 653, 654, 655, 656, 657, 658, 659];
  // Independently viewed right-authored ground families (source recovery 722–723).
  const groundRight={"mokurai":[371,372,373,374,375,376,377,378,379,380,381,382,383,384,385,386],"exile":[377,378,379,380,381,382,383,384,252,138,139,140,393,394,395,253,254,154,155,156,396,158,159,160],"oni":[584,585,578,579,580,581,582,583,362,363,364,365,589,590,368,369,232,233,234,591,592,329,238,239,386,593,388,389,390,391,392,393,586,587,588,378,379,380,594,595,596,384,385],"tsubasa":[314,315,316,319,320,321,355,356],"shin":[222,378,224,225,226]};
- for(const [name,cells] of Object.entries(groundRight))for(const cell of cells)if(!SPRITES[name].mirror?.[cell])throw Error(name+' ground attack faces backward: '+cell);
+ // A retired fighter's review rows have no sheet to check — SKIP them, do not delete the
+ // recorded review. Reading SPRITES.oni.mirror is what took this whole check down.
+ for(const [name,cells] of Object.entries(groundRight)){if(!SPRITES[name])continue;for(const cell of cells)if(!SPRITES[name].mirror?.[cell])throw Error(name+' ground attack faces backward: '+cell);}
  // Shin's source returns to a left-authored crouch before and after its rightward release.
  for(const cell of [220,221,227])if(SPRITES.shin.mirror?.[cell])throw Error('Shin ready/settle faces backward: '+cell);
+ rightAuthored.mokurai.push(387,234,235,236,238);
+ // Contact-side review also covers the inherited air/rear attack families.
+ const residualRight={"oni":[554,555,556,557,558,559,560,561],"ember":[225,226,227,228,229,230],"exile":[212,266,332,333],"executioner":[261,156]};
+ for(const [name,cells] of Object.entries(residualRight))(rightAuthored[name]||=[]).push(...cells);
  const rows=[],shots=[],errors=[];window.onerror=(m)=>errors.push(String(m));let g=null,lastSign=0;
  const original=drawShodoFrame;
  drawShodoFrame=function(...args){if(args[0]===g)lastSign=Math.sign(g.getTransform().a);return original(...args);};

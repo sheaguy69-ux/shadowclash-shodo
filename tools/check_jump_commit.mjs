@@ -89,14 +89,20 @@ const out = await ev(String.raw`(async()=>{
     const st = Object.keys(STATE).find(k=>STATE[k]===p.state) || '?';
     const vy0 = p.vy, gnd0 = p.isGrounded;
     try { fireCombatKey('KeyW'); } catch(e) {}
+    // ⛔ jumpSquatT COUNTS AS A TAKEOFF. A ground jump no longer moves vy on the press:
+    // executeJump arms JUMP_SQUAT and handleMovement launches three ticks later. Reading
+    // vy alone made BOTH halves lie — the escape rows below went red on all eight
+    // fighters, and this half would have gone green on a real escape it never saw.
     rows.push({ who, kind:'cancel', tier, rec, st,
-                bad: p.vy < vy0 - 50 || (gnd0 && !p.isGrounded), vy: Math.round(p.vy) });
+                bad: p.vy < vy0 - 50 || (gnd0 && !p.isGrounded) || p.jumpSquatT > 0,
+                vy: Math.round(p.vy) });
   }
 
   // ---- HALF TWO: and nothing else may be closed with it.
   let p = reset();
   try { fireCombatKey('KeyW'); } catch(e) {}
-  rows.push({ who, kind:'escape', tier:'idle jump', bad: !(p.vy < -50), vy: Math.round(p.vy) });
+  rows.push({ who, kind:'escape', tier:'idle jump',
+              bad: !(p.vy < -50 || p.jumpSquatT > 0), vy: Math.round(p.vy) });
 
   p = reset(); p.isGrounded=false; p.y=GROUND_Y-p.height-140; p.vy=60; p.jumpsLeft=1;
   try { fireCombatKey('KeyW'); } catch(e) {}
