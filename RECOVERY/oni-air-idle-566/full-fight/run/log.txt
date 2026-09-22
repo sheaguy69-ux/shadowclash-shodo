@@ -1,0 +1,6 @@
+rAF/sec at start: 50
+ARM: "armed"
+SHODO: {"center": [229, 56, 53, 77], "edge": [24, 26, 25, 25], "bbox": [7, 7, 16, 16], "calls": 1, "filter": "contrast(1)", "shadowBlur": 4, "shadowColor": "#00ff00"}
+START: {"p1": "Executioner", "p2": "Oni", "hp1": 150, "hp2": 150, "maxHp": 150, "wins": "[0,0]"}
+FIGHT: {"hpBefore": 150, "hpAfter": 73, "damage": 77, "landed": 8, "hitstopFrames": 78, "outlinedAttackCells": [96, 97, 51, 98, 99, 102, 103, 104, 105, 106, 107], "p1Untouched": true}
+KO: {"koHp": 0, "winsBefore": "[0,0]", "winsAfter": "[1,0]", "matchActive": true, "errs": []}

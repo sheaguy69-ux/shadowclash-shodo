@@ -1,0 +1,34 @@
+[
+ {
+  "wait": 3.0
+ },
+ {
+  "eval": "\nwindow.__err = [];\nwindow.addEventListener('error', e => window.__err.push(String(e.message)));\nwindow.addEventListener('unhandledrejection', e => window.__err.push('promise: ' + e.reason));\nconst _ce = console.error;\nconsole.error = function (...a) { window.__err.push('console: ' + a.join(' ')); return _ce.apply(this, a); };\nreturn 'armed';\n",
+  "label": "ARM"
+ },
+ {
+  "eval": "\nconst src = document.createElement('canvas'); src.width = src.height = 8;\nconst s = src.getContext('2d'); s.fillStyle = '#e53935'; s.fillRect(2, 2, 4, 4);\nconst dst = document.createElement('canvas'); dst.width = dst.height = 24;\nconst c = dst.getContext('2d'); c.globalAlpha = 0.3;\ndrawShodoFrame(c, src, 0, 0, 8, 8, 8, 8, 8, 8);\nconst d = c.getImageData(0, 0, 24, 24).data;\nconst px = (x, y) => Array.from(d.slice((y * 24 + x) * 4, (y * 24 + x) * 4 + 4));\nconst edge = [0, 0, 0, 0];\nconst bbox = [24, 24, -1, -1];\nfor (let y = 0; y < 24; y++) for (let x = 0; x < 24; x++) {\n  if (!d[(y * 24 + x) * 4 + 3]) continue;\n  bbox[0] = Math.min(bbox[0], x); bbox[1] = Math.min(bbox[1], y);\n  bbox[2] = Math.max(bbox[2], x); bbox[3] = Math.max(bbox[3], y);\n  if (x < 10) edge[0]++; if (x > 13) edge[1]++;\n  if (y < 10) edge[2]++; if (y > 13) edge[3]++;\n}\nconst glow = document.createElement('canvas').getContext('2d');\nglow.filter = 'contrast(1)'; glow.shadowBlur = 4; glow.shadowColor = '#00ff00';\nlet calls = 0; const nativeDraw = glow.drawImage.bind(glow);\nglow.drawImage = (...a) => { calls++; return nativeDraw(...a); };\ndrawShodoFrame(glow, src, 0, 0, 8, 8, 8, 8, 8, 8);\nreturn { center: px(11, 11), edge, bbox, calls, filter: glow.filter,\n         shadowBlur: glow.shadowBlur, shadowColor: glow.shadowColor };\n",
+  "label": "SHODO"
+ },
+ {
+  "key": "Space"
+ },
+ {
+  "wait": 0.8
+ },
+ {
+  "eval": "\ngameMode = '2p'; cpuMode = false; attractMode = false;\np1Pick = 0; p2Pick = 8; stagePick = 'bamboo';\nstartNewGame(); roundIntroTimer = 0; matchActive = true;\nawait new Promise(r => requestAnimationFrame(r));\nreturn { p1: player1.spec.name, p2: player2.spec.name,\n         hp1: player1.hp, hp2: player2.hp, maxHp: MAX_HP,\n         wins: JSON.stringify(roundWins) };\n",
+  "label": "START"
+ },
+ {
+  "wait": 0.6
+ },
+ {
+  "eval": "\nconst frame = () => new Promise(r => requestAnimationFrame(r));\nconst a = player1, b = player2;\nconst before = { hp2: b.hp, hp1: a.hp };\n// stand them close enough that a light connects, then let the engine do the rest\na.x = 560; b.x = 640; a.facing = 1; b.facing = -1;\nlet landed = 0, hitstop = 0;\nconst outlinedAttackCells = new Set(), origShodo = drawShodoFrame;\ndrawShodoFrame = function (...args) {\n  const cell = Math.round(args[2] / args[4]);\n  if (a.isAttackingState() && cell === a.drawCell) outlinedAttackCells.add(cell);\n  return origShodo(...args);\n};\nconst origTake = b.takeDamage.bind(b);\nb.takeDamage = function (...args) { landed++; return origTake(...args); };\nfor (let i = 0; i < 140 && b.hp > 0; i++) {\n  // real presses: the input pass reads `keys`, which the CDP key events drive; here we\n  // drive the same table the listeners write to, then let a real frame run.\n  // \u26d4 EDGE-TRIGGERED. pressCombat() is what the keydown listener and the mouse buttons\n  // both call; the `keys` table is only the HELD state (direction, guard). Holding\n  // keys['KeyF'] true fires no attack at all \u2014 that was this probe's bug, not the game's.\n  if (i % 6 === 0) pressCombat('KeyF');\n  if (i % 18 === 6) pressCombat('KeyG');\n  await frame();\n  if (a.x + 40 < b.x) a.x += 3;         // close the gap if pushback opens it\n  if (hitstopRemaining > 0) hitstop++;\n}\nb.takeDamage = origTake;\ndrawShodoFrame = origShodo;\nreturn { hpBefore: before.hp2, hpAfter: Math.round(b.hp), damage: Math.round(before.hp2 - b.hp),\n         landed, hitstopFrames: hitstop, outlinedAttackCells: Array.from(outlinedAttackCells),\n         p1Untouched: Math.round(a.hp) === Math.round(before.hp1) };\n",
+  "label": "FIGHT"
+ },
+ {
+  "eval": "\nconst frame = () => new Promise(r => requestAnimationFrame(r));\nconst a = player1, b = player2;\nconst winsBefore = JSON.stringify(roundWins);\nb.hp = 6;\na.x = 560; b.x = 640; a.facing = 1;\nfor (let i = 0; i < 200 && b.hp > 0; i++) {\n  if (i % 6 === 0) pressCombat('KeyF');\n  await frame();\n  if (a.x + 40 < b.x) a.x += 3;\n}\nconst koAt = b.hp;\n// let the round-end sequence run out\nfor (let i = 0; i < 240; i++) await frame();\nreturn { koHp: Math.round(koAt), winsBefore, winsAfter: JSON.stringify(roundWins),\n         matchActive: !!matchActive, errs: window.__err.slice(0, 6) };\n",
+  "label": "KO"
+ }
+]

@@ -1,0 +1,4 @@
+rAF/sec at start: 51
+SETUP: {"sheet": 566, "p1": "Oni", "airidle": 390, "canvas": {"x": 265, "y": -79, "w": 1006, "h": 785.9375}}
+record oni-air-back-to-idle: 31 frames, asked 40fps, got 14fps  ⚠ under-sampled — add a "clip" region
+AIR-IDLE-END: {"attackDir": "back", "attackAir": true, "isGrounded": false, "state": "WALL_CLING", "drawCell": 277, "airidle": 390, "groundIdle": 0, "airCells": [15, 16, 389, 391, 392, 393, 394, 395, 396, 17, 277], "airIdleSamples": 0, "groundIdleLeaks": 0, "errors": []}
