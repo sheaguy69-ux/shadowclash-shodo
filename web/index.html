@@ -1979,7 +1979,20 @@
         let clashFreezeRemaining = 0; // ms; true freeze, without the normal hitstop crawl
         let clashShakeRemaining = 0; // seconds, measured in wall time
         let hitstopEase = 0;               // seconds left in the post-freeze speed ramp
-        const HITSTOP_EASE_T = 0.1;        // eased return to full speed (scaffold juice law)
+        // ⛔ THE RAMP, NOT THE CRAWL. 0.1 -> 0.06 (owner: "more fast paced, but precise").
+        // After a freeze ends the sim eases back on a quad k*(2-k) whose mean is 0.686, so
+        // every contact bled 31.4ms of wall time AFTER the hitstop was already over. At 0.06
+        // that is 18.8ms — 12.5ms back per contact, ~75ms across a six-contact exchange, and
+        // a typical exchange goes from 16.3% of the wall clock frozen to 13.2%.
+        // ⛔ SHEET_V 490 IS NOT RE-BROKEN, and the reason is structural rather than a judgement
+        // call: floorCommitment compares recoveryTimer against attackAnim.dur, and BOTH sides
+        // live in animClock, which simDt scales together — so the ratio 490 protects is
+        // invariant under any value of this constant. No authored ms moves. It is symmetric
+        // across both fighters, so frame advantage in game time is unchanged too.
+        // The footsies profile's units block reserves "the existing cinematic hitstop crawl" —
+        // that is the 6% CRAWL during the freeze, which is untouched here. This is only the
+        // return to speed afterwards.
+        const HITSTOP_EASE_T = 0.06;       // eased return to full speed (scaffold juice law)
         let screenShakeAmount = 0; // intensity
         // DIRECTIONAL MICRO-SHAKE (polish suite item 1). A unit vector along the
         // impact: the camera rattles ALONG the line the blow travelled instead of
