@@ -15331,7 +15331,7 @@
         }
 
         // Approved opaque SHODO UI paintings; never run them through the sprite keyer.
-        function portraitSrc(spec) { return `assets/ninjas/${(spec.name.toLowerCase())}.png?v=shodo-face-20260904`; }
+        function portraitSrc(spec) { return `assets/ninjas/${(spec.name.toLowerCase())}.png?v=${SHEET_V}`; }
         function setHudFighter(side, spec) {
             document.getElementById(`hud-p${side}-name`).textContent = spec.name.toUpperCase();
             const img = document.getElementById(`hud-p${side}-portrait`);

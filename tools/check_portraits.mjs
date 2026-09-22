@@ -11,7 +11,15 @@ const hud = html.match(/function setHudFighter\(side, spec\) \{[\s\S]*?\n       
 assert(source && hud, 'Shared portrait source and HUD updater must exist');
 const nodes = Object.fromEntries([1, 2].flatMap(side =>
     ['name', 'portrait'].map(part => [`hud-p${side}-${part}`, {}])));
-const context = vm.createContext({document:{getElementById:id=>nodes[id]}, ninjaFallback(){}});
+// ⛔ SHEET_V HAS TO BE IN THE CONTEXT. portraitSrc is lifted out of the page and run
+// here in a bare vm, so the moment it stopped hardcoding `?v=shodo-face-20260904` and
+// started busting on SHEET_V like lockedPortraitSrc always did, this check threw
+// "SHEET_V is not defined" on the FIRST fixture — a green gate turning red on a
+// correct change. Read it from the same html the function came from, so the two can
+// never disagree.
+const SHEET_V = Number(html.match(/const SHEET_V = (\d+)/)?.[1]);
+assert(SHEET_V > 0, 'SHEET_V must be readable from web/index.html');
+const context = vm.createContext({document:{getElementById:id=>nodes[id]}, ninjaFallback(){}, SHEET_V});
 vm.runInContext(source + '\n' + hud, context);
 const fixtures = [
     [0,'Executioner','executioner'], [1,'Mizu','mizu'], [2,'Shin','shin'],
