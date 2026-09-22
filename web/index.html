@@ -577,9 +577,9 @@
                         <summary class="arcade-font text-[9px] text-yellow-400 mb-2 cursor-pointer select-none">SYSTEM NOTES ▸ (tap to expand)</summary>
                         <ul class="text-[11px] text-gray-400 list-disc list-inside space-y-1 mt-2">
                             <li><b class="text-gray-200">Magic Chain:</b> Light &rarr; Heavy &rarr; Special can cancel recovery frames on hit/block.</li>
-                            <li><b class="text-gray-200">Block:</b> HOLD the Poof key to guard — only 15% chip damage, no stun. Throws beat block!</li>
-                            <li><b class="text-gray-200">Free Escape:</b> When your ninja flashes amber (attacker repeated a chain or busted your stagger bar), Poof is FREE — even mid-combo.</li>
-                            <li><b class="text-gray-200">Throw:</b> Light+Heavy together up close — hold toward them for a forward toss or hold away for an over-shoulder back throw. Beats block and poof-arming. Ember's forward throw is a claw SLICE — they fly forward and tumble along the ground.</li>
+                            <li><b class="text-gray-200">Block:</b> Hold Guard — reduced chip damage and brief blockstun. Throws beat block!</li>
+                            <li><b class="text-gray-200">Corner Break:</b> After 4 hits or blocks near a solid wall, HOLD Guard (P1 <kbd>C</kbd>, P2 <kbd>M</kbd>, controller Guard, or touch GUARD) to break stun and push the attacker away. Free even with no chakra. Brief protection lets you move, jump or roll out; attacking ends it. Wall-splat extends a combo only once.</li>
+                            <li><b class="text-gray-200">Throw:</b> Light+Heavy together up close — hold toward them for a forward toss or hold away for an over-shoulder back throw. Beats block. Ember's forward throw is a claw SLICE — they fly forward and tumble along the ground.</li>
                             <li><b class="text-gray-200">Ember Up Attack:</b> Hold <kbd>Up</kbd> + Heavy on the ground — rising double-claw launcher. Sends them HIGH for a juggle.</li>
                             <li><b class="text-gray-200">Weapon clash:</b> Two active weapon swings meeting at once cancel with sparks, recoil and a metal ring.</li>
                             <li><b class="text-gray-200">Blade lock:</b> Two <i>steel edges</i> meeting on the ground don't cancel — they LOCK. Mash Light/Heavy: lead by three presses and you break their guard and stand over a free hit. Neither leads, both recoil.</li>
@@ -1896,9 +1896,13 @@
         // you and bought no balance; at 8 it reads a steady -14%, half the heavy's bite,
         // which is the ladder: light free, medium taxed, heavy priced.
         const NORMAL_COST = { ATTACK_LIGHT: 0, ATTACK_MEDIUM: 8, ATTACK_HEAVY: 10 };
-        // Combo economy (design doc Pillar E): scaling with a floor keeps combos finite
+        // Combo damage economy: scaling limits damage; Corner Break supplies the escape.
         const SCALE_PER_HIT = 0.875;   // compounding after hit 3
         const SCALE_FLOOR = 0.2;       // ponytail: flat floor; 45% special floor when specials are tagged
+        // Seconds use the existing combat clock (including its hitstop slowdown).
+        // Four corner contacts earn a free defensive reset; normal midscreen links are untouched.
+        const CORNER_BREAK = { hits: 4, range: 60, resetTime: 0.8, grace: 0.45,
+                               recoilTime: 0.28, recoilSpeed: 680, repelRange: 240 };
         // ⛔ MULTI-TAP LIGHT STRINGS — the combo system. Tapping Light again inside
         // the window advances a per-fighter STRING (beat 2, beat 3) instead of
         // replaying the same poke. On HIT a beat cancels straight into the next —
@@ -3413,6 +3417,10 @@
 
                 this.vanishTimer = 0;        // >0 = mid-teleport: invisible + intangible
                 this.comboHits = 0;          // hits taken in the current combo (drives scaling)
+                this.cornerPressure = 0; this.cornerSafeT = 0;
+                this.cornerGrace = 0; this.cornerBreakCount = 0;
+                this.cornerRecoilT = 0; this.cornerRecoilV = 0;
+                this.wallSplatUsed = false;
                 this.armorTimer = 0;         // >0 = hyper armor: eat hits without stagger
                 this.invulnTimer = 0;        // >0 = fully invulnerable (Kael's rising reversal startup)
                 this.kickKind = null;        // 'sweep'|'push'|'heel' while a command kick plays
@@ -3914,6 +3922,115 @@
                 return !!keys[this.getPrefix() + "poof"]
                     || !!(this.usesRawKeys() && (this.isP1 ? keys['KeyC'] : keys['KeyM']));
             }
+            // Solid surfaces only: a camera edge or an open ledge is not a wall.
+            cornerWallSide(gap = CORNER_BREAK.range) {
+                if (!currentStage.abyss && !currentStage.ledge) {
+                    if (this.x <= 10 + gap) return -1;
+                    if (this.x + this.width >= canvas.width - 10 - gap) return 1;
+                }
+                for (const wall of currentStage.walls || []) {
+                    if (this.y + this.height <= wall.y0 || this.y >= wall.y1) continue;
+                    const leftGap = wall.x - (this.x + this.width);
+                    const rightGap = this.x - (wall.x + wall.w);
+                    if (leftGap >= -1 && leftGap <= gap) return 1;
+                    if (rightGap >= -1 && rightGap <= gap) return -1;
+                }
+                return 0;
+            }
+
+            recordCornerPressure() {
+                if (!this.cornerWallSide()) return;
+                this.cornerPressure = Math.min(CORNER_BREAK.hits, this.cornerPressure + 1);
+                this.cornerSafeT = 0;
+            }
+
+            cornerBreakReady() {
+                return this.hp > 0 && this.cornerPressure >= CORNER_BREAK.hits
+                    && this.cornerWallSide() !== 0 && !this.grabbedBy && this.throwTimer <= 0
+                    && this.vanishTimer <= 0 && !this.lock && this.lockT <= 0
+                    && !this.isAttackingState();
+            }
+
+            isCornerProtected() {
+                // Protection buys movement/guard, never an invulnerable counterattack.
+                if (this.isAttackingState() || this.hitboxes.length || this.throwTimer > 0)
+                    this.cornerGrace = 0;
+                return this.cornerGrace > 0 && this.hp > 0;
+            }
+
+            clearCornerActions() {
+                this.clearMoveArt(); this.releaseAnchor(); this.dropTether();
+                this.hitboxes.length = this.fxSched.length = 0;
+                this.pendingSlash = this.bufferedAttack = this.groundJumpStart = null;
+                this.fxQueue = this.phantomQ = this.rapidFire = this.chain = null;
+                this.wireBindFoe = this.wireConv = this.kageStepFoe = null;
+                this.wireBind = this.kageStepT = this.kageZip = this.kageCastT = 0; this.kageStepArmed = false;
+                this.attackHasConnected = this.hitConfirmed = false;
+                this.recoveryTimer = this.recoveryTotal = this.chainComboTier = this.attackT = 0;
+                this.stringStep = this.stringT = this.jumpBufferTimer = this.jumpSquatT = 0;
+                this.dashTimer = this.rollTimer = this.rollRecover = this.rushT = this.tauntT = 0;
+                this.thrustSlide = this.speedTrail = this.clashRecoil = this.wallJumpLock = 0;
+                this.slamPhase = this.slamRecover = this.airFloatT = this.flooredT = this.tumbleT = this.tumbleOnLand = 0;
+                this.groundBounce = this.spikedFall = this.skySmash = this.skySlam = this.bellDive = false;
+                this.grappleT = this.ceilLatch = this.wallDir = this.blockPushTimer = 0;
+                this.latchPlat = null; this.parryFlashTimer = this.armorTimer = this.meditateTimer = this.sayaLock = 0;
+                this._lt = this._ht = this._mt = this._st = this._tapT = -1e9; this._tapDir = 0;
+            }
+
+            tryCornerBreak() {
+                if (!this.cornerBreakReady() || !this.isDefendHeld()) return false;
+                const side = this.cornerWallSide();
+                this.clearCornerActions();
+                this.stunTimer = this.stunPeak = this.comboHits = 0;
+                this.wallSplatUsed = false;
+                this.cornerPressure = this.cornerSafeT = 0;
+                this.cornerGrace = CORNER_BREAK.grace;
+                this.cornerBreakCount++;
+                this.vx = 0; this.vy = Math.max(0, this.vy);
+                this.facing = -side;
+                this.state = this.isGrounded ? STATE.BLOCKING : STATE.JUMP;
+                this.blockRaiseAt = animClock;
+                const foes = gameMode === 'brawl' ? brawlFoes(this) : [this.opponent];
+                for (const foe of foes) {
+                    if (!foe || foe.hp <= 0) continue;
+                    if (foe.tether?.target === this) foe.dropTether();
+                    if (foe.wireBindFoe === this) { foe.wireBind = 0; foe.wireBindFoe = null; }
+                    if (foe.kageStepFoe === this) { foe.kageStepT = 0; foe.kageStepFoe = null; }
+                    const dx = (foe.x + foe.width / 2) - (this.x + this.width / 2);
+                    const dy = (foe.y + foe.height / 2) - (this.y + this.height / 2);
+                    // A teammate's held throw owns that enemy; do not overwrite its paired state.
+                    if (foe.grabbedBy || Math.abs(dx) > CORNER_BREAK.repelRange || Math.abs(dy) > 150) continue;
+                    // Non-damaging recoil: no combo, meter, hit confirm or reward for the defender.
+                    if (foe.throwTimer > 0) foe.cancelThrow();
+                    cancelBladeLock(foe);
+                    foe.clearCornerActions();
+                    foe.cornerGrace = 0;
+                    foe.stunTimer = CORNER_BREAK.recoilTime; foe.stunPeak = foe.stunTimer;
+                    foe.state = STATE.STUNNED;
+                    foe.cornerRecoilT = CORNER_BREAK.recoilTime;
+                    foe.cornerRecoilV = (Math.sign(dx) || -side) * CORNER_BREAK.recoilSpeed;
+                    foe.vx = foe.cornerRecoilV;
+                }
+                createSmokePuff(this.x + this.width / 2, this.y + this.height * 0.6, 8, 0.6);
+                sfx('roll');
+                return true;
+            }
+
+            updateCornerDefense(dt) {
+                this.cornerGrace = Math.max(0, this.cornerGrace - dt);
+                this.isCornerProtected();
+                this.cornerRecoilT = Math.max(0, this.cornerRecoilT - dt);
+                if (this.hp <= 0 || !this.cornerWallSide()) {
+                    this.cornerPressure = this.cornerSafeT = 0;
+                } else if (this.stunTimer <= 0 && !this.grabbedBy && this.recoveryTimer <= 0
+                           && this.throwTimer <= 0 && this.vanishTimer <= 0 && !this.lock && this.lockT <= 0) {
+                    this.cornerSafeT += dt;
+                    if (this.cornerSafeT >= CORNER_BREAK.resetTime) this.cornerPressure = 0;
+                }
+                // Held input is read before hitstun's early return, for every input device.
+                this.tryCornerBreak();
+            }
+
             isSpecialHeld() {
                 // `keys` is indexed by KEY CODE (keys[e.code]); the prefixed name is only
                 // set by the CPU/remap path. isDefendHeld checks both, so this does too —
@@ -4042,6 +4159,7 @@
 
             // Central State Machine Updates
             update(dt, opponent) {
+                this.updateCornerDefense(dt);
                 // A wire approach belongs to this attack, never to a later stun, grab,
                 // vanish or lock. Keep actual knockback when an interruption caused it.
                 if (this.attackAnim?.wireApproach && (this.state !== STATE.ATTACK_SPECIAL
@@ -4518,9 +4636,11 @@
                         } else if (proj.kind === 'palm') {
                             // the monk palm blast: massive impact + arena shove
                             opponent.takeDamage(24, this, { pushback: 320, tier: 'ATTACK_SPECIAL' }, true);
-                            screenShakeAmount = Math.max(screenShakeAmount, 11);
-                            hitstopRemaining = Math.max(hitstopRemaining, 90);
-                            sfx('hit_heavy');
+                            if (this.hitConfirmed) {
+                                screenShakeAmount = Math.max(screenShakeAmount, 11);
+                                hitstopRemaining = Math.max(hitstopRemaining, 90);
+                                sfx('hit_heavy');
+                            }
                         } else {
                             opponent.takeDamage(4, this, null, true);
                         }
@@ -4632,7 +4752,8 @@
                     this.stunTimer -= dt;
                     if (this.flooredT > 0) this.flooredT -= dt;
                     // knockback bleeds off instead of ice-skating at constant speed (audit)
-                    if (this.isGrounded) this.vx *= Math.pow(FOOTSIES_DATA.engine_settings.friction, dt * 60);
+                    if (this.cornerRecoilT > 0) this.vx = this.cornerRecoilV;
+                    else if (this.isGrounded) this.vx *= Math.pow(FOOTSIES_DATA.engine_settings.friction, dt * 60);
                     if (this.stunTimer <= 0) {
                         // Blockstun ends with the guard STILL UP: dropping to IDLE here and
                         // returning left the held guard IDLE for one tick before the
@@ -4642,6 +4763,7 @@
                         if (this.lockT <= 0 && this.state !== STATE.BLOCKING) this.state = STATE.IDLE;
                         this.chainComboTier = 0;
                         this.stunPeak = 0;
+                        this.wallSplatUsed = false;
                     }
                     this.applyPhysics(dt);
                     return; // Skip input processing while stunned
@@ -5758,7 +5880,7 @@
                 if (!this.tether) return;
                 const t = this.tether.target;
                 // PANEL 4, Bound State — and every honest way out of it.
-                if (!t || t.hp <= 0 || this.hp <= 0 || this.stunTimer > 0 || this.grabbedBy) {
+                if (!t || t.hp <= 0 || t.isCornerProtected() || this.hp <= 0 || this.stunTimer > 0 || this.grabbedBy) {
                     this.dropTether(); return;
                 }
                 this.tether.t -= dt;
@@ -5795,6 +5917,7 @@
             // way in — this is a CUT, not a soft pull — and he keeps them, so the
             // leash can punish a second attempt inside the same bound state.
             snapback(t, away) {
+                if (t.isCornerProtected()) { this.dropTether(); return; }
                 // Same as the latch: dealt through takeDamage, so the stance multiplier is
                 // applied by hand or the razor slice never scales with the form.
                 t.takeDamage(KAGE_SLICE_DMG * KAGE_DMG, this);
@@ -6229,6 +6352,7 @@
                 // dozen ways, and a charge inside them would miss most of the kit. The gate
                 // refuses BEFORE the move is authored; the charge fires only once the wrapper
                 // can see a NEW attackAnim, so a press that merely buffers is never billed.
+                this.cornerGrace = 0;   // choosing offense gives up the defensive window
                 const nCost = NORMAL_COST[type] ?? 0;
                 if (nCost > 0 && (this.stamina < nCost || this.windedTimer > 0)) return;
                 const animBefore = this.attackAnim;
@@ -10051,7 +10175,9 @@
             executeThrow() {
                 if (gameMode === 'tag') return false;   // one attack means one attack — no grabs
                 if (this.stunTimer > 0 || this.vanishTimer > 0 || this.grabbedBy || this.throwTimer > 0) return false;
+                this.cornerGrace = 0;
                 const opp = this.opponent;
+                if (opp?.isCornerProtected()) return false;
                 // EXILE AIR GRAB (owner page, 10 panels): chain snatch, spin lift,
                 // DOWNWARD slam — the throw contract (committed on both sides)
                 // but living in the air, forward hurl at release.
@@ -10310,6 +10436,10 @@
             }
 
             takeDamage(dmg, attacker, sourceHitbox = null, isProjectile = false) {
+                if (this.isCornerProtected()) {
+                    if (attacker) attacker.hitConfirmed = false;
+                    return;
+                }
                 const impactFacing = sourceHitbox?.strikeShape?.burst
                     ? Math.sign((this.x + this.width / 2) - (attacker.x + attacker.width / 2)) || attacker.facing
                     : (attacker?.facing ?? 1);
@@ -10587,6 +10717,7 @@
                     // pressed without a block having actually connected (Executioner reads
                     // it in executeReprisal; the stamp is harmless for everyone else).
                     this.blockedAt = animClock;
+                    this.recordCornerPressure();
                     const authoredBlock = FOOTSIES_DATA.moves.find(m => m.move_id === sourceHitbox?.frameMove);
                     const blockFrames = authoredBlock?.properties.blockstun_frames
                         ?? ({ ATTACK_LIGHT: 4, ATTACK_MEDIUM: 6, ATTACK_HEAVY: 9, ATTACK_SPECIAL: 12 }[sourceHitbox?.tier] ?? 4);
@@ -10690,7 +10821,10 @@
                 // Combo damage scaling: x0.875 per hit after the 3rd, floored — a ridden
                 // combo pays diminishing returns (design doc Pillar E). Combo = consecutive
                 // hits landing while still stunned from the previous one.
+                if (this.stunTimer <= 0) this.wallSplatUsed = false;
                 this.comboHits = (this.stunTimer > 0) ? this.comboHits + 1 : 1;
+                this.recordCornerPressure();
+                this.cornerRecoilT = 0;
 
                 const scale = Math.max(SCALE_FLOOR, Math.pow(SCALE_PER_HIT, Math.max(0, this.comboHits - 3)));
                 const healthDamage = this.damageToHealth(dmg * scale);
@@ -10706,7 +10840,7 @@
                     attacker.champion = Math.min(CHAMPION_MAX, attacker.champion + dmg * CHAMPION_GAIN_DEALT);
 
                 // Two-sided meter (design doc Pillar B): being comboed banks YOU chakra,
-                // growing as the combo scales — long combos fund the victim's escape.
+                // growing as the combo scales. Corner Break itself never costs chakra.
                 this.stamina = Math.min(100, this.stamina + 4 * (1 - scale) + 1);
 
                 this.hp = Math.max(0, this.hp - healthDamage);
@@ -10772,9 +10906,10 @@
                     this.vy = sourceHitbox.launchVy ?? -430; this.isGrounded = false;
                     this.stunTimer = Math.max(this.stunTimer, 0.5);
                 }
-                if (sourceHitbox && sourceHitbox.wallsplat
-                    && (this.x < 50 || this.x + this.width > canvas.width - 50)) {
-                    // push kick near the wall: splat — extra stun + rattle
+                if (sourceHitbox && sourceHitbox.wallsplat && !this.wallSplatUsed
+                    && this.cornerWallSide(40) !== 0) {
+                    this.wallSplatUsed = true;
+                    // One splat extension per continuous combo, on either solid wall.
                     // ponytail: checks position at IMPACT, not after the shove lands
                     this.stunTimer += 0.3;
                     screenShakeAmount = Math.max(screenShakeAmount, 9);
@@ -16113,7 +16248,7 @@
         }
 
         // Sparring brain: approach, run the magic series, mix in block/jump/dash/
-        // retreat, take the free escape when flagged. Tier sets the personality —
+        // retreat, hold Guard for Corner Break when earned. Tier sets the personality —
         // a patient Genin partner up to a Jonin that zones, dashes and escapes.
         // TWO brain slots: [0] drives P1 (WATCH mode only), [1] drives P2 — each
         // with its own timer/action and its own side's movement/guard keys.
@@ -16152,6 +16287,18 @@
         // the CPU side, and it is only advisory — the drill still runs, it just says so.
         const DRILLS = [
             { name: 'OFF' },
+            {
+                name: 'CORNER BREAK — back to a wall, HOLD GUARD (C)',
+                run: (me, B) => {
+                    const target = me.opponent;
+                    if (!target || target.hp <= 0 || me.stunTimer > 0) return;
+                    const dir = Math.sign(target.x - me.x) || me.facing;
+                    me.facing = dir;
+                    const distance = Math.abs((target.x + target.width / 2) - (me.x + me.width / 2));
+                    if (distance > 65) keys[dir > 0 ? B.keyR : B.keyL] = true;
+                    if (distance < 125) me.executeAttack(STATE.ATTACK_LIGHT);
+                },
+            },
             {
                 // ⛔ EVERY NEW MECHANIC SHIPS WITH A DRILL (owner, Aug 10 2026). KAGE STEP is
                 // the one move on the roster whose whole payoff is a HIT CONFIRM, so the drill
@@ -16331,6 +16478,12 @@
             // crouching forever, and a stuck up-key silently converts its next light
             // into an air-up poke.
             keys[B.keyL] = keys[B.keyR] = keys[B.keyUp] = keys[B.keyDown] = false;
+
+            if (me.cornerBreakReady()) {
+                B.action = 'block'; B.timer = 0;
+                keys[B.keyBlock] = true;
+                return;   // the same held Guard that a human uses, never a CPU-only escape
+            }
 
             // SURVIVAL FIRST (floorless / ledged boards): never ride a slab off
             // the top, and never let a gust shove you off the one you're on.
@@ -17495,6 +17648,11 @@
             // class of guard as the stun and the grab: you are busy.
             if (out.lock) return false;
             tagCd[i] = TEAM_TAG_CD;
+            // A bench spell ends this pressure sequence; neither partner banks a free break.
+            for (const p of [out, inc]) {
+                p.cornerPressure = p.cornerSafeT = p.cornerGrace = 0;
+                p.cornerRecoilT = p.cornerRecoilV = 0; p.wallSplatUsed = false;
+            }
             // the incoming takes the outgoing's ground, facing and momentum-free stance
             inc.x = out.x; inc.y = GROUND_Y - inc.height; inc.vx = 0; inc.vy = 0;
             inc.isGrounded = true; inc.facing = out.facing;
@@ -18987,6 +19145,8 @@
                 p.jumpsLeft = 2; p.starCd = p.wallThrowT = 0;
                 if ([2, 7, 8].includes(p.spec.id)) p.stars = ANCHOR_STARS;
                 p.stunTimer = 0; p.comboHits = 0; p.grabbedBy = null; p.throwTimer = 0;
+                p.cornerPressure = p.cornerSafeT = p.cornerGrace = p.cornerBreakCount = 0;
+                p.cornerRecoilT = p.cornerRecoilV = 0; p.wallSplatUsed = false;
                 p.hitboxes.length = 0; p.state = STATE.IDLE;
                 p.slamPhase = 0; p.slamRecover = 0; p.airFloatT = 0; p.airFloats = 0; p.groundBounce = false;
             }
@@ -20215,6 +20375,7 @@
             for (const w of stageWires) if (w.hot > 0) w.hot -= dt;
             for (const p of (gameMode === 'brawl' && brawlAll.length ? brawlAll : [player1, player2])) {
                 if (!p || p.hp <= 0) continue;
+                if (p.isCornerProtected()) continue;
                 if (p.wireCd > 0) { p.wireCd -= dt; continue; }
                 const cx = p.x + p.width / 2, cy = p.y + p.height / 2;
                 for (const w of stageWires) {
@@ -20971,6 +21132,21 @@
                 if (player1 && !player1.benchedOut) player1.draw(ctx);
                 if (player2 && !player2.benchedOut) player2.draw(ctx);
             }
+            // World-space defense cue uses existing type and poses; no new character art.
+            for (const p of (gameMode === 'brawl' ? brawlAll : [player1, player2])) {
+                if (!p || p.hp <= 0 || (p.cornerPressure < 2 && p.cornerGrace <= 0)) continue;
+                ctx.save();
+                ctx.font = 'bold 12px monospace'; ctx.textAlign = 'center';
+                const label = p.cornerGrace > 0 ? 'CORNER BREAK'
+                    : p.cornerBreakReady() ? 'HOLD GUARD — BREAK FREE'
+                    : `CORNER ${p.cornerPressure}/${CORNER_BREAK.hits} — HOLD GUARD`;
+                const w = ctx.measureText(label).width + 14;
+                const x = Math.max(w / 2 + 4, Math.min(canvas.width - w / 2 - 4, p.x + p.width / 2));
+                const y = Math.max(132, p.y - 20);
+                ctx.fillStyle = 'rgba(10,12,18,0.88)'; ctx.fillRect(x - w / 2, y - 14, w, 21);
+                ctx.fillStyle = p.cornerGrace > 0 ? '#86efac' : '#facc15';
+                ctx.fillText(label, x, y + 1); ctx.restore();
+            }
             // TAG TEAM — the corner: your partner's face and health, so you know
             // whether tagging out is a rescue or a handoff to a corpse.
             if (gameMode === 'teams' || gameMode === 'brawl') {
@@ -21054,7 +21230,7 @@
                 ctx.fillText(`LAST ${trainingStats.last.toFixed(1)}  ·  COMBO ${trainingStats.combo}  ·  TOTAL ${trainingStats.total.toFixed(0)}`, hudW/2, 84);
                 ctx.fillStyle = "#9ca3af";
                 ctx.font = "10px monospace";
-                ctx.fillText(`🥋 TRAINING — R reset · T dummy block ${trainingDummyBlock ? 'ON' : 'off'} · L moves ${moveListOpen ? 'ON' : 'off'} · G drill`, hudW/2, 99);
+                ctx.fillText(`🥋 TRAINING — R reset · T dummy block ${trainingDummyBlock ? 'ON' : 'off'} · L moves ${moveListOpen ? 'ON' : 'off'} · B drill`, hudW/2, 99);
                 // The running drill is named on screen, and it says so LOUDLY when the
                 // dummy is the wrong fighter for it — a drill that silently does nothing
                 // because Oni is not on the CPU side is worse than no drill at all.
