@@ -2207,13 +2207,54 @@
         // ponytail: retain 64 recent outlined cells; profile before enlarging this working set.
         const shodoFrameCache = new Map();
         const shodoCellCache = new Map();
+        // Runtime pages contain lossless source crops. Reassemble the same cell
+        // before keying/contouring, so combat geometry and the approved ink agree.
+        function paintSpriteSource(ctx, img, sx, sy, sw, sh) {
+            if (!img.shodoRuntime) {
+                ctx.drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh);
+                return;
+            }
+            const packed = img.shodoRuntime, fw = packed.frameW;
+            const first = Math.max(0, Math.floor(sx / fw));
+            const last = Math.min(packed.cols - 1, Math.ceil((sx + sw) / fw) - 1);
+            for (let i = first; i <= last; i++) {
+                const cell = packed.cells[i];
+                if (!cell) continue;
+                const [page, x, y, w, h, ox, oy] = cell;
+                const left = Math.max(sx, i * fw + ox), top = Math.max(sy, oy);
+                const right = Math.min(sx + sw, i * fw + ox + w), bottom = Math.min(sy + sh, oy + h);
+                if (right <= left || bottom <= top) continue;
+                ctx.drawImage(img.shodoPages[page], x + left - i * fw - ox, y + top - oy,
+                    right - left, bottom - top, left - sx, top - sy, right - left, bottom - top);
+            }
+        }
+        const rawSpriteCache = new Map();
+        function drawSpriteSource(ctx, img, sx, sy, sw, sh, dx, dy, dw, dh) {
+            // The legacy raw wire path uses native atlas sampling. Preserve it
+            // exactly when a sheet supplies that row; characters still use pages.
+            if (img.shodoRawImage || !img.shodoRuntime) {
+                ctx.drawImage(img.shodoRawImage || img, sx, sy, sw, sh, dx, dy, dw, dh);
+                return;
+            }
+            // Raw projectile blits also retain the complete source rectangle:
+            // scaling a tight crop directly changes Canvas edge sampling.
+            const key = `${img.currentSrc || img.src}|${sx}|${sy}|${sw}|${sh}`;
+            let source = rawSpriteCache.get(key);
+            if (!source) {
+                source = document.createElement('canvas'); source.width = sw; source.height = sh;
+                paintSpriteSource(source.getContext('2d'), img, sx, sy, sw, sh);
+                if (rawSpriteCache.size >= 16) rawSpriteCache.delete(rawSpriteCache.keys().next().value);
+                rawSpriteCache.set(key, source);
+            }
+            ctx.drawImage(source, 0, 0, sw, sh, dx, dy, dw, dh);
+        }
         function keyedShodoCell(img, sx, sy, sw, sh) {
             const key = `${img.currentSrc || img.src}|${sx}|${sy}|${sw}|${sh}`;
             if (shodoCellCache.has(key)) return shodoCellCache.get(key);
             const cell = document.createElement('canvas');
             cell.width = sw; cell.height = sh;
             const g = cell.getContext('2d', { willReadFrequently: true });
-            g.drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh);
+            paintSpriteSource(g, img, sx, sy, sw, sh);
             // Explicitly reviewed background pockets and card remnants; preserve ink and FX.
             for (const rect of img.shodoClearRects?.[sx / sw] ?? []) g.clearRect(...rect);
             try {
@@ -11281,7 +11322,7 @@
                             ctx.scale(Math.sign(proj.vx) || 1, 1);   // flies the way it was thrown
                             // the cells are packed CENTRED — a projectile has no feet to plant —
                             // so the whole cell blits centred on the projectile's position.
-                            ctx.drawImage(wman.img, wi * fw, 0, fw, fh,
+                            drawSpriteSource(ctx, wman.img, wi * fw, 0, fw, fh,
                                           -fw * WS / 2, -fh * WS / 2, fw * WS, fh * WS);
                             ctx.restore();
                             return;
@@ -11549,6 +11590,54 @@
 
         FX_STRIKE.img.src = 'assets/vfx/strike-20260906.png';
         const SPRITES = {};
+        const runtimeSpriteIndex = fetch(`assets/runtime-sprites/index.json?v=${SHEET_V}`)
+            .then(r => r.ok ? r.json() : null).catch(() => null);
+        async function loadRuntimeSprite(key, man, q) {
+            const index = await runtimeSpriteIndex;
+            // A new art version or changed manifest automatically uses its original
+            // atlas until the derived pages are rebuilt. Never pair stale pages/art.
+            if (index?.sheetVersion !== SHEET_V || !index.fighters?.[key]) return null;
+            const base = 'assets/runtime-sprites/';
+            const response = await fetch(base + index.fighters[key] + q);
+            if (!response.ok) return null;
+            const packed = await response.json();
+            if (packed.version !== 1 || packed.frameW !== man.frameW || packed.frameH !== man.frameH
+                || packed.cols !== man.cols || packed.cells?.length !== man.cols
+                || JSON.stringify(packed.sourceManifest) !== JSON.stringify(man)) return null;
+            const pages = await Promise.all(packed.pages.map(file => new Promise((resolve, reject) => {
+                const page = new Image();
+                page.onload = () => {
+                    if (page.width > 2048 || page.height > 2048) { reject(new Error('oversized sprite page')); return; }
+                    // Small pages decode without repeatedly reading the enormous strip.
+                    if (page.decode) page.decode().then(() => resolve(page), reject);
+                    else resolve(page);
+                };
+                page.onerror = reject;
+                page.src = base + file + q;
+            })));
+            for (const cell of packed.cells) {
+                if (cell === null) continue;
+                if (!Array.isArray(cell) || cell.length !== 7 || !cell.every(Number.isInteger)) return null;
+                const [i, x, y, w, h, ox, oy] = cell;
+                if (!pages[i] || Math.min(x, y, ox, oy) < 0 || w <= 0 || h <= 0
+                    || x + w > pages[i].width || y + h > pages[i].height
+                    || ox + w > man.frameW || oy + h > man.frameH) return null;
+            }
+            const src = new URL(`assets/sprites/${key}.png${q}`, location.href).href;
+            let shodoRawImage = null;
+            if (key === 'shin' && man.frames.wire1 !== undefined) {
+                // Only this optional projectile row bypasses the shared keyer.
+                // Current sheets omit it, so they never download the giant strip.
+                shodoRawImage = await new Promise((resolve, reject) => {
+                    const raw = new Image();
+                    raw.onload = () => raw.width === man.frameW * man.cols && raw.height === man.frameH
+                        ? resolve(raw) : reject(new Error('raw sprite geometry mismatch'));
+                    raw.onerror = reject; raw.src = src;
+                });
+            }
+            return { src, currentSrc: src, width: man.frameW * man.cols, height: man.frameH,
+                shodoRuntime: packed, shodoPages: pages, shodoRawImage };
+        }
         NINJA_ROSTER.forEach(n => {
             // PUBLIC BATTLE BUILD: benched fighters are not preloaded. Benching them was a
             // UI gate only — this loop walked the RAW roster, so every visitor downloaded
@@ -11561,17 +11650,24 @@
                 const q = `?v=${SHEET_V}` + (bust ? `&r=${Date.now()}` : '');
                 fetch(`assets/sprites/${key}.json${q}`)
                     .then(r => r.ok ? r.json() : Promise.reject())
-                    .then(man => {
+                    .then(async man => {
+                        const install = img => {
+                            img.shodoClearRects = man.frameClear;
+                            img.shodoFrameOffsetX = man.frameOffsetX;
+                            img.shodoWeaponRegions = man.weaponNoOutline;
+                            man.img = img; man.ready = true; SPRITES[key] = man;
+                        };
+                        // Pages are optional: incomplete packaging/network failures
+                        // retain the original width-checked atlas fallback below.
+                        const prepared = await loadRuntimeSprite(key, man, q).catch(() => null);
+                        if (prepared) { install(prepared); return; }
                         const img = new Image();
                         img.onload = () => {
                             if (img.width !== man.frameW * man.cols) {
                                 if (!bust) load(true);   // stale half — refetch both, once
                                 return;                  // never install a mismatched sheet
                             }
-                            img.shodoClearRects = man.frameClear;
-                            img.shodoFrameOffsetX = man.frameOffsetX;
-                            img.shodoWeaponRegions = man.weaponNoOutline;
-                            man.img = img; man.ready = true; SPRITES[key] = man;
+                            install(img);
                         };
                         img.src = `assets/sprites/${key}.png${q}`;
                     })
