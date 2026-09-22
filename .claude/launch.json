@@ -1,0 +1,19 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "shadowclash",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["tools/serve.py", "9100", "web"],
+      "port": 9100,
+      "autoPort": false
+    },
+    {
+      "name": "shadowclash-9101",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["tools/serve.py", "9101", "web"],
+      "port": 9101,
+      "autoPort": false
+    }
+  ]
+}

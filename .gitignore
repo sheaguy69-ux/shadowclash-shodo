@@ -1,0 +1,5 @@
+media/
+
+# macOS Finder junk
+.DS_Store
+__pycache__/

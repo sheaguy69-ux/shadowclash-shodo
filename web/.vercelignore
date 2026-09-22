@@ -1,0 +1,25 @@
+# PUBLIC BATTLE BUILD — what must not leave the machine.
+#
+# The build no longer REQUESTS any of this (the preloader skips benched fighters),
+# but "nothing links to it" is not the same as "nobody can fetch it": a static host
+# serves every file it is given, so anything uploaded here is one guessed URL away
+# from public. The parked characters stay parked by not being deployed at all.
+
+# The benched fighters. Their sheets are the parked designs.
+assets/sprites/mokurai.*
+assets/sprites/exile.*
+assets/ninjas/mokurai.png
+assets/ninjas/exile.png
+assets/ninjas/locked/
+
+# Boss promo art — 4.6MB, referenced by nothing in the build, and it depicts the
+# same three characters.
+bosses-animated.gif
+bosses-fullbody.png
+bosses-triptych.png
+
+# Internal dev page: publicly reachable at /_review/ if uploaded.
+_review/
+
+# macOS junk.
+.DS_Store
