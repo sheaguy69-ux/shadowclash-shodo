@@ -1,0 +1,11 @@
+[
+ {"wait":1.2},{"key":"Space"},{"wait":0.5},
+ {"eval":"gameMode='training'; cpuMode=false; p1Pick=8; p2Pick=0; stagePick='bamboo'; attractMode=false; startNewGame(); return 'boot'"},
+ {"wait":3.0},
+ {"eval":"window.__s=[]; window.__b=[]; const F=SPRITES.oni.frames; window.__inv={}; for(const k in F){(window.__inv[F[k]]=window.__inv[F[k]]||[]).push(k);} const os=player1.spawnHitbox.bind(player1); player1.spawnHitbox=function(w,h,d,du,p,o={}){window.__b.push(Math.round(w)+'x'+Math.round(h)); return os(w,h,d,du,p,o);}; setInterval(()=>{ if(String(player1.state).startsWith('ATTACK')){const k=player1.drawCell; if(!window.__s.length||window.__s[window.__s.length-1]!==k) window.__s.push(k);} },4); return 'ok'"},
+ {"eval":"player1.x=560;player2.x=700;player2.hp=999;window.__s.length=0;window.__b.length=0;return 1"},
+ {"key":"KeyW","hold":0.05},{"wait":0.28},
+ {"key":"KeyH","hold":0.08},{"wait":1.6},
+ {"eval":"return {move:'AIR neutral SPECIAL', cells:window.__s.map(c=>(window.__inv[c]||[c]).join('/')), boxes:window.__b, proj:player1.projectiles.length}","label":"AIR-H"},
+ {"eval":"const F=SPRITES.oni.frames; return {knives:[F.knives1,F.knives6], aspin:[F.aspin1,F.aspin6]}","label":"rows"}
+]

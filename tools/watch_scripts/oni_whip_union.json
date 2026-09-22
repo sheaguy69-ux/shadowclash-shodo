@@ -1,0 +1,17 @@
+[
+ {"wait": 1.2},
+ {"key": "Space"},
+ {"wait": 0.5},
+ {"eval": "gameMode='training'; cpuMode=false; p1Pick=8; p2Pick=0; stagePick='bamboo'; attractMode=false; startNewGame(); return 'boot'", "label": "boot"},
+ {"wait": 3.0},
+ {"eval": "window.__c=new Set(); setInterval(()=>{ if(player1.state==='ATTACK_SPECIAL') window.__c.add(player1.drawCell); },4); return 'ok'"},
+ {"eval": "player1.x=600; player2.x=700; return 1"},
+ {"key": "KeyH", "hold": 0.06}, {"wait": 0.9},
+ {"eval": "player1.x=600; player2.x=700; return 1"},
+ {"key": "KeyH", "hold": 0.06}, {"wait": 0.9},
+ {"eval": "player1.x=600; player2.x=700; return 1"},
+ {"key": "KeyH", "hold": 0.06}, {"wait": 0.9},
+ {"eval": "player1.x=600; player2.x=700; return 1"},
+ {"key": "KeyH", "hold": 0.06}, {"wait": 0.9},
+ {"eval": "return {whipCellsSeen:[...window.__c].sort((a,b)=>a-b), expected:[243,244,245,246,247,248]}", "label": "WHIP-union-4-reps"}
+]

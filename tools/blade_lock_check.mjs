@@ -70,6 +70,8 @@ function mkPlayer(name, x, specName = 'kael') {
 
 const harness = `
 ${consts}
+${src.match(/const LOCK_CONTACT_Y = \{[\s\S]*?\n        \};/)[0]}
+${lift('bladeLockPoint')}
 ${lift('bladeLockFrame')}
 ${lift('cancelBladeLock')}
 ${lift('fitBladeLockPair')}
@@ -85,6 +87,7 @@ const api = new Function('STATE', 'sfx', 'createSparks', 'createSmokePuff', 'spa
     Object.defineProperty(globalThis, 'SPRITES', { get: get_SPRITES, configurable: true });
     const screenShakeHolder = {};
     const createBladeSparks = createSparks;
+    const combatPose = () => null; // Native contact coordinates are checked by check_clash_spec.py.
     let screenShakeAmount = 0, flashAmount = 0, hitstopRemaining = 0, cpuTier = 1;
     Object.defineProperty(globalThis, 'player1', { get: get_player1, configurable: true });
     Object.defineProperty(globalThis, 'player2', { get: get_player2, configurable: true });
@@ -423,13 +426,13 @@ const sep = (a, b) => Math.abs((a.x + a.width / 2) - (b.x + b.width / 2));
 console.log('\nWHAT CAN BIND — wood binds, but does not ring\n');
 
 ok(mats.canBind('steel') && mats.canBind('iron'), 'steel and iron bind');
-ok(mats.canBind('wood'), 'WOOD BINDS — mizu can lock (owner ruling)');
+ok(!mats.canBind('wood'), 'wood cannot blade lock (September7 owner clarification)');
 ok(!mats.canBind('flesh'), 'flesh cannot bind — no weapon at all');
 ok(!mats.canBind('mail'), "mail cannot bind — shin's chainmail is under his clothes, not in hand");
 ok(!mats.canBind('chain'), 'chain cannot bind — no rigid length to brace against');
 
 // the separation that matters: mizu BINDS a katana but must never RING like one
-ok(mats.weaponBind(MIZU, KAEL, bare, bare), "mizu's bo BINDS kael's katana");
+ok(!mats.weaponBind(MIZU, KAEL, bare, bare), "mizu's bo cannot blade lock kael's katana");
 ok(!mats.bladeOnBlade(MIZU, KAEL, bare, bare), "...but it still does NOT ring as steel");
 ok(mats.woodInvolved(MIZU, KAEL, bare, bare), '...it reads as WOOD for the clash sound');
 
@@ -439,33 +442,12 @@ ok(!mats.weaponBind(SHIN, KAEL, bare, bare), "shin's fists never bind");
 ok(mats.weaponBind(SHIN, KAEL, box('steel'), bare), 'shin WITH A KUNAI still binds');
 ok(!mats.weaponBind(KAEL, KAEL, box('chain'), bare), "exile's chain still never binds");
 ok(!mats.weaponBind(ONI, KAEL, box('flesh'), bare), "oni's fist form still never binds");
-ok(mats.weaponBind(ONI, MIZU, bare, bare), "oni's armed claws bind a wooden bo");
+ok(!mats.weaponBind(ONI, MIZU, bare, bare), "oni's armed claws cannot blade lock a wooden bo");
 ok(!mats.weaponBind(KAEL, KAEL, { canClash: false }, bare), 'a kick still never binds');
 
 
-// ---- WHO IS ALLOWED TO BIND AT ALL ------------------------------------------
-// The rules above decide whether two weapons CAN catch. This section pins the
-// entry gate that decides whether the game lets them — lifted from the source,
-// so it fails if the gate is loosened again rather than silently passing.
-//
-// It was loosened once: a newer `bindPair` branch was added ABOVE the steel-only
-// kiai block and returned first, and it carried neither the floor test nor the
-// banner the older block still had. The older block's own comment states the
-// intent — "a mid-air lockup has no floor to brace against and would just hang
-// two bodies in space until the timer ran out" — and two air heavies that caught
-// each other did exactly that, silently.
-const gate = src.match(/if \(bindPair && clashCd <= 0([\s\S]{0,220}?)\) \{/);
-ok(!!gate, 'the bind entry gate is still findable in web/index.html');
-const gateSrc = gate ? gate[1] : '';
-ok(/a\.isGrounded/.test(gateSrc) && /b\.isGrounded/.test(gateSrc),
-   'A BIND IS GROUNDED-ONLY — both fighters, on the live bindPair branch');
-ok(/!a\.lock/.test(gateSrc) && /!b\.lock/.test(gateSrc),
-   'neither side may already be locked (no re-entering a live bind)');
-ok(/a\.stunTimer <= 0/.test(gateSrc) && /b\.stunTimer <= 0/.test(gateSrc),
-   'a stunned fighter cannot bind');
-ok(/roundBanner/.test(src.slice(src.indexOf('if (bindPair && clashCd <= 0'),
-                                 src.indexOf('if (bindPair && clashCd <= 0') + 900)),
-   'the BLADE LOCK banner fires on the branch that actually runs');
+// Ordinary clashes now return to neutral; the optional lock implementation remains tested.
+ok(/if \(steelPair && clashCd <= 0/.test(lift('processWeaponClash')), 'automatic lock requires blade against blade');
 
 // And the reason the old block below it is unreachable: every steel pair is also a
 // bind pair, so `steelPair && ...` can never be true where `bindPair && ...` was
@@ -490,11 +472,12 @@ for (const [delayA, delayB, want] of [[0.2, 0, false], [0, 0.2, false], [0.2, 0.
     a.hitboxes = [{ ox: 0, oy: 0, w: 40, h: 30, delay: delayA, duration: 0.1, canClash: true }];
     b.hitboxes = [{ ox: 0, oy: 0, w: 40, h: 30, delay: delayB, duration: 0.1, canClash: true }];
     let binds = 0;
-    const hit = runInNewContext(lift('processWeaponClash') + '; processWeaponClash(a, b)', {
+    const hit = runInNewContext(lift('refreshStrikeGeometry') + lift('processWeaponClash') + '; processWeaponClash(a, b)', {
         a, b, bladeOnBlade: () => true, woodInvolved: () => false, weaponBind: () => true,
-        clashCd: 0, CLASH_COOLDOWN: 1, enterBladeLock: () => binds++,
+        STATE, clashCd: 1, hitstopRemaining: 0, clashFreezeRemaining: 0, clashShakeRemaining: 0,
+        flashAmount: 0, createBladeSparks() {}, sfx() {},
     });
-    ok(hit === want && binds === Number(want)
+    ok(hit === want
        && a.hitboxes.length === Number(!want) && b.hitboxes.length === Number(!want),
        `clash waits for BOTH startups: delays ${delayA}/${delayB}`, `clashed=${hit}`);
 }
@@ -547,9 +530,11 @@ for (const kind of ['hit','air','KO']) {
 {
     // Real training reset, with only unrelated stage/tether presentation stubbed.
     const [a,b]=fresh(); api.enterBladeLock(a,b);
-    for(const p of [a,b])Object.assign(p,{maxHp:150,ghosts:[],echoTrail:[],kageTape:[],kageActs:[],dropTether(){}});
+    for(const p of [a,b])Object.assign(p,{maxHp:150,ghosts:[],echoTrail:[],kageTape:[],kageActs:[],projectiles:[],usedStarters:[],releaseAnchor(){},dropTether(){}});
     const env={player1:a,player2:b,seedAbyss(){},cancelBladeLock:api.cancelBladeLock,
-               canvas:{width:1200},GROUND_Y:600,STATE,trainingStats:{},clashCd:7};
+               canvas:{width:1200},GROUND_Y:600,STATE,trainingStats:{},clashCd:7,
+               releaseAllKeys(){},hitstopQueue:[],smokeFields:[],logs:[],slashes:[],fxSprites:[],strikes:[],particles:[],
+               currentStage:{},clampLandX:x=>x,hasFloorAt:()=>true};
     runInNewContext(lift('trainingReset')+'; trainingReset(false);',env);
     ok(!a.lockT && !b.lockT && !a.lockOutcomeT && !b.lockOutcomeT && env.clashCd===0,
        'training reset clears the contest, outcome art and cooldown');
@@ -558,7 +543,7 @@ for (const kind of ['hit','air','KO']) {
     const takeDamage = src.match(/\n(\s*)takeDamage\([^)]*\) \{[\s\S]*?\n\1\}/)[0];
     const [a,b]=fresh(); api.enterBladeLock(a,b);
     b.rollIFrames=()=>false; b.fxSched=[];
-    const env={gameMode:'2p',cancelBladeLock:api.cancelBladeLock,STATE,CRACK_TAKEN:1.2, b,a};
+    const env={footsiesFrame:()=>null,gameMode:'2p',cancelBladeLock:api.cancelBladeLock,STATE,CRACK_TAKEN:1.2, b,a};
     // Stop at the first downstream hit bookkeeping; cancellation must already be done.
     b.grayHoldT=1;
     Object.defineProperty(b,'grayHoldT',{set(){throw new Error('hit reached');}});

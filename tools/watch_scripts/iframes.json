@@ -1,0 +1,86 @@
+[
+ {
+  "wait": 1.2
+ },
+ {
+  "key": "Space"
+ },
+ {
+  "wait": 0.5
+ },
+ {
+  "eval": "gameMode='2p'; cpuMode=false; p1Pick=5; p2Pick=4; stagePick='bamboo'; attractMode=false; startNewGame(); return {p1:NINJA_ROSTER[p1Pick].name, p2:NINJA_ROSTER[p2Pick].name, cpuMode}",
+  "label": "boot"
+ },
+ {
+  "wait": 2.2
+ },
+ {
+  "eval": "\n  // ⛔ NOT TRAINING MODE. Training auto-refills 26hp/s, so a landed hit was healed\n  // before the take ended and every phase reported dmgTaken 0 — which reads as\n  // \"i-frames always work\" when it actually means the scoreboard was being wiped.\n  // 2P with cpuMode off = nobody acts unless this script says so, and no regen.\n\n  // ⛔ A HITBOX EXISTS BEFORE IT IS LIVE. spawnHitbox pushes it at swing start with a\n  // `delay`, so `hitboxes.length>0` is true on frame 1. Live == a box whose delay burned down.\n  window.__live = () => player2.hitboxes.some(h => h.delay <= 0);\n\n  const reset = () => { const p1=player1,p2=player2;\n    p1.hp=p1.maxHp; p2.hp=p2.maxHp;\n    p1.x=380; p2.x=470; p1.facing=1; p2.facing=-1;\n    p1.rollTimer=0; p1.rollRecover=0; p1.rollStale=0; p1.stunTimer=0;\n    p1.vx=0; p1.vy=0; p2.vx=0; p1.hitboxes.length=0; p2.hitboxes.length=0;\n    p1.recoveryTimer=0; p2.recoveryTimer=0; };\n\n  window.__calib = () => new Promise(res => { reset();\n    const t0=performance.now(); player2.executeAttack(STATE.ATTACK_HEAVY);\n    const tick=()=>{ const now=performance.now()-t0;\n      if(window.__live()) return res(Math.round(now));\n      if(now<1200) requestAnimationFrame(tick); else res(null); };\n    requestAnimationFrame(tick); });\n\n  // Put P1 exactly `frac` through its roll when the box goes live. The roll cannot\n  // start before t=0, so for a LATE frac the ATTACK is delayed instead — clamping only\n  // the roll silently collapsed 0.85 and 0.45 onto the same instant.\n  window.__take = (frac, liveMs) => new Promise(res => { reset();\n    const p1=player1, p2=player2;\n    const want = frac*ROLL_TIME*1000;\n    const rollAt = Math.max(0, liveMs - want), atkAt = Math.max(0, want - liveMs);\n    const t0=performance.now();\n    let rolled=false, swung=false, invAtHit=null, dmg=0, pctAtHit=null;\n    const tick=()=>{ const now=performance.now()-t0;\n      if(!swung  && now>=atkAt ){ p2.executeAttack(STATE.ATTACK_HEAVY); swung=true; }\n      if(!rolled && now>=rollAt){ p1.startRoll(1); rolled=true; }\n      if(invAtHit===null && swung && window.__live()){\n        invAtHit = p1.rollIFrames();\n        pctAtHit = p1.rollTimer>0 ? Math.round((1-p1.rollTimer/ROLL_TIME)*100) : null; }\n      // grab the damage AT the drop; nothing here should heal, but never trust that again\n      if(!dmg && p1.hp < p1.maxHp) dmg = p1.maxHp - p1.hp;\n      if(now<1300) requestAnimationFrame(tick);\n      else res({ askedPct: Math.round(frac*100)+'%', actualRollPctAtHit: pctAtHit,\n                 intangible: invAtHit, dmgTaken: Math.round(dmg),\n                 result: dmg ? 'HIT' : 'passed through' }); };\n    requestAnimationFrame(tick); });\n  return 'scene armed'",
+  "label": "arm"
+ },
+ {
+  "eval": "window.__L = await window.__calib(); return window.__L",
+  "label": "Ember heavy goes live at (ms)"
+ },
+ {
+  "wait": 0.5
+ },
+ {
+  "eval": "return window.__take(0.05, window.__L)",
+  "label": "A. rolled LATE  — lands in startup"
+ },
+ {
+  "wait": 0.6
+ },
+ {
+  "eval": "return window.__take(0.45, window.__L)",
+  "label": "B. rolled ON TIME — lands mid-roll"
+ },
+ {
+  "wait": 0.6
+ },
+ {
+  "eval": "return window.__take(0.85, window.__L)",
+  "label": "C. rolled EARLY — lands on the tail"
+ },
+ {
+  "wait": 0.6
+ },
+ {
+  "eval": "return window.__take(1.30, window.__L)",
+  "label": "D. rolled WAY early — lands in recovery"
+ },
+ {
+  "wait": 0.6
+ },
+ {
+  "eval": "window.__p = window.__take(0.05, window.__L); return 'filming LATE'",
+  "label": "film A"
+ },
+ {
+  "record": 0.85,
+  "fps": 30,
+  "tag": "late"
+ },
+ {
+  "eval": "return window.__p",
+  "label": "A filmed"
+ },
+ {
+  "wait": 0.6
+ },
+ {
+  "eval": "window.__p = window.__take(0.45, window.__L); return 'filming ON TIME'",
+  "label": "film B"
+ },
+ {
+  "record": 0.85,
+  "fps": 30,
+  "tag": "ontime"
+ },
+ {
+  "eval": "return window.__p",
+  "label": "B filmed"
+ }
+]

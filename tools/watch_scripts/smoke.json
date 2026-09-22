@@ -1,0 +1,9 @@
+[
+  {"wait": 1.0},
+  {"eval": "typeof SHEET_V !== 'undefined' ? SHEET_V : 'no game'", "label": "sheet"},
+  {"shoot": "title"},
+  {"key": "Enter"},
+  {"wait": 1.0},
+  {"shoot": "after-enter"},
+  {"eval": "({matchActive: typeof matchActive!=='undefined'?matchActive:null, intro: typeof roundIntroTimer!=='undefined'?+roundIntroTimer.toFixed(2):null})", "label": "gates"}
+]

@@ -1,0 +1,37 @@
+[
+ {
+  "wait": 1.2
+ },
+ {
+  "key": "Space"
+ },
+ {
+  "wait": 0.5
+ },
+ {
+  "eval": "gameMode='training'; cpuMode=false; p1Pick=7; p2Pick=0; stagePick='bamboo'; attractMode=false; startNewGame(); return 'boot'"
+ },
+ {
+  "wait": 3.0
+ },
+ {
+  "eval": "moveListOpen=false; player1.x=620; player2.x=1150; player2.hp=999; return 1"
+ },
+ {
+  "wait": 0.3
+ },
+ {
+  "eval": "window.__shots=[]; window.__cap=true;const oc=document.createElement('canvas'); oc.width=560; oc.height=400;const octx=oc.getContext('2d');const grab=()=>{ if(!window.__cap) return; const sx=player1.x+player1.width/2-280, sy=GROUND_Y-340; octx.drawImage(canvas, sx, sy, 560, 400, 0, 0, 560, 400); window.__shots.push(oc.toDataURL('image/jpeg',0.75)); if(window.__shots.length<55) requestAnimationFrame(grab); else window.__cap=false; };requestAnimationFrame(grab); return 'rec'"
+ },
+ {
+  "key": "KeyH",
+  "hold": 0.08
+ },
+ {
+  "wait": 1.2
+ },
+ {
+  "eval": "return window.__shots",
+  "label": "SHOTS"
+ }
+]

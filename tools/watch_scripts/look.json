@@ -1,0 +1,69 @@
+[
+ {
+  "wait": 1.0
+ },
+ {
+  "key": "Enter"
+ },
+ {
+  "wait": 0.9
+ },
+ {
+  "eval": "const b=[...document.querySelectorAll('button')].find(x=>/TRAINING/i.test(x.textContent)); b.click(); return 'ok'",
+  "label": "mode"
+ },
+ {
+  "wait": 0.6
+ },
+ {
+  "eval": "const cards=[...document.querySelectorAll('*')].filter(x=>x.children.length===0&&x.textContent.trim()==='Kael');if(!cards.length) return 'NOT FOUND';let el=cards[0]; for(let i=0;i<6&&el;i++){ if(el.className&&/cursor|card|rounded/.test(el.className)) break; el=el.parentElement; }(el||cards[0]).click(); return 'clicked'",
+  "label": "pickP1"
+ },
+ {
+  "wait": 0.5
+ },
+ {
+  "eval": "const cards=[...document.querySelectorAll('*')].filter(x=>x.children.length===0&&x.textContent.trim()==='Ember');if(!cards.length) return 'NOT FOUND';let el=cards[0]; for(let i=0;i<6&&el;i++){ if(el.className&&/cursor|card|rounded/.test(el.className)) break; el=el.parentElement; }(el||cards[0]).click(); return 'clicked'",
+  "label": "pickP2"
+ },
+ {
+  "wait": 0.5
+ },
+ {
+  "eval": "const b=[...document.querySelectorAll('button')].find(x=>/px-8 py-3 bg-red-600/.test(x.className||'')); if(!b) return 'NO BTN'; if(b.disabled) return 'DISABLED - fighters not picked'; b.click(); return 'started'",
+  "label": "start"
+ },
+ {
+  "wait": 2.8
+ },
+ {
+  "eval": "return {p1:player1&&player1.spec.name,p2:player2&&player2.spec.name,intro:typeof roundIntroTimer!=='undefined'?+roundIntroTimer.toFixed(2):null,mode:typeof gameMode!=='undefined'?gameMode:null}",
+  "label": "match"
+ },
+ {
+  "eval": "player1.x=420; player2.x=610; player1.facing=1; player2.facing=-1; player1.chakra=100; player1.stamina=100; return 'posed'",
+  "label": "posed"
+ },
+ {
+  "wait": 0.35
+ },
+ {
+  "key": "KeyG",
+  "hold": 0.05
+ },
+ {
+  "eval": "window.__L=[];window.__t0=performance.now();const t=()=>{const p=player1;window.__L.push({ms:Math.round(performance.now()-window.__t0),st:Object.keys(STATE).find(k=>STATE[k]===p.state),y:Math.round(p.y),vy:Math.round(p.vy),g:p.isGrounded,flip:+(p.flipTimer||0).toFixed(2),roll:+(p.rollTimer||0).toFixed(2),hp:p.health});if(performance.now()-window.__t0<900)requestAnimationFrame(t);};requestAnimationFrame(t);return 'armed'",
+  "label": "probe"
+ },
+ {
+  "key": "KeyG",
+  "hold": 0.05
+ },
+ {
+  "wait": 1.1
+ },
+ {
+  "eval": "return window.__L.filter((_,i)=>i%3===0)",
+  "label": "TRACE"
+ }
+]

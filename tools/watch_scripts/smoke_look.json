@@ -1,0 +1,16 @@
+[
+ {"wait":1.2},{"key":"Space"},{"wait":0.5},
+ {"eval":"gameMode='training'; cpuMode=false; p1Pick=8; p2Pick=0; stagePick='bamboo'; attractMode=false; startNewGame(); return 'boot'"},
+ {"wait":3.0},
+ {"eval":"moveListOpen=false; window.scrollTo(0,400); player1.x=600;player2.x=760;player2.hp=999;return 1"},
+ {"wait":0.3},
+ {"shoot":"before", "clip":[300,560,900,420]},
+ {"key":"KeyW","hold":0.05},{"wait":0.30},
+ {"down":"KeyS"},{"key":"KeyH","hold":0.10},{"wait":0.30},{"up":"KeyS"},
+ {"eval":"return {fields:smokeFields.length, dur:smokeFields[0]?+smokeFields[0].duration.toFixed(2):null, smokeUsed:player1.smokeUsed}","label":"just-thrown"},
+ {"shoot":"t0.6-billow", "clip":[300,560,900,420]},
+ {"wait":1.0},{"shoot":"t1.6-full", "clip":[300,560,900,420]},
+ {"wait":1.3},{"shoot":"t2.9-WAS-INVISIBLE-BEFORE", "clip":[300,560,900,420]},
+ {"wait":0.8},{"shoot":"t3.7-fading", "clip":[300,560,900,420]},
+ {"eval":"return {fieldsLeft:smokeFields.length}","label":"end"}
+]

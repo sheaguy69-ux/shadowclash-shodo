@@ -1,0 +1,60 @@
+[
+ {
+  "wait": 1.2
+ },
+ {
+  "eval": "const t=document.querySelector('#title-screen,[id*=title]'); if(t&&t.click) t.click(); document.body.click(); return {held: Object.keys(keys).filter(k=>keys[k])}",
+  "label": "dismissByClick"
+ },
+ {
+  "wait": 0.8
+ },
+ {
+  "eval": "const b=[...document.querySelectorAll('button')].find(x=>/TRAINING/i.test(x.textContent)); if(!b) return 'no btn'; b.click(); return {held: Object.keys(keys).filter(k=>keys[k])}",
+  "label": "mode"
+ },
+ {
+  "wait": 0.5
+ },
+ {
+  "eval": "const c=[...document.querySelectorAll('*')].filter(x=>x.children.length===0&&x.textContent.trim()==='Kael'); let e=c[0]; for(let i=0;i<6&&e;i++){if(e.className&&/sc-card/.test(e.className))break; e=e.parentElement;} (e||c[0]).click(); return 'ok'",
+  "label": "p1"
+ },
+ {
+  "wait": 0.4
+ },
+ {
+  "eval": "const c=[...document.querySelectorAll('*')].filter(x=>x.children.length===0&&x.textContent.trim()==='Ember'); let e=c[0]; for(let i=0;i<6&&e;i++){if(e.className&&/sc-card/.test(e.className))break; e=e.parentElement;} (e||c[0]).click(); return 'ok'",
+  "label": "p2"
+ },
+ {
+  "wait": 0.4
+ },
+ {
+  "eval": "const b=[...document.querySelectorAll('button')].find(x=>/px-8 py-3 bg-red-600/.test(x.className||'')); if(b.disabled) return 'DISABLED'; b.click(); return 'started'",
+  "label": "start"
+ },
+ {
+  "wait": 3.0
+ },
+ {
+  "eval": "return {mode:gameMode, keysHeld: Object.keys(keys).filter(k=>keys[k]), physHeld:[...physKeys], p1:{x:Math.round(player1.x),y:Math.round(player1.y),grounded:player1.isGrounded}}",
+  "label": "AFTER START"
+ },
+ {
+  "eval": "player1.x=430; player2.x=590; player1.facing=1; player2.facing=-1; player1.chakra=100; player1.stamina=100; return 'posed'",
+  "label": "pose"
+ },
+ {
+  "wait": 0.4
+ },
+ {
+  "key": "KeyG",
+  "hold": 0.04
+ },
+ {
+  "record": 0.75,
+  "fps": 25,
+  "tag": "hv"
+ }
+]

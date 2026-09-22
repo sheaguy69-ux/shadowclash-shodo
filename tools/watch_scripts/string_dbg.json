@@ -1,0 +1,21 @@
+[
+ {
+  "wait": 1.2
+ },
+ {
+  "key": "Space"
+ },
+ {
+  "wait": 0.5
+ },
+ {
+  "eval": "gameMode='2p'; cpuMode=false; p1Pick=8; p2Pick=0; stagePick='bamboo'; attractMode=false; startNewGame(); roundIntroTimer=0; return 1"
+ },
+ {
+  "wait": 1.5
+ },
+ {
+  "eval": "const frame=()=>new Promise(r=>requestAnimationFrame(r)); const p=player1; const F=SPRITES.oni.frames;player2.x=p.x+600; p.stamina=100; const log=[];for(let tap=0;tap<3;tap++){ try{p.executeAttack(STATE.ATTACK_LIGHT);}catch(e){log.push('ERR '+e.message);} const cells=new Set(); let f=0; for(; f<60; f++){ await frame(); try{cells.add(spriteFrameIndex(p,F));}catch(e){}  if(f>6 && !p.isAttackingState() && p.recoveryTimer<=0) break; } log.push('tap'+tap+' step='+p.stringStep+' T='+p.stringT.toFixed(2)+' frames='+f+' cells='+[...cells].sort((a,b)=>a-b).join(','));} return log",
+  "label": "STRDBG"
+ }
+]

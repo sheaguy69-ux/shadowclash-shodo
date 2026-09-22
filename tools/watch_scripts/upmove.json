@@ -1,0 +1,17 @@
+[
+ {"wait":1.2},{"key":"Space"},{"wait":0.5},
+ {"eval":"gameMode='training'; cpuMode=false; p1Pick=8; p2Pick=0; stagePick='bamboo'; attractMode=false; startNewGame(); return 'boot'"},
+ {"wait":3.0},
+ {"eval":"window.__c=new Set(); window.__on=false; setInterval(()=>{ if(window.__on) window.__c.add(player1.drawCell); },4); return 'ok'"},
+
+ {"eval":"player1.x=640;player2.x=700;player2.hp=999;window.__c.clear();window.__on=true;return 1"},
+ {"down":"KeyW"},{"down":"KeyG"},{"wait":0.9},{"up":"KeyG"},{"up":"KeyW"},
+ {"eval":"window.__on=false; const F=SPRITES.oni.frames; return {test:'W+G same frame', cells:[...window.__c].sort((a,b)=>a-b), ghup:[F.ghup1,F.ghup6], heavy_i:[F.heavy_i1,F.heavy_i5]}","label":"WG-together"},
+
+ {"eval":"player1.x=640;player2.x=700;window.__c.clear();window.__on=true;return 1"},
+ {"eval":"player1.upHeld=true; return 1"},
+ {"down":"KeyG"},{"wait":0.9},{"up":"KeyG"},
+ {"eval":"window.__on=false; return {test:'G with up flag forced', cells:[...window.__c].sort((a,b)=>a-b)}","label":"forced-up"},
+
+ {"eval":"return {isUpPressedSrc: String(player1.isUpPressed).slice(0,240)}","label":"isUpPressed"}
+]

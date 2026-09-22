@@ -1,0 +1,45 @@
+[
+ {
+  "wait": 1.2
+ },
+ {
+  "key": "Space"
+ },
+ {
+  "wait": 0.5
+ },
+ {
+  "eval": "gameMode='training'; cpuMode=false; p1Pick=8; p2Pick=0; stagePick='bamboo'; attractMode=false; startNewGame(); return 'boot'",
+  "label": "boot"
+ },
+ {
+  "wait": 3.0
+ },
+ {
+  "eval": "const P=CanvasRenderingContext2D.prototype; if(!P.__scHook){P.__scHook=true; const orig=P.drawImage; window.__ctm=[]; P.drawImage=function(img,...a){ if(window.__rec){ let who=null,sc=0; if(img===SPRITES['oni'].img){who='oni';sc=SPRITES['oni'].scale;} else if(img===SPRITES['executioner'].img){who='executioner';sc=SPRITES['executioner'].scale;} if(who){ const m=this.getTransform(); window.__ctm.push({who, xs:+(Math.hypot(m.a,m.b)/sc).toFixed(4)}); } } return orig.apply(this,[img,...a]); };} return 'hooked'",
+  "label": "hook"
+ },
+ {
+  "eval": "player1.x=250; player2.x=1000; window.__rec=true; return 'recording'",
+  "label": "rec"
+ },
+ {
+  "wait": 1.0
+ },
+ {
+  "down": "KeyD"
+ },
+ {
+  "wait": 1.5
+ },
+ {
+  "up": "KeyD"
+ },
+ {
+  "wait": 0.6
+ },
+ {
+  "eval": "window.__rec=false; const per={}; for(const r of window.__ctm){ (per[r.who]=per[r.who]||[]).push(r.xs); } const out={}; for(const k in per){ const v=per[k]; out[k]={n:v.length, min:+Math.min(...v).toFixed(3), max:+Math.max(...v).toFixed(3)}; } out.oni_over_executioner = +(((per.oni||[1]).reduce((s,x)=>s+x,0)/(per.oni||[1]).length) / (((per.executioner||[1]).reduce((s,x)=>s+x,0))/(per.executioner||[1]).length)).toFixed(4); return out",
+  "label": "ctm"
+ }
+]

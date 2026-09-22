@@ -1,0 +1,9 @@
+[
+  {
+    "wait": 1
+  },
+  {
+    "eval": "const failures=[];let cases=0;for(const facing of [-1,1])for(const defId of [0,1,2,6]){\nconst a=new Player(1,400+facing*70,300,NINJA_ROSTER.find(s=>s.id===0),true),d=new Player(2,400,300,NINJA_ROSTER.find(s=>s.id===defId),false);\na.facing=-facing;d.facing=facing;d.state=STATE.BLOCKING;d.isGrounded=true;a.opponent=d;d.opponent=a;\nparticles.length=0;fxSprites.length=0;d.takeDamage(8,a,{canClash:true,mat:'steel',tier:STATE.ATTACK_LIGHT,pushback:80});\nconst bursts=fxSprites.filter(f=>f.id==='W06');const expected=isMetal(weaponMat(d));if(bursts.length!==(expected?1:0))failures.push('burst '+defId+' '+facing);if(expected&&Math.sign(bursts[0].x-(d.x+d.width/2))!==facing)failures.push('guard side');cases++;}\nif(failures.length)throw Error(failures.join(';'));return {pass:true,blockCases:cases};",
+    "label": "blade_block_check"
+  }
+]

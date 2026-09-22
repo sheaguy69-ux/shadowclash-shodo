@@ -1,0 +1,6 @@
+[
+ {"wait":1.2},{"key":"Space"},{"wait":0.5},
+ {"eval":"gameMode='training'; cpuMode=false; p1Pick=8; p2Pick=0; stagePick='bamboo'; attractMode=false; startNewGame(); return 'boot'"},
+ {"wait":3.0},
+ {"eval":"return {sheetV:SHEET_V, oniMoveLines:MOVES_LIST.Oni.length, vLine:MOVES_LIST.Oni.find(l=>l.startsWith('V'))}","label":"live"}
+]

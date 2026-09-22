@@ -1,0 +1,14 @@
+[
+ {"wait":1.2},{"key":"Space"},{"wait":0.5},
+ {"eval":"gameMode='training'; cpuMode=false; p1Pick=8; p2Pick=0; stagePick='bamboo'; attractMode=false; startNewGame(); return 'boot'"},
+ {"wait":3.0},
+ {"eval":"window.__c=new Set(); setInterval(()=>{ if(player1.state==='ATTACK_LIGHT') window.__c.add(player1.drawCell); },4); return 'ok'"},
+ {"eval":"player1.x=500;player2.x=700;player2.hp=999;window.__c.clear(); return {dashTimer:player1.dashTimer}"},
+ {"key":"KeyD","hold":0.04},{"wait":0.06},{"key":"KeyD","hold":0.04},{"wait":0.10},
+ {"eval":"return {dashTimerAfterDoubleTap:+player1.dashTimer.toFixed(3), state:player1.state}","label":"dash-state"},
+ {"key":"KeyF","hold":0.06},{"wait":1.0},
+ {"eval":"const F=SPRITES.oni.frames; return {drew:[...window.__c].sort((a,b)=>a-b), lunge:[F.lunge1,F.lunge6], dashatk:[F.dashatk1,F.dashatk2]}","label":"dashF"},
+ {"eval":"player1.x=500;player2.x=700;window.__c.clear(); player1.dashTimer=0.4; return {forced:player1.dashTimer}"},
+ {"key":"KeyF","hold":0.06},{"wait":1.0},
+ {"eval":"return {drew:[...window.__c].sort((a,b)=>a-b)}","label":"forced-dash-F"}
+]

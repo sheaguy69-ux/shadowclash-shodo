@@ -1,0 +1,92 @@
+[
+ {
+  "wait": 1.2
+ },
+ {
+  "key": "Space"
+ },
+ {
+  "wait": 0.5
+ },
+ {
+  "eval": "gameMode='training'; cpuMode=false; p1Pick=8; p2Pick=0; stagePick='bamboo'; attractMode=false; startNewGame(); return 'boot'",
+  "label": "boot"
+ },
+ {
+  "wait": 3.0
+ },
+ {
+  "eval": "window.scrollTo(0,400); player1.x=200; player2.x=1050; player2.vx=0; return 'setup'",
+  "label": "setup"
+ },
+ {
+  "wait": 0.6
+ },
+ {
+  "eval": "const cv=document.querySelector('canvas'); const r=cv.getBoundingClientRect(); const sy=1006/1280; return {rect:{x:Math.round(r.x),y:Math.round(r.y)}, groundCssY: Math.round(r.y + 890*(r.height/1000)), p1CssX: Math.round(r.x + player1.x*(r.width/1280))}",
+  "label": "geom"
+ },
+ {
+  "shoot": "idle",
+  "clip": [
+   270,
+   640,
+   1000,
+   340
+  ]
+ },
+ {
+  "eval": "window.__cells=new Set(); window.__t0=performance.now(); const tick=()=>{ if(player1.state===STATE.RUN && player1.drawCell!==undefined) window.__cells.add(player1.drawCell); if(performance.now()-window.__t0<5000) requestAnimationFrame(tick); }; requestAnimationFrame(tick); return 'armed'",
+  "label": "probe"
+ },
+ {
+  "down": "KeyD"
+ },
+ {
+  "record": 1.6,
+  "fps": 30,
+  "tag": "run-right",
+  "clip": [
+   270,
+   640,
+   1000,
+   340
+  ]
+ },
+ {
+  "up": "KeyD"
+ },
+ {
+  "wait": 0.5
+ },
+ {
+  "shoot": "idle-after-run",
+  "clip": [
+   270,
+   640,
+   1000,
+   340
+  ]
+ },
+ {
+  "down": "KeyA"
+ },
+ {
+  "record": 1.6,
+  "fps": 30,
+  "tag": "run-left",
+  "clip": [
+   270,
+   640,
+   1000,
+   340
+  ]
+ },
+ {
+  "up": "KeyA"
+ },
+ {
+  "eval": "return {cellsDrawnInRun: [...window.__cells].sort((a,b)=>a-b)}",
+  "label": "cells"
+ }
+]

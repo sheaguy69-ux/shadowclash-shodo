@@ -1,0 +1,31 @@
+[
+ {"wait": 1.2},
+ {"key": "Space"},
+ {"wait": 0.5},
+ {"eval": "gameMode='training'; cpuMode=false; p1Pick=8; p2Pick=0; stagePick='bamboo'; attractMode=false; startNewGame(); return 'boot'", "label": "boot"},
+ {"wait": 3.0},
+ {"eval": "window.__hits=[]; const od=player2.takeDamage.bind(player2); player2.takeDamage=function(d,a,o){ window.__hits.push({dmg:Math.round(d), tier:o&&o.tier}); return od(d,a,o); }; window.__log=[]; const t=()=>{ window.__log.push({s:player1.state,c:player1.drawCell,x:Math.round(player1.x),proj:player1.projectiles.length}); requestAnimationFrame(t); }; requestAnimationFrame(t); return 'hooked'", "label": "hook"},
+
+ {"eval": "player1.x=400; player2.x=700; window.__hits.length=0; window.__i=window.__log.length; return 1"},
+ {"key": "KeyH", "hold": 0.08},
+ {"wait": 2.2},
+ {"eval": "const s=window.__log.slice(window.__i); return {move:'H far 300px (SHOT)', cells:[...new Set(s.filter(x=>x.s==='ATTACK_SPECIAL').map(x=>x.c))], maxProj:Math.max(...s.map(x=>x.proj)), travelled:s[s.length-1].x-s[0].x, hits:window.__hits}", "label": "SHOT-300"},
+
+ {"eval": "player1.x=560; player2.x=700; window.__hits.length=0; window.__i=window.__log.length; return 1"},
+ {"key": "KeyH", "hold": 0.08},
+ {"wait": 2.2},
+ {"eval": "const s=window.__log.slice(window.__i); return {move:'H 140px (just past whip)', cells:[...new Set(s.filter(x=>x.s==='ATTACK_SPECIAL').map(x=>x.c))], maxProj:Math.max(...s.map(x=>x.proj)), hits:window.__hits}", "label": "SHOT-140"},
+
+ {"eval": "player1.x=580; player2.x=700; window.__hits.length=0; window.__i=window.__log.length; return 1"},
+ {"down": "KeyD"}, {"key": "KeyH", "hold": 0.08}, {"wait": 2.2}, {"up": "KeyD"},
+ {"eval": "const s=window.__log.slice(window.__i); return {move:'Fwd+H @120px', cells:[...new Set(s.filter(x=>x.s==='ATTACK_SPECIAL').map(x=>x.c))], travelled:s[s.length-1].x-s[0].x, hits:window.__hits}", "label": "FwdH-120"},
+
+ {"eval": "player1.x=660; player2.x=700; window.__hits.length=0; window.__i=window.__log.length; return 1"},
+ {"down": "KeyD"}, {"key": "KeyH", "hold": 0.08}, {"wait": 2.2}, {"up": "KeyD"},
+ {"eval": "const s=window.__log.slice(window.__i); return {move:'Fwd+H @40px', cells:[...new Set(s.filter(x=>x.s==='ATTACK_SPECIAL').map(x=>x.c))], travelled:s[s.length-1].x-s[0].x, hits:window.__hits}", "label": "FwdH-40"},
+
+ {"eval": "player1.x=600; player2.x=700; window.__hits.length=0; window.__i=window.__log.length; return 1"},
+ {"key": "KeyH", "hold": 0.08},
+ {"wait": 2.2},
+ {"eval": "const s=window.__log.slice(window.__i); return {move:'WHIP @100px', cells:[...new Set(s.filter(x=>x.s==='ATTACK_SPECIAL').map(x=>x.c))], hits:window.__hits}", "label": "WHIP"}
+]

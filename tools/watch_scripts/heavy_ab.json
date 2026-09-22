@@ -1,0 +1,86 @@
+[
+ {
+  "wait": 1.2
+ },
+ {
+  "key": "Space"
+ },
+ {
+  "wait": 0.5
+ },
+ {
+  "eval": "gameMode='2p'; cpuMode=false; p1Pick=5; p2Pick=4; stagePick='bamboo'; attractMode=false; startNewGame(); return {p1:NINJA_ROSTER[p1Pick].name, p2:NINJA_ROSTER[p2Pick].name}",
+  "label": "boot"
+ },
+ {
+  "wait": 2.2
+ },
+ {
+  "eval": "\n  // A LIVE-HITBOX LAMP painted into the page. The whole question is 'is the blade out\n  // when the box goes live', and that is a per-FRAME fact \u2014 inferring it from a timestamp\n  // after the fact is exactly the kind of claim that should be shown, not asserted.\n  const el = document.createElement('div');\n  el.style.cssText = 'position:fixed;top:96px;left:290px;z-index:99999;font:bold 15px monospace;'\n    + 'padding:5px 10px;border-radius:4px;color:#fff;background:#2a2a33';\n  document.body.appendChild(el); window.__lamp = el;\n  const paint = () => { const on = player1.hitboxes.some(h => h.delay <= 0);\n    el.textContent = on ? '\\u25CF HITBOX LIVE' : '\\u25CB no hitbox';\n    el.style.background = on ? '#c92c2c' : '#2a2a33';\n    requestAnimationFrame(paint); };\n  requestAnimationFrame(paint);\n\n  // BEFORE = the flat numbers this commit replaced: delay 0.054s, active 0.2s.\n  // They were absolute, not ratios, so the 'before' fraction is derived per-fighter\n  // from that fighter's own heavy anim length.\n  window.__setMode = (mode) => { const fdH = 0.52;   // Kael's heavy anim, seconds\n    if (mode === 'before') { FRAME_DATA.heavy.startup = 0.054 / fdH; FRAME_DATA.heavy.active = 0.20; }\n    else                   { FRAME_DATA.heavy.startup = 0.42;        FRAME_DATA.heavy.active = 0.07; }\n    return {mode, startupFrac:+FRAME_DATA.heavy.startup.toFixed(3), active:FRAME_DATA.heavy.active}; };\n\n  window.__heavy = () => new Promise(res => { const p1=player1, p2=player2;\n    p1.hp=p1.maxHp; p2.hp=p2.maxHp; p1.x=380; p2.x=760; p1.facing=1; p2.facing=-1;\n    p1.vx=0; p1.vy=0; p1.hitboxes.length=0; p1.recoveryTimer=0; p1.stunTimer=0;\n    const t0=performance.now(); let live=null, off=null;\n    p1.executeAttack(STATE.ATTACK_HEAVY);\n    const tick=()=>{ const now=performance.now()-t0;\n      const on = p1.hitboxes.some(h=>h.delay<=0);\n      if(live===null && on) live=now;\n      if(live!==null && off===null && !on) off=now;\n      if(now<1200) requestAnimationFrame(tick);\n      else res({ startupMs: live===null?null:Math.round(live),\n                 activeMs: (live!==null&&off!==null)?Math.round(off-live):null,\n                 startupFrames: live===null?null:+(live/16.67).toFixed(1),\n                 activeFrames: (live!==null&&off!==null)?+((off-live)/16.67).toFixed(1):null }); };\n    requestAnimationFrame(tick); });\n  return 'armed'",
+  "label": "arm"
+ },
+ {
+  "eval": "return window.__setMode('before')",
+  "label": "mode BEFORE"
+ },
+ {
+  "eval": "window.__p = window.__heavy(); return 'filming'",
+  "label": "film before"
+ },
+ {
+  "record": 1.0,
+  "fps": 30,
+  "tag": "before",
+  "clip": [
+   270,
+   80,
+   420,
+   300
+  ]
+ },
+ {
+  "eval": "return window.__p",
+  "label": "BEFORE measured"
+ },
+ {
+  "wait": 0.8
+ },
+ {
+  "eval": "return window.__setMode('after')",
+  "label": "mode AFTER"
+ },
+ {
+  "eval": "window.__p = window.__heavy(); return 'filming'",
+  "label": "film after"
+ },
+ {
+  "record": 1.0,
+  "fps": 30,
+  "tag": "after",
+  "clip": [
+   270,
+   80,
+   420,
+   300
+  ]
+ },
+ {
+  "eval": "return window.__p",
+  "label": "AFTER measured"
+ },
+ {
+  "eval": "\n  // THE ACTUAL CLAIM: which animation cell is on screen the instant the box goes live.\n  // 13fps screen capture cannot resolve a 100ms difference; the engine can, exactly.\n  window.__heavyCell = () => new Promise(res => { const p1=player1,p2=player2;\n    p1.hp=p1.maxHp; p1.x=380; p2.x=760; p1.facing=1; p2.facing=-1;\n    p1.vx=0; p1.vy=0; p1.hitboxes.length=0; p1.recoveryTimer=0; p1.stunTimer=0;\n    const t0=performance.now(); let done=false;\n    p1.executeAttack(STATE.ATTACK_HEAVY);\n    const tick=()=>{ const now=performance.now()-t0;\n      if(!done && p1.hitboxes.some(h=>h.delay<=0)){ done=true;\n        const a=p1.attackAnim;\n        const el = a ? (animClock*1000 - a.start)/a.dur : null;\n        return res({ liveAtMs:Math.round(now), liveAtFrames:+(now/16.67).toFixed(1),\n                     animProgress: el===null?null:+el.toFixed(3),\n                     cellOnScreen: el===null?null:attackCellIndex(el,6)+1,\n                     ofCells:6 }); }\n      if(now<1200) requestAnimationFrame(tick); else res({liveAtMs:null}); };\n    requestAnimationFrame(tick); });\n  return 'cell probe armed'",
+  "label": "arm cell probe"
+ },
+ {
+  "eval": "window.__setMode('before'); return window.__heavyCell()",
+  "label": "BEFORE \u2014 cell on screen when the box goes live"
+ },
+ {
+  "wait": 0.8
+ },
+ {
+  "eval": "window.__setMode('after'); return window.__heavyCell()",
+  "label": "AFTER  \u2014 cell on screen when the box goes live"
+ }
+]

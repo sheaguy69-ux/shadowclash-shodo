@@ -1,0 +1,16 @@
+[
+  {"wait": 2.0},
+  {"key": "Space"},
+  {"wait": 0.8},
+  {"eval": "gameMode='2p'; cpuMode=false; attractMode=false; p1Pick=2; p2Pick=8; stagePick='bamboo'; startNewGame(); roundIntroTimer=0; matchActive=true; player1.x=400; player2.x=720; player1.facing=1; player2.facing=-1; return {p1:player1.spec.name,p2:player2.spec.name};", "label": "START"},
+  {"wait": 0.8},
+  {"eval": "window.scrollTo(0, document.body.scrollHeight); return window.scrollY;", "label": "SCROLL"},
+  {"wait": 0.3},
+  {"shoot": "ready"},
+  {"eval": "window.__runCells=[]; const sample=()=>{ if(player1 && player1.state==='RUN' && !__runCells.includes(player1.drawCell)) __runCells.push(player1.drawCell); requestAnimationFrame(sample); }; requestAnimationFrame(sample); return 'armed';", "label": "ARM"},
+  {"down": "KeyD"},
+  {"record": 2.0, "fps": 30, "key": "KeyF", "at": 0.15, "tag": "shin_run", "clip": [560, 680, 360, 220]},
+  {"up": "KeyD"},
+  {"wait": 0.25},
+  {"eval": "return {cells:__runCells.sort((a,b)=>a-b), expected:[419,420,421,422,423,424,425,426], state:player1.state, errors:window.__err||[]};", "label": "RESULT"}
+]

@@ -1,0 +1,199 @@
+[
+ {
+  "wait": 1.0
+ },
+ {
+  "key": "Enter"
+ },
+ {
+  "wait": 0.9
+ },
+ {
+  "eval": "const b=[...document.querySelectorAll('button')].find(x=>/QUICK PLAY/i.test(x.textContent)); b.click(); return 'ok'"
+ },
+ {
+  "wait": 0.6
+ },
+ {
+  "eval": "const c=[...document.querySelectorAll('*')].filter(x=>x.children.length===0&&x.textContent.trim()==='Kael');let el=c[0];for(let i=0;i<6&&el;i++){if(el.className&&/cursor|card|rounded/.test(el.className))break;el=el.parentElement;}(el||c[0]).click();return 'ok'"
+ },
+ {
+  "wait": 0.4
+ },
+ {
+  "eval": "const c=[...document.querySelectorAll('*')].filter(x=>x.children.length===0&&x.textContent.trim()==='Ember');let el=c[0];for(let i=0;i<6&&el;i++){if(el.className&&/cursor|card|rounded/.test(el.className))break;el=el.parentElement;}(el||c[0]).click();return 'ok'"
+ },
+ {
+  "wait": 0.4
+ },
+ {
+  "eval": "const b=[...document.querySelectorAll('button')].find(x=>/px-8 py-3 bg-red-600/.test(x.className||'')); b.click(); return 'started'"
+ },
+ {
+  "wait": 2.6
+ },
+ {
+  "eval": "var c=document.querySelector('canvas');var g=[...document.querySelectorAll('div')].find(function(e){return /grid-cols-1 lg:grid-cols-5/.test(e.className||'');});if(g){var col=c; while(col&&col.parentElement!==g) col=col.parentElement;[...g.children].forEach(function(k){ if(k!==col) k.style.display='none'; });if(col){col.style.gridColumn='1 / -1'; col.style.maxWidth='560px'; col.style.margin='0 auto';}}document.documentElement.style.zoom='1'; window.scrollTo(0,0);var c2=document.querySelector('canvas');var r=c2.getBoundingClientRect();return {rh:Math.round(r.height),top:Math.round(r.top),vh:innerHeight}",
+  "label": "FIT"
+ },
+ {
+  "eval": "currentStage = STAGES.find(s=>s.id==='bamboo'); seedAbyss(); player1.x=300; player2.x=630; player1.facing=1; player2.facing=-1; player1.y=GROUND_Y-player1.height; player2.y=GROUND_Y-player2.height; player1.vy=0; player2.vy=0; player1.isGrounded=true; player2.isGrounded=true; var c=document.querySelector('canvas');var g=[...document.querySelectorAll('div')].find(function(e){return /grid-cols-1 lg:grid-cols-5/.test(e.className||'');});if(g){var col=c; while(col&&col.parentElement!==g) col=col.parentElement;[...g.children].forEach(function(k){ if(k!==col) k.style.display='none'; });if(col){col.style.gridColumn='1 / -1'; col.style.maxWidth='560px'; col.style.margin='0 auto';}}document.documentElement.style.zoom='1'; window.scrollTo(0,0);return currentStage.id",
+  "label": "set_bamboo"
+ },
+ {
+  "wait": 0.3
+ },
+ {
+  "shoot": "bamboo"
+ },
+ {
+  "eval": "currentStage = STAGES.find(s=>s.id==='rooftops'); seedAbyss(); player1.x=300; player2.x=630; player1.facing=1; player2.facing=-1; player1.y=GROUND_Y-player1.height; player2.y=GROUND_Y-player2.height; player1.vy=0; player2.vy=0; player1.isGrounded=true; player2.isGrounded=true; var c=document.querySelector('canvas');var g=[...document.querySelectorAll('div')].find(function(e){return /grid-cols-1 lg:grid-cols-5/.test(e.className||'');});if(g){var col=c; while(col&&col.parentElement!==g) col=col.parentElement;[...g.children].forEach(function(k){ if(k!==col) k.style.display='none'; });if(col){col.style.gridColumn='1 / -1'; col.style.maxWidth='560px'; col.style.margin='0 auto';}}document.documentElement.style.zoom='1'; window.scrollTo(0,0);return currentStage.id",
+  "label": "set_rooftops"
+ },
+ {
+  "wait": 0.3
+ },
+ {
+  "shoot": "rooftops"
+ },
+ {
+  "eval": "currentStage = STAGES.find(s=>s.id==='roof'); seedAbyss(); player1.x=300; player2.x=630; player1.facing=1; player2.facing=-1; player1.y=GROUND_Y-player1.height; player2.y=GROUND_Y-player2.height; player1.vy=0; player2.vy=0; player1.isGrounded=true; player2.isGrounded=true; var c=document.querySelector('canvas');var g=[...document.querySelectorAll('div')].find(function(e){return /grid-cols-1 lg:grid-cols-5/.test(e.className||'');});if(g){var col=c; while(col&&col.parentElement!==g) col=col.parentElement;[...g.children].forEach(function(k){ if(k!==col) k.style.display='none'; });if(col){col.style.gridColumn='1 / -1'; col.style.maxWidth='560px'; col.style.margin='0 auto';}}document.documentElement.style.zoom='1'; window.scrollTo(0,0);return currentStage.id",
+  "label": "set_roof"
+ },
+ {
+  "wait": 0.3
+ },
+ {
+  "shoot": "roof"
+ },
+ {
+  "eval": "currentStage = STAGES.find(s=>s.id==='hall'); seedAbyss(); player1.x=300; player2.x=630; player1.facing=1; player2.facing=-1; player1.y=GROUND_Y-player1.height; player2.y=GROUND_Y-player2.height; player1.vy=0; player2.vy=0; player1.isGrounded=true; player2.isGrounded=true; var c=document.querySelector('canvas');var g=[...document.querySelectorAll('div')].find(function(e){return /grid-cols-1 lg:grid-cols-5/.test(e.className||'');});if(g){var col=c; while(col&&col.parentElement!==g) col=col.parentElement;[...g.children].forEach(function(k){ if(k!==col) k.style.display='none'; });if(col){col.style.gridColumn='1 / -1'; col.style.maxWidth='560px'; col.style.margin='0 auto';}}document.documentElement.style.zoom='1'; window.scrollTo(0,0);return currentStage.id",
+  "label": "set_hall"
+ },
+ {
+  "wait": 0.3
+ },
+ {
+  "shoot": "hall"
+ },
+ {
+  "eval": "currentStage = STAGES.find(s=>s.id==='drowned'); seedAbyss(); player1.x=300; player2.x=630; player1.facing=1; player2.facing=-1; player1.y=GROUND_Y-player1.height; player2.y=GROUND_Y-player2.height; player1.vy=0; player2.vy=0; player1.isGrounded=true; player2.isGrounded=true; var c=document.querySelector('canvas');var g=[...document.querySelectorAll('div')].find(function(e){return /grid-cols-1 lg:grid-cols-5/.test(e.className||'');});if(g){var col=c; while(col&&col.parentElement!==g) col=col.parentElement;[...g.children].forEach(function(k){ if(k!==col) k.style.display='none'; });if(col){col.style.gridColumn='1 / -1'; col.style.maxWidth='560px'; col.style.margin='0 auto';}}document.documentElement.style.zoom='1'; window.scrollTo(0,0);return currentStage.id",
+  "label": "set_drowned"
+ },
+ {
+  "wait": 0.3
+ },
+ {
+  "shoot": "drowned"
+ },
+ {
+  "eval": "currentStage = STAGES.find(s=>s.id==='village'); seedAbyss(); player1.x=300; player2.x=630; player1.facing=1; player2.facing=-1; player1.y=GROUND_Y-player1.height; player2.y=GROUND_Y-player2.height; player1.vy=0; player2.vy=0; player1.isGrounded=true; player2.isGrounded=true; var c=document.querySelector('canvas');var g=[...document.querySelectorAll('div')].find(function(e){return /grid-cols-1 lg:grid-cols-5/.test(e.className||'');});if(g){var col=c; while(col&&col.parentElement!==g) col=col.parentElement;[...g.children].forEach(function(k){ if(k!==col) k.style.display='none'; });if(col){col.style.gridColumn='1 / -1'; col.style.maxWidth='560px'; col.style.margin='0 auto';}}document.documentElement.style.zoom='1'; window.scrollTo(0,0);return currentStage.id",
+  "label": "set_village"
+ },
+ {
+  "wait": 0.3
+ },
+ {
+  "shoot": "village"
+ },
+ {
+  "eval": "currentStage = STAGES.find(s=>s.id==='warrant'); seedAbyss(); player1.x=300; player2.x=630; player1.facing=1; player2.facing=-1; player1.y=GROUND_Y-player1.height; player2.y=GROUND_Y-player2.height; player1.vy=0; player2.vy=0; player1.isGrounded=true; player2.isGrounded=true; var c=document.querySelector('canvas');var g=[...document.querySelectorAll('div')].find(function(e){return /grid-cols-1 lg:grid-cols-5/.test(e.className||'');});if(g){var col=c; while(col&&col.parentElement!==g) col=col.parentElement;[...g.children].forEach(function(k){ if(k!==col) k.style.display='none'; });if(col){col.style.gridColumn='1 / -1'; col.style.maxWidth='560px'; col.style.margin='0 auto';}}document.documentElement.style.zoom='1'; window.scrollTo(0,0);return currentStage.id",
+  "label": "set_warrant"
+ },
+ {
+  "wait": 0.3
+ },
+ {
+  "shoot": "warrant"
+ },
+ {
+  "eval": "currentStage = STAGES.find(s=>s.id==='snow'); seedAbyss(); player1.x=300; player2.x=630; player1.facing=1; player2.facing=-1; player1.y=GROUND_Y-player1.height; player2.y=GROUND_Y-player2.height; player1.vy=0; player2.vy=0; player1.isGrounded=true; player2.isGrounded=true; var c=document.querySelector('canvas');var g=[...document.querySelectorAll('div')].find(function(e){return /grid-cols-1 lg:grid-cols-5/.test(e.className||'');});if(g){var col=c; while(col&&col.parentElement!==g) col=col.parentElement;[...g.children].forEach(function(k){ if(k!==col) k.style.display='none'; });if(col){col.style.gridColumn='1 / -1'; col.style.maxWidth='560px'; col.style.margin='0 auto';}}document.documentElement.style.zoom='1'; window.scrollTo(0,0);return currentStage.id",
+  "label": "set_snow"
+ },
+ {
+  "wait": 0.3
+ },
+ {
+  "shoot": "snow"
+ },
+ {
+  "eval": "currentStage = STAGES.find(s=>s.id==='keep'); seedAbyss(); player1.x=300; player2.x=630; player1.facing=1; player2.facing=-1; player1.y=GROUND_Y-player1.height; player2.y=GROUND_Y-player2.height; player1.vy=0; player2.vy=0; player1.isGrounded=true; player2.isGrounded=true; var c=document.querySelector('canvas');var g=[...document.querySelectorAll('div')].find(function(e){return /grid-cols-1 lg:grid-cols-5/.test(e.className||'');});if(g){var col=c; while(col&&col.parentElement!==g) col=col.parentElement;[...g.children].forEach(function(k){ if(k!==col) k.style.display='none'; });if(col){col.style.gridColumn='1 / -1'; col.style.maxWidth='560px'; col.style.margin='0 auto';}}document.documentElement.style.zoom='1'; window.scrollTo(0,0);return currentStage.id",
+  "label": "set_keep"
+ },
+ {
+  "wait": 0.3
+ },
+ {
+  "shoot": "keep"
+ },
+ {
+  "eval": "currentStage = STAGES.find(s=>s.id==='tollgate'); seedAbyss(); player1.x=300; player2.x=630; player1.facing=1; player2.facing=-1; player1.y=GROUND_Y-player1.height; player2.y=GROUND_Y-player2.height; player1.vy=0; player2.vy=0; player1.isGrounded=true; player2.isGrounded=true; var c=document.querySelector('canvas');var g=[...document.querySelectorAll('div')].find(function(e){return /grid-cols-1 lg:grid-cols-5/.test(e.className||'');});if(g){var col=c; while(col&&col.parentElement!==g) col=col.parentElement;[...g.children].forEach(function(k){ if(k!==col) k.style.display='none'; });if(col){col.style.gridColumn='1 / -1'; col.style.maxWidth='560px'; col.style.margin='0 auto';}}document.documentElement.style.zoom='1'; window.scrollTo(0,0);return currentStage.id",
+  "label": "set_tollgate"
+ },
+ {
+  "wait": 0.3
+ },
+ {
+  "shoot": "tollgate"
+ },
+ {
+  "eval": "currentStage = STAGES.find(s=>s.id==='temple'); seedAbyss(); player1.x=300; player2.x=630; player1.facing=1; player2.facing=-1; player1.y=GROUND_Y-player1.height; player2.y=GROUND_Y-player2.height; player1.vy=0; player2.vy=0; player1.isGrounded=true; player2.isGrounded=true; var c=document.querySelector('canvas');var g=[...document.querySelectorAll('div')].find(function(e){return /grid-cols-1 lg:grid-cols-5/.test(e.className||'');});if(g){var col=c; while(col&&col.parentElement!==g) col=col.parentElement;[...g.children].forEach(function(k){ if(k!==col) k.style.display='none'; });if(col){col.style.gridColumn='1 / -1'; col.style.maxWidth='560px'; col.style.margin='0 auto';}}document.documentElement.style.zoom='1'; window.scrollTo(0,0);return currentStage.id",
+  "label": "set_temple"
+ },
+ {
+  "wait": 0.3
+ },
+ {
+  "shoot": "temple"
+ },
+ {
+  "eval": "currentStage = STAGES.find(s=>s.id==='volcano'); seedAbyss(); player1.x=300; player2.x=630; player1.facing=1; player2.facing=-1; player1.y=GROUND_Y-player1.height; player2.y=GROUND_Y-player2.height; player1.vy=0; player2.vy=0; player1.isGrounded=true; player2.isGrounded=true; var c=document.querySelector('canvas');var g=[...document.querySelectorAll('div')].find(function(e){return /grid-cols-1 lg:grid-cols-5/.test(e.className||'');});if(g){var col=c; while(col&&col.parentElement!==g) col=col.parentElement;[...g.children].forEach(function(k){ if(k!==col) k.style.display='none'; });if(col){col.style.gridColumn='1 / -1'; col.style.maxWidth='560px'; col.style.margin='0 auto';}}document.documentElement.style.zoom='1'; window.scrollTo(0,0);return currentStage.id",
+  "label": "set_volcano"
+ },
+ {
+  "wait": 0.3
+ },
+ {
+  "shoot": "volcano"
+ },
+ {
+  "eval": "currentStage = STAGES.find(s=>s.id==='lantern'); seedAbyss(); player1.x=300; player2.x=630; player1.facing=1; player2.facing=-1; player1.y=GROUND_Y-player1.height; player2.y=GROUND_Y-player2.height; player1.vy=0; player2.vy=0; player1.isGrounded=true; player2.isGrounded=true; var c=document.querySelector('canvas');var g=[...document.querySelectorAll('div')].find(function(e){return /grid-cols-1 lg:grid-cols-5/.test(e.className||'');});if(g){var col=c; while(col&&col.parentElement!==g) col=col.parentElement;[...g.children].forEach(function(k){ if(k!==col) k.style.display='none'; });if(col){col.style.gridColumn='1 / -1'; col.style.maxWidth='560px'; col.style.margin='0 auto';}}document.documentElement.style.zoom='1'; window.scrollTo(0,0);return currentStage.id",
+  "label": "set_lantern"
+ },
+ {
+  "wait": 0.3
+ },
+ {
+  "shoot": "lantern"
+ },
+ {
+  "eval": "currentStage = STAGES.find(s=>s.id==='abyss'); seedAbyss(); player1.x=300; player2.x=630; player1.facing=1; player2.facing=-1; player1.y=GROUND_Y-player1.height; player2.y=GROUND_Y-player2.height; player1.vy=0; player2.vy=0; player1.isGrounded=true; player2.isGrounded=true; var c=document.querySelector('canvas');var g=[...document.querySelectorAll('div')].find(function(e){return /grid-cols-1 lg:grid-cols-5/.test(e.className||'');});if(g){var col=c; while(col&&col.parentElement!==g) col=col.parentElement;[...g.children].forEach(function(k){ if(k!==col) k.style.display='none'; });if(col){col.style.gridColumn='1 / -1'; col.style.maxWidth='560px'; col.style.margin='0 auto';}}document.documentElement.style.zoom='1'; window.scrollTo(0,0);return currentStage.id",
+  "label": "set_abyss"
+ },
+ {
+  "wait": 0.3
+ },
+ {
+  "shoot": "abyss"
+ },
+ {
+  "eval": "currentStage = STAGES.find(s=>s.id==='drowned'); seedAbyss();player1.x=300; player2.x=630; player1.vx=0; player2.vx=0;player1.y=GROUND_Y-player1.height; player2.y=GROUND_Y-player2.height;return {mist:currentStage.mist, amt:currentStage.mistAmt, clock:+animClock.toFixed(2)}",
+  "label": "mist_a"
+ },
+ {
+  "wait": 0.3
+ },
+ {
+  "shoot": "mist_t0"
+ },
+ {
+  "wait": 1.4
+ },
+ {
+  "eval": "return {clock:+animClock.toFixed(2)}",
+  "label": "mist_b"
+ },
+ {
+  "shoot": "mist_t1"
+ }
+]

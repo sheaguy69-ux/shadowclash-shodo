@@ -1,0 +1,13 @@
+[
+ {"wait":1.2},{"key":"Space"},{"wait":0.5},
+ {"eval":"gameMode='training'; cpuMode=false; p1Pick=8; p2Pick=0; stagePick='bamboo'; attractMode=false; startNewGame(); return 'boot'"},
+ {"wait":3.0},
+ {"eval":"const F=SPRITES.oni.frames; window.__inv={}; for(const k in F){(window.__inv[F[k]]=window.__inv[F[k]]||[]).push(k);} window.__seq=[]; setInterval(()=>{ if(player1.state==='ATTACK_SPECIAL'){ const c=player1.drawCell; const act=player1.hitboxes.some(h=>(h.delay||0)<=0); const k=(window.__inv[c]||[c]).join('/')+(act?'  <== ACTIVE HITBOX':''); if(!window.__seq.length||window.__seq[window.__seq.length-1]!==k) window.__seq.push(k); } },4); return 'ok'"},
+ {"eval":"player1.x=540;player2.x=700;player2.hp=999;player1.mode2=true;window.__seq.length=0;return 1"},
+ {"key":"KeyW","hold":0.05},{"wait":0.30},
+ {"key":"KeyH","hold":0.08},{"wait":1.8},
+ {"eval":"return window.__seq","label":"AIR-THROW active window"},
+ {"eval":"player1.x=540;player2.x=700;player2.hp=999;window.__seq.length=0;return 1"},
+ {"key":"KeyH","hold":0.08},{"wait":1.6},
+ {"eval":"return window.__seq","label":"GROUND-VOLLEY active window"}
+]

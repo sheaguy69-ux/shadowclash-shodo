@@ -1,0 +1,8 @@
+[
+ {"wait": 1.2},
+ {"key": "Space"},
+ {"wait": 0.5},
+ {"eval": "gameMode='training'; cpuMode=false; p1Pick=8; p2Pick=0; stagePick='bamboo'; attractMode=false; startNewGame(); return 'boot'", "label": "boot"},
+ {"wait": 3.0},
+ {"eval": "const c=document.querySelector('canvas').getContext('2d'); c.save(); c.font='10px monospace'; const r=Object.entries(MOVES_LIST).map(([n,ls])=>[n, Math.round(Math.max(...ls.map(l=>c.measureText(l).width)))+16]).sort((a,b)=>b[1]-a[1]); c.restore(); return {canvasW: canvas.width, half: canvas.width/2, panels: r, worstPair: r[0][1]*2+20}", "label": "widths"}
+]

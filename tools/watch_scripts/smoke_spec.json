@@ -1,0 +1,15 @@
+[
+ {"wait":1.2},{"key":"Space"},{"wait":0.5},
+ {"eval":"gameMode='training'; cpuMode=false; p1Pick=8; p2Pick=0; stagePick='bamboo'; attractMode=false; startNewGame(); return 'boot'"},
+ {"wait":3.0},
+ {"eval":"moveListOpen=false; window.scrollTo(0,400); player1.x=620;player2.x=700;player2.hp=999; window.__f=[]; window.__blind=[]; const t=()=>{ const fl=smokeFields[0]; if(fl) window.__f.push({age:+(fl.age||0).toFixed(3), dur:+fl.duration.toFixed(3), outro:+(fl.outro||0).toFixed(3), flash:+(fl.flash||0).toFixed(3)}); window.__blind.push(player2.alpha<0.9?1:0); requestAnimationFrame(t); }; requestAnimationFrame(t); return {fx:FX_SMOKE.ready, w:FX_SMOKE.img.width, h:FX_SMOKE.img.height}","label":"fx"},
+ {"key":"KeyW","hold":0.05},{"wait":0.30},
+ {"down":"KeyS"},{"key":"KeyH","hold":0.10},{"up":"KeyS"},
+ {"wait":0.12},{"shoot":"f1-3-eruption"},
+ {"wait":0.30},{"shoot":"f5-COVER"},
+ {"wait":1.6},{"shoot":"hold-05"},
+ {"wait":2.15},{"shoot":"f7-8-breakup"},
+ {"wait":0.35},{"shoot":"after-removed"},
+ {"eval":"const f=window.__f; const ticks=f.filter((x,i)=>i>0&&x.flash>0&&f[i-1].flash<=0).length; return {samples:f.length, maxAge:f[f.length-1]?f[f.length-1].age:null, sawOutro:f.some(x=>x.outro>0), maxOutro:Math.max(0,...f.map(x=>x.outro)), tickFlashes:ticks, fieldsNow:smokeFields.length, blindEndedAtDurLE0: !f.some(x=>x.dur<=0 && x.outro>0 && false)}","label":"TIMING"},
+ {"eval":"return {gameplay_unchanged:{radius:240, life:4.0, tick:0.45, cap:2}, smokeUsed:player1.smokeUsed}","label":"guardrails"}
+]

@@ -1,0 +1,12 @@
+[
+ {"wait": 1.2},
+ {"key": "Space"},
+ {"wait": 0.5},
+ {"eval": "gameMode='training'; cpuMode=false; p1Pick=8; p2Pick=0; stagePick='bamboo'; attractMode=false; startNewGame(); return 'boot'", "label": "boot"},
+ {"wait": 3.0},
+ {"eval": "window.__log=[]; const t=()=>{ window.__log.push({t:Math.round(animClock*1000), s:player1.state, c:player1.drawCell}); requestAnimationFrame(t); }; requestAnimationFrame(t); return 'ok'"},
+ {"eval": "player1.x=600; player2.x=700; window.__i=window.__log.length; return 1"},
+ {"key": "KeyH", "hold": 0.08},
+ {"wait": 1.6},
+ {"eval": "const s=window.__log.slice(window.__i); const seq=[]; s.forEach(x=>{ const k=x.s+':'+x.c; if(!seq.length||seq[seq.length-1].k!==k) seq.push({k, t0:x.t, n:1}); else seq[seq.length-1].n++; }); return seq.map(e=>e.k+' x'+e.n)", "label": "WHIP-onscreen-sequence"}
+]

@@ -1,0 +1,10 @@
+[
+ {"wait":1.2},{"key":"Space"},{"wait":0.5},
+ {"eval":"gameMode='training'; cpuMode=false; p1Pick=8; p2Pick=0; stagePick='bamboo'; attractMode=false; startNewGame(); return 'boot'"},
+ {"wait":3.0},
+ {"eval":"const F=SPRITES.oni.frames; window.__inv={}; for(const k in F){(window.__inv[F[k]]=window.__inv[F[k]]||[]).push(k);} window.__seq=[]; window.__peak=0; window.__hits=[]; const od=player2.takeDamage.bind(player2); player2.takeDamage=function(d,a,o){window.__hits.push(Math.round(d)); return od(d,a,o);}; setInterval(()=>{ window.__peak=Math.max(window.__peak, player1.projectiles.length); if(player1.state==='ATTACK_SPECIAL'){ const k=(window.__inv[player1.drawCell]||[player1.drawCell]).join('/')+' proj='+player1.projectiles.length; if(!window.__seq.length||window.__seq[window.__seq.length-1]!==k) window.__seq.push(k); } },4); return {athrowCells:[F.athrow1,F.athrow6], hasAthrow7:F.athrow7!==undefined}","label":"rows"},
+ {"eval":"player1.x=380;player2.x=700;player2.hp=999;player1.mode2=true;window.__seq.length=0;window.__peak=0;window.__hits.length=0;return 1"},
+ {"key":"KeyW","hold":0.05},{"wait":0.30},
+ {"key":"KeyH","hold":0.08},{"wait":2.2},
+ {"eval":"return {seq:window.__seq, peakProjectiles:window.__peak, hits:window.__hits}","label":"RAPID-FIRE"}
+]

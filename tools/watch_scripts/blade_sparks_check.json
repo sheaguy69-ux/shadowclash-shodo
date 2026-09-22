@@ -1,0 +1,9 @@
+[
+  {
+    "wait": 0.5
+  },
+  {
+    "eval": "const fail=[];let cases=0;const mats=['steel','iron','wood','flesh','mail','chain'];\nconst a={spec:{id:0}},b={spec:{id:0}};\nfor(const am of mats)for(const bm of mats)for(const armed of [true,false]){\nparticles.length=0;createBladeSparks(400,300,a,b,{mat:am,canClash:armed},{mat:bm,canClash:true});\nconst expected=armed&&isMetal(am)&&isMetal(bm);const shards=particles.filter(p=>p.shard||p.type==='streak');\nif(!!shards.length!==expected)fail.push([am,bm,armed]);if(shards.some(p=>![SPARK_GOLD,'#fff1bc','#d89b3c'].includes(p.color)))fail.push('palette');cases++;}\nparticles.length=0;createSparks(400,300,'red');if(particles.some(p=>p.shard||p.type==='streak'))fail.push('generic contact leaked metal');\nparticles.length=0;createBladeSparks(400,300,a,b,{canClash:true},{canClash:false});if(particles.length)fail.push('defender kick leaked metal');\nif(fail.length)throw Error(JSON.stringify(fail));return {pass:true,cases};",
+    "label": "blade_sparks_material_check"
+  }
+]

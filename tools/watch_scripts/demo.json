@@ -1,0 +1,7 @@
+[
+ {"wait":2.0},
+ {"key":"KeyC","hold":0.03},
+ {"wait":2.0},
+ {"eval":"return {mode:gameMode, p1:player1.spec.name, p2:player2.spec.name, held:Object.keys(keys).filter(k=>keys[k]), phys:[...physKeys]}","label":"state"},
+ {"record":1.5,"fps":25,"tag":"fight"}
+]

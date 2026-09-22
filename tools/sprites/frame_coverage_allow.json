@@ -1,0 +1,32 @@
+{
+  "Oni": {
+    "airkick": "SUPERSEDED \u2014 2-cell still; his air kicks are the six-beat aneu/afwd/adown rows",
+    "block": "SITUATIONAL \u2014 needs to be attacked while guarding",
+    "blockhit": "SITUATIONAL \u2014 needs a blocked hit to land on him",
+    "dash": "SUPERSEDED \u2014 3-cell still; the shunshin draws the six-beat blur row",
+    "dashatk": "SUPERSEDED \u2014 2-cell still; dash+Light is the six-beat lunge board (CLEAN-LUNGECLAW-6). The engine keeps it as the fallback for a sheet without lunge1.",
+    "divekick": "SUPERSEDED \u2014 2-cell still; the six-beat dive row draws instead",
+    "fall": "SITUATIONAL \u2014 needs to be falling, not jumping",
+    "getup": "SITUATIONAL \u2014 needs to be knocked down first",
+    "guard": "SITUATIONAL \u2014 needs an incoming attack to guard against",
+    "hdown": "SUPERSEDED \u2014 his air Down+Heavy IS the meteor break, which draws his own six-beat dive board. hdown was only ever 'reached' because the meteor's landing borrowed hdown6 as a stand-in, and that borrow WAS the bug fixed at 503. Exposed by the fix, not caused by it.",
+    "jump": "SUPERSEDED \u2014 3-cell still; his jump is the six-beat ajump row",
+    "kstomp": "SUPERSEDED \u2014 1-cell still, replaced by his own drawn kick art",
+    "light": "SUPERSEDED \u2014 the original 5-cell light; his neutral Light is glneu1-6 off MASTER-LIGHT-DIR-4x6",
+    "roll": "SUPERSEDED \u2014 2-cell still; the dodge roll draws his six-beat board",
+    "walljump": "SITUATIONAL \u2014 needs a wall in reach",
+    "wallslide": "SITUATIONAL \u2014 needs a wall in reach"
+  },
+  "_README": [
+    "Rows audit_cell_coverage.py is allowed to find unreachable, and WHY. Every entry is",
+    "a promise that the cells are dead ON PURPOSE. Two legitimate reasons only:",
+    "  SITUATIONAL \u2014 the art needs a STATE (being hit, blocking, knocked down, on a wall)",
+    "                that no button press can create, so an input sweep can never reach it.",
+    "  SUPERSEDED  \u2014 a later, longer row from the owner's own boards replaced it, and the",
+    "                old cells stay on the sheet because sheets are append-only and the",
+    "                originals must remain byte-identical.",
+    "\u26d4 DO NOT ADD A ROW HERE TO SILENCE THE TOOL. If art has no input, give it an input or",
+    "take the cells off the sheet. An allowlist that grows every time the gate goes red is",
+    "the gate failing, quietly, which is the exact failure this tool was built to end."
+  ]
+}

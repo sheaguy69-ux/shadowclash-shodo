@@ -1,0 +1,14 @@
+[
+  {"wait": 2.0},
+  {"key": "Space"},
+  {"wait": 0.8},
+  {"eval": "gameMode='2p'; cpuMode=false; attractMode=false; p1Pick=2; p2Pick=8; stagePick='bamboo'; startNewGame(); roundIntroTimer=0; matchActive=true; player1.x=400; player2.x=720; player1.facing=1; player2.facing=-1; return {p1:player1.spec.name};", "label": "START"},
+  {"wait": 0.8},
+  {"eval": "window.scrollTo(0, document.body.scrollHeight); return window.scrollY;", "label": "SCROLL"},
+  {"wait": 0.3},
+  {"eval": "window.__seen={}; const watch=()=>{ if(!player1) return requestAnimationFrame(watch); const k=player1.state; if(k==='IDLE' && player1.drawCell!==undefined && !(__seen['idle']||[]).includes(player1.drawCell)) (__seen['idle']=__seen['idle']||[]).push(player1.drawCell); if(k==='ATTACK_LIGHT' && player1.drawCell!==undefined && !(__seen['light']||[]).includes(player1.drawCell)) (__seen['light']=__seen['light']||[]).push(player1.drawCell); requestAnimationFrame(watch); }; requestAnimationFrame(watch); return 'armed';", "label": "ARM"},
+  {"wait": 1.2},
+  {"key": "KeyF"}, {"wait": 0.5},
+  {"wait": 0.3},
+  {"eval": "return {idle:__seen['idle']||[], light:__seen['light']||[], err:window.__err||[]};", "label": "RESULT"}
+]

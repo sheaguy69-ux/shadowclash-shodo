@@ -1,0 +1,9 @@
+[
+  {
+    "wait": 1
+  },
+  {
+    "eval": "if(!FX_IMPACT.ready||!FX_STRIKE.ready||!FX_CRESCENT.ready)throw Error('FX not loaded');\nconst failures=[];for(const [id,r] of Object.entries(FX_RECTS)){if(r[0]+r[2]>FX_IMPACT.img.width||r[1]+r[3]>FX_IMPACT.img.height)failures.push(id+' outside atlas');for(const mirror of [-1,1]){fxSprites.length=0;spawnFx(id,100,100,{mirror});if(fxSprites.length!==1||fxSprites[0].mirror!==mirror)failures.push(id+' spawn');}}\nif(typeof dismissTitle==='function')dismissTitle();startNewGame();const p=player1;\nfunction prep(){p.stunTimer=0;p.grabbedBy=null;p.throwTimer=0;p.rollTimer=0;p.rollRecover=0;p.anchorTimer=0;p.ceilLatch=0;p.wallDir=0;p.state=STATE.IDLE;p.hitboxes=[];p.recoveryTimer=0;p.jumpsLeft=2;fxSprites.length=0;}\nprep();p.isGrounded=true;p.executeJump();if(!fxSprites.some(f=>f.id==='M06'))failures.push('ground jump');\nprep();p.isGrounded=false;p.executeJump();if(!fxSprites.some(f=>f.id==='M03')||fxSprites.some(f=>f.id==='M06'))failures.push('air jump dust');\nprep();p.isGrounded=false;p.wallDir=-1;p.executeJump();if(!fxSprites.some(f=>f.id==='M04'))failures.push('wall kick');\nprep();p.isGrounded=true;p.startRoll(1);if(!fxSprites.some(f=>f.id==='M07'))failures.push('roll');\nif(failures.length)throw Error(failures.join(';'));return {pass:true,atlasCrops:Object.keys(FX_RECTS).length,facings:2,movementEvents:4};",
+    "label": "vfx_check"
+  }
+]

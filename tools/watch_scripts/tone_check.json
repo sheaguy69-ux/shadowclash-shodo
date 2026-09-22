@@ -1,0 +1,66 @@
+[
+ {
+  "wait": 1.2
+ },
+ {
+  "eval": "document.getElementById('title-screen').classList.add('hidden');return 'x'"
+ },
+ {
+  "eval": "const b=[...document.querySelectorAll('button')].find(x=>/QUICK PLAY/i.test(x.textContent)); b.click(); return 'ok'"
+ },
+ {
+  "wait": 0.6
+ },
+ {
+  "eval": "const c=[...document.querySelectorAll('*')].filter(x=>x.children.length===0&&x.textContent.trim()==='Kael');let el=c[0];for(let i=0;i<6&&el;i++){if(el.className&&/cursor|card|rounded/.test(el.className))break;el=el.parentElement;}(el||c[0]).click();return 'ok'"
+ },
+ {
+  "wait": 0.4
+ },
+ {
+  "eval": "const c=[...document.querySelectorAll('*')].filter(x=>x.children.length===0&&x.textContent.trim()==='Ember');let el=c[0];for(let i=0;i<6&&el;i++){if(el.className&&/cursor|card|rounded/.test(el.className))break;el=el.parentElement;}(el||c[0]).click();return 'ok'"
+ },
+ {
+  "wait": 0.4
+ },
+ {
+  "eval": "const b=[...document.querySelectorAll('button')].find(x=>/px-8 py-3 bg-red-600/.test(x.className||'')); b.click(); return 'started'"
+ },
+ {
+  "wait": 2.6
+ },
+ {
+  "eval": "var c=document.querySelector('canvas');var g=[...document.querySelectorAll('div')].find(function(e){return /grid-cols-1 lg:grid-cols-5/.test(e.className||'');});if(g){var col=c; while(col&&col.parentElement!==g) col=col.parentElement;[...g.children].forEach(function(k){ if(k!==col) k.style.display='none'; });if(col){col.style.gridColumn='1 / -1'; col.style.maxWidth='560px'; col.style.margin='0 auto';}}document.documentElement.style.zoom='1'; window.scrollTo(0,0);return 'fit'",
+  "label": "FIT"
+ },
+ {
+  "eval": "currentStage = STAGES.find(s=>s.id==='drowned'); seedAbyss(); player1.x=300; player2.x=630; player1.facing=1; player2.facing=-1; player1.y=GROUND_Y-player1.height; player2.y=GROUND_Y-player2.height; player1.vy=0; player2.vy=0; player1.isGrounded=true; player2.isGrounded=true; var c=document.querySelector('canvas');var g=[...document.querySelectorAll('div')].find(function(e){return /grid-cols-1 lg:grid-cols-5/.test(e.className||'');});if(g){var col=c; while(col&&col.parentElement!==g) col=col.parentElement;[...g.children].forEach(function(k){ if(k!==col) k.style.display='none'; });if(col){col.style.gridColumn='1 / -1'; col.style.maxWidth='560px'; col.style.margin='0 auto';}}document.documentElement.style.zoom='1'; window.scrollTo(0,0);return currentStage.id",
+  "label": "set_drowned"
+ },
+ {
+  "wait": 0.35
+ },
+ {
+  "shoot": "drowned"
+ },
+ {
+  "eval": "currentStage = STAGES.find(s=>s.id==='keep'); seedAbyss(); player1.x=300; player2.x=630; player1.facing=1; player2.facing=-1; player1.y=GROUND_Y-player1.height; player2.y=GROUND_Y-player2.height; player1.vy=0; player2.vy=0; player1.isGrounded=true; player2.isGrounded=true; var c=document.querySelector('canvas');var g=[...document.querySelectorAll('div')].find(function(e){return /grid-cols-1 lg:grid-cols-5/.test(e.className||'');});if(g){var col=c; while(col&&col.parentElement!==g) col=col.parentElement;[...g.children].forEach(function(k){ if(k!==col) k.style.display='none'; });if(col){col.style.gridColumn='1 / -1'; col.style.maxWidth='560px'; col.style.margin='0 auto';}}document.documentElement.style.zoom='1'; window.scrollTo(0,0);return currentStage.id",
+  "label": "set_keep"
+ },
+ {
+  "wait": 0.35
+ },
+ {
+  "shoot": "keep"
+ },
+ {
+  "eval": "currentStage = STAGES.find(s=>s.id==='snow'); seedAbyss(); player1.x=300; player2.x=630; player1.facing=1; player2.facing=-1; player1.y=GROUND_Y-player1.height; player2.y=GROUND_Y-player2.height; player1.vy=0; player2.vy=0; player1.isGrounded=true; player2.isGrounded=true; var c=document.querySelector('canvas');var g=[...document.querySelectorAll('div')].find(function(e){return /grid-cols-1 lg:grid-cols-5/.test(e.className||'');});if(g){var col=c; while(col&&col.parentElement!==g) col=col.parentElement;[...g.children].forEach(function(k){ if(k!==col) k.style.display='none'; });if(col){col.style.gridColumn='1 / -1'; col.style.maxWidth='560px'; col.style.margin='0 auto';}}document.documentElement.style.zoom='1'; window.scrollTo(0,0);return currentStage.id",
+  "label": "set_snow"
+ },
+ {
+  "wait": 0.35
+ },
+ {
+  "shoot": "snow"
+ }
+]

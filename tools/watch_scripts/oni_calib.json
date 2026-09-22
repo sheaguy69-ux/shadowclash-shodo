@@ -1,0 +1,28 @@
+[
+ {"wait":1.2},{"key":"Space"},{"wait":0.5},
+ {"eval":"gameMode='training'; cpuMode=false; p1Pick=8; p2Pick=0; stagePick='bamboo'; attractMode=false; startNewGame(); return 'boot'"},
+ {"wait":3.0},
+ {"eval":"window.__b=[]; const os=player1.spawnHitbox.bind(player1); player1.spawnHitbox=function(w,h,d,dur,p,o={}){ window.__b.push({w:Math.round(w),h:Math.round(h),dmg:Math.round(d),low:!!o.low,trip:!!o.trip,delay:o.delay?+o.delay.toFixed(3):0}); return os(w,h,d,dur,p,o); }; return 'hooked'"},
+
+ {"eval":"player1.x=640;player2.x=700;player2.hp=999;player1.boStance=false;window.__b.length=0;return 1"},
+ {"key":"KeyF","hold":0.08},{"wait":0.7},
+ {"eval":"return {move:'neutral F (claw)', boxes:window.__b}","label":"claw-light"},
+
+ {"eval":"player1.x=640;player2.x=700;window.__b.length=0;return 1"},
+ {"down":"KeyS"},{"key":"KeyF","hold":0.08},{"wait":0.7},{"up":"KeyS"},
+ {"eval":"return {move:'Down+F (low rake)', boxes:window.__b}","label":"low-rake"},
+
+ {"eval":"player1.x=640;player2.x=700;window.__b.length=0;return 1"},
+ {"key":"KeyV","hold":0.06},{"wait":0.3},
+ {"key":"KeyF","hold":0.08},{"wait":0.7},
+ {"eval":"return {move:'BO strike', bo:player1.boStance, boxes:window.__b}","label":"bo-strike"},
+
+ {"eval":"player1.x=640;player2.x=700;window.__b.length=0;return 1"},
+ {"key":"KeyG","hold":0.08},{"wait":0.8},
+ {"eval":"return {move:'BO sweep', boxes:window.__b}","label":"bo-sweep"},
+
+ {"key":"KeyV","hold":0.06},{"wait":0.3},
+ {"eval":"player1.x=640;player2.x=700;window.__b.length=0;return 1"},
+ {"key":"KeyG","hold":0.08},{"wait":0.8},
+ {"eval":"return {move:'neutral G after dropping bo (must be 60/40, no low)', boxes:window.__b}","label":"heavy-after"}
+]

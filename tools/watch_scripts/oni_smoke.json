@@ -1,0 +1,14 @@
+[
+ {"wait":1.2},{"key":"Space"},{"wait":0.5},
+ {"eval":"gameMode='training'; cpuMode=false; p1Pick=8; p2Pick=0; stagePick='bamboo'; attractMode=false; startNewGame(); return 'boot'"},
+ {"wait":3.0},
+ {"eval":"window.__c=new Set(); setInterval(()=>{ window.__c.add(player1.state+':'+player1.drawCell); },4); return 'ok'"},
+ {"eval":"player1.x=600;player2.x=700;player2.hp=999;window.__c.clear();return {fieldsBefore:smokeFields.length}"},
+ {"key":"KeyW","hold":0.05},{"wait":0.28},
+ {"down":"KeyS"},{"key":"KeyH","hold":0.08},{"wait":1.4},{"up":"KeyS"},
+ {"eval":"const F=SPRITES.oni.frames; const inv={}; for(const k in F){(inv[F[k]]=inv[F[k]]||[]).push(k);} const drew=[...window.__c].filter(s=>s.startsWith('ATTACK')); return {smokeBomb_drew:drew.map(s=>{const c=+s.split(':')[1]; return s+'='+(inv[c]||['?']).join('/')}), fieldsAfter:smokeFields.length, particles:particles.length}","label":"SMOKE-BOMB"},
+ {"eval":"player1.x=600;player2.x=700;window.__c.clear();return 1"},
+ {"key":"KeyW","hold":0.05},{"wait":0.28},
+ {"down":"KeyS"},{"key":"KeyG","hold":0.08},{"wait":1.4},{"up":"KeyS"},
+ {"eval":"const F=SPRITES.oni.frames; const inv={}; for(const k in F){(inv[F[k]]=inv[F[k]]||[]).push(k);} return {airDownHeavy:[...window.__c].filter(s=>s.startsWith('ATTACK')).map(s=>{const c=+s.split(':')[1]; return (inv[c]||['?']).join('/')})}","label":"AIR-DOWN-HEAVY"}
+]

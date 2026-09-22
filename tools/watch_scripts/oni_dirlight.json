@@ -1,0 +1,22 @@
+[
+ {"wait":1.2},{"key":"Space"},{"wait":0.5},
+ {"eval":"gameMode='training'; cpuMode=false; p1Pick=8; p2Pick=0; stagePick='bamboo'; attractMode=false; startNewGame(); return 'boot'"},
+ {"wait":3.0},
+ {"eval":"window.__c=new Set(); window.__on=false; setInterval(()=>{ if(window.__on) window.__c.add(player1.drawCell); },4); return 'ok'"},
+ {"eval":"player1.x=620;player2.x=700;player2.hp=999;window.__c.clear();window.__on=true;return 1"},
+ {"down":"KeyD"},{"key":"KeyF","hold":0.08},{"wait":0.9},{"up":"KeyD"},
+ {"eval":"window.__on=false; return {move:'Fwd+F', cells:[...window.__c].sort((a,b)=>a-b)}","label":"FwdF"},
+ {"eval":"player1.x=620;player2.x=700;window.__c.clear();window.__on=true;return 1"},
+ {"down":"KeyA"},{"key":"KeyF","hold":0.08},{"wait":0.9},{"up":"KeyA"},
+ {"eval":"window.__on=false; return {move:'Back+F', cells:[...window.__c].sort((a,b)=>a-b)}","label":"BackF"},
+ {"eval":"player1.x=620;player2.x=700;window.__c.clear();window.__on=true;return 1"},
+ {"down":"KeyW"},{"key":"KeyF","hold":0.08},{"wait":0.9},{"up":"KeyW"},
+ {"eval":"window.__on=false; return {move:'Up+F', cells:[...window.__c].sort((a,b)=>a-b)}","label":"UpF"},
+ {"eval":"player1.x=620;player2.x=700;window.__c.clear();window.__on=true;return 1"},
+ {"down":"KeyS"},{"key":"KeyF","hold":0.08},{"wait":0.9},{"up":"KeyS"},
+ {"eval":"window.__on=false; return {move:'Down+F', cells:[...window.__c].sort((a,b)=>a-b)}","label":"DownF"},
+ {"eval":"player1.x=620;player2.x=700;window.__c.clear();window.__on=true;return 1"},
+ {"down":"KeyW"},{"key":"KeyG","hold":0.08},{"wait":1.0},{"up":"KeyW"},
+ {"eval":"window.__on=false; return {move:'Up+G', cells:[...window.__c].sort((a,b)=>a-b), ghup:[F=>0][0]&&0}","label":"UpG"},
+ {"eval":"const F=SPRITES.oni.frames; return {glfwd:F.glfwd1, glback:F.glback1, glup:F.glup1, gldown:F.gldown1, ghup:F.ghup1, ksweep:F.ksweep, kheel:F.kheel, kpush:F.kpush}","label":"map"}
+]

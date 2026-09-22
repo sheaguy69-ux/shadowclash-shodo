@@ -1,0 +1,461 @@
+[
+ {
+  "wait": 1.5
+ },
+ {
+  "key": "Space"
+ },
+ {
+  "wait": 0.5
+ },
+ {
+  "eval": "clearTimeout(attractTimer); attractMode=false; gameMode='training'; cpuMode=false; p1Pick=7; p2Pick=0; stagePick='bamboo'; startNewGame(); return 'boot-7'",
+  "label": "boot-7"
+ },
+ {
+  "wait": 2.5
+ },
+ {
+  "eval": "clearTimeout(attractTimer); attractMode=false; player1.x=300; player2.x=1050; return player1.spec.name+'/'+gameMode",
+  "label": "who-7"
+ },
+ {
+  "down": "KeyF"
+ },
+ {
+  "eval": "return {f:player1.spec.name, tier:'light', st:player1.state, dur:player1.attackAnim&&player1.attackAnim.dur, rec:player1.recoveryTimer&&+player1.recoveryTimer.toFixed(4)}",
+  "label": "7-light"
+ },
+ {
+  "up": "KeyF"
+ },
+ {
+  "wait": 1.6
+ },
+ {
+  "down": "KeyG"
+ },
+ {
+  "eval": "return {f:player1.spec.name, tier:'heavy', st:player1.state, dur:player1.attackAnim&&player1.attackAnim.dur, rec:player1.recoveryTimer&&+player1.recoveryTimer.toFixed(4)}",
+  "label": "7-heavy"
+ },
+ {
+  "up": "KeyG"
+ },
+ {
+  "wait": 1.6
+ },
+ {
+  "down": "KeyH"
+ },
+ {
+  "eval": "return {f:player1.spec.name, tier:'special', st:player1.state, dur:player1.attackAnim&&player1.attackAnim.dur, rec:player1.recoveryTimer&&+player1.recoveryTimer.toFixed(4)}",
+  "label": "7-special"
+ },
+ {
+  "up": "KeyH"
+ },
+ {
+  "wait": 1.6
+ },
+ {
+  "eval": "clearTimeout(attractTimer); attractMode=false; gameMode='training'; cpuMode=false; p1Pick=2; p2Pick=0; stagePick='bamboo'; startNewGame(); return 'boot-2'",
+  "label": "boot-2"
+ },
+ {
+  "wait": 2.5
+ },
+ {
+  "eval": "clearTimeout(attractTimer); attractMode=false; player1.x=300; player2.x=1050; return player1.spec.name+'/'+gameMode",
+  "label": "who-2"
+ },
+ {
+  "down": "KeyF"
+ },
+ {
+  "eval": "return {f:player1.spec.name, tier:'light', st:player1.state, dur:player1.attackAnim&&player1.attackAnim.dur, rec:player1.recoveryTimer&&+player1.recoveryTimer.toFixed(4)}",
+  "label": "2-light"
+ },
+ {
+  "up": "KeyF"
+ },
+ {
+  "wait": 1.6
+ },
+ {
+  "down": "KeyG"
+ },
+ {
+  "eval": "return {f:player1.spec.name, tier:'heavy', st:player1.state, dur:player1.attackAnim&&player1.attackAnim.dur, rec:player1.recoveryTimer&&+player1.recoveryTimer.toFixed(4)}",
+  "label": "2-heavy"
+ },
+ {
+  "up": "KeyG"
+ },
+ {
+  "wait": 1.6
+ },
+ {
+  "down": "KeyH"
+ },
+ {
+  "eval": "return {f:player1.spec.name, tier:'special', st:player1.state, dur:player1.attackAnim&&player1.attackAnim.dur, rec:player1.recoveryTimer&&+player1.recoveryTimer.toFixed(4)}",
+  "label": "2-special"
+ },
+ {
+  "up": "KeyH"
+ },
+ {
+  "wait": 1.6
+ },
+ {
+  "eval": "clearTimeout(attractTimer); attractMode=false; gameMode='training'; cpuMode=false; p1Pick=4; p2Pick=0; stagePick='bamboo'; startNewGame(); return 'boot-4'",
+  "label": "boot-4"
+ },
+ {
+  "wait": 2.5
+ },
+ {
+  "eval": "clearTimeout(attractTimer); attractMode=false; player1.x=300; player2.x=1050; return player1.spec.name+'/'+gameMode",
+  "label": "who-4"
+ },
+ {
+  "down": "KeyF"
+ },
+ {
+  "eval": "return {f:player1.spec.name, tier:'light', st:player1.state, dur:player1.attackAnim&&player1.attackAnim.dur, rec:player1.recoveryTimer&&+player1.recoveryTimer.toFixed(4)}",
+  "label": "4-light"
+ },
+ {
+  "up": "KeyF"
+ },
+ {
+  "wait": 1.6
+ },
+ {
+  "down": "KeyG"
+ },
+ {
+  "eval": "return {f:player1.spec.name, tier:'heavy', st:player1.state, dur:player1.attackAnim&&player1.attackAnim.dur, rec:player1.recoveryTimer&&+player1.recoveryTimer.toFixed(4)}",
+  "label": "4-heavy"
+ },
+ {
+  "up": "KeyG"
+ },
+ {
+  "wait": 1.6
+ },
+ {
+  "down": "KeyH"
+ },
+ {
+  "eval": "return {f:player1.spec.name, tier:'special', st:player1.state, dur:player1.attackAnim&&player1.attackAnim.dur, rec:player1.recoveryTimer&&+player1.recoveryTimer.toFixed(4)}",
+  "label": "4-special"
+ },
+ {
+  "up": "KeyH"
+ },
+ {
+  "wait": 1.6
+ },
+ {
+  "eval": "clearTimeout(attractTimer); attractMode=false; gameMode='training'; cpuMode=false; p1Pick=3; p2Pick=0; stagePick='bamboo'; startNewGame(); return 'boot-3'",
+  "label": "boot-3"
+ },
+ {
+  "wait": 2.5
+ },
+ {
+  "eval": "clearTimeout(attractTimer); attractMode=false; player1.x=300; player2.x=1050; return player1.spec.name+'/'+gameMode",
+  "label": "who-3"
+ },
+ {
+  "down": "KeyF"
+ },
+ {
+  "eval": "return {f:player1.spec.name, tier:'light', st:player1.state, dur:player1.attackAnim&&player1.attackAnim.dur, rec:player1.recoveryTimer&&+player1.recoveryTimer.toFixed(4)}",
+  "label": "3-light"
+ },
+ {
+  "up": "KeyF"
+ },
+ {
+  "wait": 1.6
+ },
+ {
+  "down": "KeyG"
+ },
+ {
+  "eval": "return {f:player1.spec.name, tier:'heavy', st:player1.state, dur:player1.attackAnim&&player1.attackAnim.dur, rec:player1.recoveryTimer&&+player1.recoveryTimer.toFixed(4)}",
+  "label": "3-heavy"
+ },
+ {
+  "up": "KeyG"
+ },
+ {
+  "wait": 1.6
+ },
+ {
+  "down": "KeyH"
+ },
+ {
+  "eval": "return {f:player1.spec.name, tier:'special', st:player1.state, dur:player1.attackAnim&&player1.attackAnim.dur, rec:player1.recoveryTimer&&+player1.recoveryTimer.toFixed(4)}",
+  "label": "3-special"
+ },
+ {
+  "up": "KeyH"
+ },
+ {
+  "wait": 1.6
+ },
+ {
+  "eval": "clearTimeout(attractTimer); attractMode=false; gameMode='training'; cpuMode=false; p1Pick=0; p2Pick=5; stagePick='bamboo'; startNewGame(); return 'boot-0'",
+  "label": "boot-0"
+ },
+ {
+  "wait": 2.5
+ },
+ {
+  "eval": "clearTimeout(attractTimer); attractMode=false; player1.x=300; player2.x=1050; return player1.spec.name+'/'+gameMode",
+  "label": "who-0"
+ },
+ {
+  "down": "KeyF"
+ },
+ {
+  "eval": "return {f:player1.spec.name, tier:'light', st:player1.state, dur:player1.attackAnim&&player1.attackAnim.dur, rec:player1.recoveryTimer&&+player1.recoveryTimer.toFixed(4)}",
+  "label": "0-light"
+ },
+ {
+  "up": "KeyF"
+ },
+ {
+  "wait": 1.6
+ },
+ {
+  "down": "KeyG"
+ },
+ {
+  "eval": "return {f:player1.spec.name, tier:'heavy', st:player1.state, dur:player1.attackAnim&&player1.attackAnim.dur, rec:player1.recoveryTimer&&+player1.recoveryTimer.toFixed(4)}",
+  "label": "0-heavy"
+ },
+ {
+  "up": "KeyG"
+ },
+ {
+  "wait": 1.6
+ },
+ {
+  "down": "KeyH"
+ },
+ {
+  "eval": "return {f:player1.spec.name, tier:'special', st:player1.state, dur:player1.attackAnim&&player1.attackAnim.dur, rec:player1.recoveryTimer&&+player1.recoveryTimer.toFixed(4)}",
+  "label": "0-special"
+ },
+ {
+  "up": "KeyH"
+ },
+ {
+  "wait": 1.6
+ },
+ {
+  "eval": "clearTimeout(attractTimer); attractMode=false; gameMode='training'; cpuMode=false; p1Pick=5; p2Pick=0; stagePick='bamboo'; startNewGame(); return 'boot-5'",
+  "label": "boot-5"
+ },
+ {
+  "wait": 2.5
+ },
+ {
+  "eval": "clearTimeout(attractTimer); attractMode=false; player1.x=300; player2.x=1050; return player1.spec.name+'/'+gameMode",
+  "label": "who-5"
+ },
+ {
+  "down": "KeyF"
+ },
+ {
+  "eval": "return {f:player1.spec.name, tier:'light', st:player1.state, dur:player1.attackAnim&&player1.attackAnim.dur, rec:player1.recoveryTimer&&+player1.recoveryTimer.toFixed(4)}",
+  "label": "5-light"
+ },
+ {
+  "up": "KeyF"
+ },
+ {
+  "wait": 1.6
+ },
+ {
+  "down": "KeyG"
+ },
+ {
+  "eval": "return {f:player1.spec.name, tier:'heavy', st:player1.state, dur:player1.attackAnim&&player1.attackAnim.dur, rec:player1.recoveryTimer&&+player1.recoveryTimer.toFixed(4)}",
+  "label": "5-heavy"
+ },
+ {
+  "up": "KeyG"
+ },
+ {
+  "wait": 1.6
+ },
+ {
+  "down": "KeyH"
+ },
+ {
+  "eval": "return {f:player1.spec.name, tier:'special', st:player1.state, dur:player1.attackAnim&&player1.attackAnim.dur, rec:player1.recoveryTimer&&+player1.recoveryTimer.toFixed(4)}",
+  "label": "5-special"
+ },
+ {
+  "up": "KeyH"
+ },
+ {
+  "wait": 1.6
+ },
+ {
+  "eval": "clearTimeout(attractTimer); attractMode=false; gameMode='training'; cpuMode=false; p1Pick=8; p2Pick=0; stagePick='bamboo'; startNewGame(); return 'boot-8'",
+  "label": "boot-8"
+ },
+ {
+  "wait": 2.5
+ },
+ {
+  "eval": "clearTimeout(attractTimer); attractMode=false; player1.x=300; player2.x=1050; return player1.spec.name+'/'+gameMode",
+  "label": "who-8"
+ },
+ {
+  "down": "KeyF"
+ },
+ {
+  "eval": "return {f:player1.spec.name, tier:'light', st:player1.state, dur:player1.attackAnim&&player1.attackAnim.dur, rec:player1.recoveryTimer&&+player1.recoveryTimer.toFixed(4)}",
+  "label": "8-light"
+ },
+ {
+  "up": "KeyF"
+ },
+ {
+  "wait": 1.6
+ },
+ {
+  "down": "KeyG"
+ },
+ {
+  "eval": "return {f:player1.spec.name, tier:'heavy', st:player1.state, dur:player1.attackAnim&&player1.attackAnim.dur, rec:player1.recoveryTimer&&+player1.recoveryTimer.toFixed(4)}",
+  "label": "8-heavy"
+ },
+ {
+  "up": "KeyG"
+ },
+ {
+  "wait": 1.6
+ },
+ {
+  "down": "KeyH"
+ },
+ {
+  "eval": "return {f:player1.spec.name, tier:'special', st:player1.state, dur:player1.attackAnim&&player1.attackAnim.dur, rec:player1.recoveryTimer&&+player1.recoveryTimer.toFixed(4)}",
+  "label": "8-special"
+ },
+ {
+  "up": "KeyH"
+ },
+ {
+  "wait": 1.6
+ },
+ {
+  "eval": "clearTimeout(attractTimer); attractMode=false; gameMode='training'; cpuMode=false; p1Pick=1; p2Pick=0; stagePick='bamboo'; startNewGame(); return 'boot-1'",
+  "label": "boot-1"
+ },
+ {
+  "wait": 2.5
+ },
+ {
+  "eval": "clearTimeout(attractTimer); attractMode=false; player1.x=300; player2.x=1050; return player1.spec.name+'/'+gameMode",
+  "label": "who-1"
+ },
+ {
+  "down": "KeyF"
+ },
+ {
+  "eval": "return {f:player1.spec.name, tier:'light', st:player1.state, dur:player1.attackAnim&&player1.attackAnim.dur, rec:player1.recoveryTimer&&+player1.recoveryTimer.toFixed(4)}",
+  "label": "1-light"
+ },
+ {
+  "up": "KeyF"
+ },
+ {
+  "wait": 1.6
+ },
+ {
+  "down": "KeyG"
+ },
+ {
+  "eval": "return {f:player1.spec.name, tier:'heavy', st:player1.state, dur:player1.attackAnim&&player1.attackAnim.dur, rec:player1.recoveryTimer&&+player1.recoveryTimer.toFixed(4)}",
+  "label": "1-heavy"
+ },
+ {
+  "up": "KeyG"
+ },
+ {
+  "wait": 1.6
+ },
+ {
+  "down": "KeyH"
+ },
+ {
+  "eval": "return {f:player1.spec.name, tier:'special', st:player1.state, dur:player1.attackAnim&&player1.attackAnim.dur, rec:player1.recoveryTimer&&+player1.recoveryTimer.toFixed(4)}",
+  "label": "1-special"
+ },
+ {
+  "up": "KeyH"
+ },
+ {
+  "wait": 1.6
+ },
+ {
+  "eval": "clearTimeout(attractTimer); attractMode=false; gameMode='training'; cpuMode=false; p1Pick=6; p2Pick=0; stagePick='bamboo'; startNewGame(); return 'boot-6'",
+  "label": "boot-6"
+ },
+ {
+  "wait": 2.5
+ },
+ {
+  "eval": "clearTimeout(attractTimer); attractMode=false; player1.x=300; player2.x=1050; return player1.spec.name+'/'+gameMode",
+  "label": "who-6"
+ },
+ {
+  "down": "KeyF"
+ },
+ {
+  "eval": "return {f:player1.spec.name, tier:'light', st:player1.state, dur:player1.attackAnim&&player1.attackAnim.dur, rec:player1.recoveryTimer&&+player1.recoveryTimer.toFixed(4)}",
+  "label": "6-light"
+ },
+ {
+  "up": "KeyF"
+ },
+ {
+  "wait": 1.6
+ },
+ {
+  "down": "KeyG"
+ },
+ {
+  "eval": "return {f:player1.spec.name, tier:'heavy', st:player1.state, dur:player1.attackAnim&&player1.attackAnim.dur, rec:player1.recoveryTimer&&+player1.recoveryTimer.toFixed(4)}",
+  "label": "6-heavy"
+ },
+ {
+  "up": "KeyG"
+ },
+ {
+  "wait": 1.6
+ },
+ {
+  "down": "KeyH"
+ },
+ {
+  "eval": "return {f:player1.spec.name, tier:'special', st:player1.state, dur:player1.attackAnim&&player1.attackAnim.dur, rec:player1.recoveryTimer&&+player1.recoveryTimer.toFixed(4)}",
+  "label": "6-special"
+ },
+ {
+  "up": "KeyH"
+ },
+ {
+  "wait": 1.6
+ }
+]

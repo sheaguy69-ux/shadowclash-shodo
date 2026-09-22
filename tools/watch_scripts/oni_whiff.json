@@ -1,0 +1,17 @@
+[
+ {"wait": 1.2},
+ {"key": "Space"},
+ {"wait": 0.5},
+ {"eval": "gameMode='training'; cpuMode=false; p1Pick=8; p2Pick=0; stagePick='bamboo'; attractMode=false; startNewGame(); return 'boot'", "label": "boot"},
+ {"wait": 3.0},
+ {"eval": "window.__log=[]; const t=()=>{ window.__log.push({t:performance.now(), a:Math.round(animClock*1000), s:player1.state, c:player1.drawCell}); requestAnimationFrame(t); }; requestAnimationFrame(t); return 'ok'"},
+
+ {"eval": "player1.x=200; player2.x=1100; window.__i=window.__log.length; return 'far-whiff'"},
+ {"key": "KeyH", "hold": 0.08},
+ {"wait": 1.6},
+ {"eval": "const s=window.__log.slice(window.__i); const atk=s.filter(x=>x.s==='ATTACK_SPECIAL'); const seq=[]; s.forEach(x=>{const k=x.s+':'+x.c; if(!seq.length||seq[seq.length-1]!==k) seq.push(k);}); return {stateMs: atk.length? Math.round(atk[atk.length-1].t-atk[0].t):0, animMs: atk.length? atk[atk.length-1].a-atk[0].a:0, animAnimDur:460, seq:seq.slice(0,10)}", "label": "SHOT-whiff"},
+
+ {"eval": "player1.x=200; player2.x=1100; window.__i=window.__log.length; return 'up-whiff'"},
+ {"down":"KeyW"}, {"key": "KeyH", "hold": 0.08}, {"wait": 1.6}, {"up":"KeyW"},
+ {"eval": "const s=window.__log.slice(window.__i); const atk=s.filter(x=>x.s==='ATTACK_SPECIAL'); const seq=[]; s.forEach(x=>{const k=x.s+':'+x.c; if(!seq.length||seq[seq.length-1]!==k) seq.push(k);}); return {stateMs: atk.length? Math.round(atk[atk.length-1].t-atk[0].t):0, seq:seq.slice(0,10)}", "label": "UpH-whiff"}
+]

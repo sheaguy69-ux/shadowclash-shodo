@@ -1,0 +1,20 @@
+[
+ {"wait":1.2},{"key":"Space"},{"wait":0.5},
+ {"eval":"gameMode='training'; cpuMode=false; p1Pick=8; p2Pick=0; stagePick='bamboo'; attractMode=false; startNewGame(); return 'boot'"},
+ {"wait":3.0},
+ {"eval":"window.__c=new Set(); window.__on=false; setInterval(()=>{ if(window.__on) window.__c.add(player1.drawCell); },4); return 'ok'"},
+ {"eval":"player1.x=640;player2.x=700;player2.hp=999;return 1"},
+ {"down":"KeyW"},
+ {"wait":1.6},
+ {"eval":"window.__c.clear(); window.__on=true; return {grounded:player1.isGrounded, up:player1.isUpPressed(), heldDir:(function(p){if(p.isDownPressed())return 'down';if(p.isUpPressed())return 'up';const ax=p.getInputAxis();return ax===p.facing?'fwd':ax===-p.facing?'back':null;})(player1)}","label":"state-while-holding-W"},
+ {"key":"KeyG","hold":0.08},
+ {"wait":1.0},
+ {"eval":"window.__on=false; const F=SPRITES.oni.frames; return {cells:[...window.__c].sort((a,b)=>a-b), ghup:[F.ghup1,F.ghup6]}","label":"UpG-holding-W"},
+ {"up":"KeyW"},
+ {"eval":"player1.x=640;player2.x=700;window.__c.clear();return 1"},
+ {"down":"KeyW"},{"wait":1.6},
+ {"eval":"window.__c.clear(); window.__on=true; return 1"},
+ {"key":"KeyF","hold":0.08},{"wait":1.0},
+ {"eval":"window.__on=false; const F=SPRITES.oni.frames; return {cells:[...window.__c].sort((a,b)=>a-b), glup:[F.glup1,F.glup6]}","label":"UpF-holding-W"},
+ {"up":"KeyW"}
+]

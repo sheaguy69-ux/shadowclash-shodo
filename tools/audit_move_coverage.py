@@ -1,44 +1,18 @@
-"""Which of the 30 inputs per fighter are actually DIFFERENT moves?
+"""Fingerprint 40 inputs per fighter: ground/air × 5 directions × L/M/H/S.
 
-  python3 tools/serve.py &                       # 9100, the only server
-  python3 tools/audit_move_coverage.py
+  SHADOWCLASH_URL=http://localhost:9101/index.html python3 tools/audit_move_coverage.py
 
-Fires every (grounded/airborne x 5 directions x 3 buttons) on each of the six originals
-and fingerprints what came back. Two inputs with the SAME fingerprint are the same move —
-one of them has no move of its own and is falling through to the other.
+Defaults to all nine fighters at three parking positions. Calls executeAttack directly;
+it does not prove a real keyboard press reaches a move. The separate real-input exporter
+checks keyboard routing, consecutive render exposures and actual collision timing.
 
-⛔ THE RULER IS THE spawnHitbox CALL, NOT DAMAGE AND NOT THE LIVE hitboxes ARRAY. Both of
-those were tried on Aug 2 2026 and both lied:
-
-  * polling `p.hitboxes` once per frame MISSES a box that spawns and expires between two
-    samples — it called Tsubasa's forward Special dead when it does 8 damage.
-  * damage against a parked opponent depends on where everyone is STANDING. Every
-    airborne attack read 0 because the target was 120px below it, and Ember's 28px-wide
-    claw cannot reach an opponent 62px away. That ruler reported 86 dead inputs of 180.
-
-⛔ AND THE RULER ITSELF LIED ONCE MORE. This file used to claim here that the real
-number of dead inputs is ZERO. It was not measured — `attackAir` is set by every press
-and was missing from COST_ONLY, so the DEAD branch could not fire for any input on any
-fighter and the zero was arithmetic. Corrected Aug 11 2026: 19 on the tree that had it
-wrong, 16 today. Mizu's whole Special column and every one of Oni's ten Special inputs
-spend chakra and return nothing.
-
-Wrapping spawnHitbox records what the move ASKS FOR at the moment it is authored, which
-is independent of positions and of the frame clock.
-
-⛔ "DID ANYTHING HAPPEN" IS A DIFF OF THE WHOLE PLAYER, NOT A LIST OF FIELDS YOU THOUGHT OF.
-A hitbox is only one way a move can be real. The first version of this tool watched five
-named parry flags and declared seven inputs dead. Every one of them was a real move:
-Ember's and Kael's Back+Specials are PARRY_STANCE with parryFlashTimer, Tsubasa's neutral
-Special is the same stance at a stricter 0.133, and Shin's Back+Special is a vanish
-(vanishTimer, and it flips his facing). Shin's kunai and wire are projectiles. A guessed
-field list can only find the mechanisms you already remembered — snapshotting every scalar
-on the player before and after finds the ones you didn't. The do-nothing control proves
-the diff is clean: press nothing, and NOTHING changes.
-
-A fighter is reset with startNewGame() before EVERY input. Sharing one fighter across all
-30 let a move's lingering lock bleed into the next nine inputs, which reads exactly like a
-row of missing moves.
+Fingerprints record authored hitbox calls, projectiles, sampled source cells and changed
+player/world fields. They omit numeric hitbox options and sample artwork every sixth
+animation frame, so equal fingerprints are candidates for review, not proof that two
+inputs should be distinct or that every animation drawing was exposed. Utility actions
+such as mist and parries must count even without a melee hitbox. A fresh match per input
+limits state carryover; asynchronous sampling can still contaminate results. Assertions
+validate the requested grid, current mechanism controls and the Medium tier.
 """
 import json
 import pathlib
@@ -51,10 +25,7 @@ OUT = REPO / 'media/audit/move-coverage'
 DIRS = ['neutral', 'fwd', 'back', 'down', 'up']
 BTN = ['L', 'M', 'H', 'S']
 ORDER = ['Executioner', 'Mizu', 'Shin', 'Tsubasa', 'Ember', 'Kael', 'Mokurai', 'Exile', 'Oni']
-# The six originals are the default because they are the only kits with a known-good
-# baseline to assert against. `--ids 6,8` audits a BENCHED fighter (benched is a roster-UI
-# gate, not an engine gate — startNewGame takes any id), which is the only way to see
-# Mokurai's and Exile's coverage at all.
+# All nine are the default; --ids narrows the probe and keeps its assertions active.
 IDS = [int(x) for x in (sys.argv[sys.argv.index('--ids') + 1].split(',')
                         if '--ids' in sys.argv else '0,1,2,3,4,5,6,7,8'.split(','))]
 # ⛔ ONE PARKING SPOT CANNOT TELL AN ECHO FROM A RANGE GATE. The Aug 13 sweep's first
@@ -213,9 +184,9 @@ COST_ONLY = {'stamina', 'chakra', 'chakraCd', 'chainComboTier', 'recoveryTimer',
 def fp(v):
     """What makes two inputs the SAME move.
 
-    Projectiles and the touched-field set belong here, not just the hitbox. Shin's
-    forward Special throws a wire and his back Special is a vanish; both spawn no hitbox
-    and reuse his neutral art, so a (box, cells, duration) key called them one move.
+    Projectiles and the touched-field set belong here, not just the hitbox. A
+    projectile or utility action can differ without a melee hitbox; retaining changed
+    fields prevents those mechanisms from disappearing from the fingerprint.
     """
     return v['box'], v['cells'], v['dur'], v['proj'], tuple(sorted(set(v['touched']) - COST_ONLY))
 
@@ -307,28 +278,34 @@ def report(mats):
     return dead, echo, static, art
 
 
+def assert_measured(m, ids):
+    """Validate the requested subset too; a partial probe is still evidence."""
+    expected = {ORDER[i] for i in ids}
+    assert set(m) == expected, f'expected {sorted(expected)}, got {sorted(m)}'
+    slots = {f'{st}.{d}.{b}' for st in ('gnd', 'air') for d in DIRS for b in BTN}
+    for fighter, rows in m.items():
+        assert set(rows) == slots, f'{fighter}: incomplete input grid'
+        assert not any(v['err'] for v in rows.values()), f'{fighter}: attack probe raised an error'
+    if 'Shin' in m:
+        assert m['Shin']['gnd.down.S']['proj'] > 0, "lost sight of Shin's kunai"
+    if 'Kael' in m:
+        assert m['Kael']['gnd.back.H']['touched'], "lost sight of Kael's low parry"
+        assert m['Kael']['gnd.back.S']['state'] == 'PARRY_STANCE', "Kael's niten parry"
+    if 'Ember' in m:
+        assert m['Ember']['gnd.back.S']['state'] == 'PARRY_STANCE', "Ember's blade-trap parry"
+    # Shin's vanish moved to Kage-Nui; FIRST_FORM_ONLY makes it unavailable here.
+    assert any(m[f]['gnd.neutral.M']['box'] != m[f]['gnd.neutral.L']['box'] for f in m), \
+        'MEDIUM never differs from LIGHT — the probe is not reaching the medium tier'
+
+
 def main():
     mats = {}
     for x in XS:
         mats[x] = measure(x)
         print(f'  measured at x={x}: {len(mats[x])} fighters', file=sys.stderr)
+        assert_measured(mats[x], IDS)
     (OUT / 'matrix.json').write_text(json.dumps(mats, indent=1))
     dead, echo, static, art = report(mats)
-    m = mats[XS[len(XS) // 2]]
-    # The check that fails if this ever silently stops measuring. Each line is a mechanism
-    # that is NOT a hitbox, and each one was reported as a dead button before it was added.
-    if IDS != [0, 1, 2, 3, 4, 5, 6, 7, 8]:
-        return 0          # --ids is a probe of a subset; the asserts below need the roster
-    assert len(m) == 9, f'expected the nine, got {list(m)}'
-    assert m['Shin']['gnd.down.S']['proj'] > 0, "lost sight of Shin's kunai"
-    assert m['Kael']['gnd.back.H']['touched'], "lost sight of Kael's low parry"
-    assert m['Kael']['gnd.back.S']['state'] == 'PARRY_STANCE', "Kael's niten parry"
-    assert m['Ember']['gnd.back.S']['state'] == 'PARRY_STANCE', "Ember's blade-trap parry"
-    assert 'vanishTimer' in m['Shin']['gnd.back.S']['touched'], "Shin's back vanish"
-    # MEDIUM is a real tier (owner, Sep 1 2026), not a copy of Light: if the probe ever
-    # stops reaching it, every M column would echo its L neighbour and read as art debt.
-    assert any(m[f]['gnd.neutral.M']['box'] != m[f]['gnd.neutral.L']['box'] for f in m), \
-        'MEDIUM never differs from LIGHT — the probe is not reaching the medium tier'
     return 0
 
 

@@ -1,0 +1,33 @@
+[
+ {"wait":1.2},{"key":"Space"},{"wait":0.5},
+ {"eval":"gameMode='training'; cpuMode=false; p1Pick=8; p2Pick=0; stagePick='bamboo'; attractMode=false; startNewGame(); return 'boot'"},
+ {"wait":3.0},
+ {"eval":"window.__c=new Set(); window.__on=false; window.__hits=[]; const od=player2.takeDamage.bind(player2); player2.takeDamage=function(d,a,o){window.__hits.push(Math.round(d)); return od(d,a,o);}; setInterval(()=>{ if(window.__on) window.__c.add(player1.drawCell); },4); return 'ok'"},
+
+ {"eval":"player1.x=640;player2.x=700;player2.hp=999;window.__c.clear();window.__hits.length=0;window.__on=true;return 1"},
+ {"down":"KeyD"},{"key":"KeyF","hold":0.08},{"wait":0.9},{"up":"KeyD"},
+ {"eval":"window.__on=false; const F=SPRITES.oni.frames; return {move:'Fwd+F', cells:[...window.__c].sort((a,b)=>a-b), want:[F.glfwd1,F.glfwd6], dmg:window.__hits}","label":"FwdF"},
+
+ {"eval":"player1.x=640;player2.x=700;window.__c.clear();window.__hits.length=0;window.__on=true;return 1"},
+ {"down":"KeyA"},{"key":"KeyF","hold":0.08},{"wait":0.9},{"up":"KeyA"},
+ {"eval":"window.__on=false; const F=SPRITES.oni.frames; return {move:'Back+F', cells:[...window.__c].sort((a,b)=>a-b), want:[F.glback1,F.glback6], dmg:window.__hits}","label":"BackF"},
+
+ {"eval":"player1.x=640;player2.x=700;window.__c.clear();window.__hits.length=0;window.__on=true;return 1"},
+ {"down":"KeyS"},{"key":"KeyF","hold":0.08},{"wait":0.9},{"up":"KeyS"},
+ {"eval":"window.__on=false; const F=SPRITES.oni.frames; return {move:'Down+F', cells:[...window.__c].sort((a,b)=>a-b), want:[F.gldown1,F.gldown6], dmg:window.__hits}","label":"DownF"},
+
+ {"eval":"player1.x=640;player2.x=700;window.__c.clear();window.__hits.length=0;return 1"},
+ {"key":"KeyV","hold":0.06},{"wait":0.3},
+ {"eval":"window.__on=true; return {boStance:player1.boStance}","label":"V-toggle"},
+ {"key":"KeyF","hold":0.08},{"wait":0.9},
+ {"eval":"window.__on=false; const F=SPRITES.oni.frames; return {move:'BO light', cells:[...window.__c].sort((a,b)=>a-b), want:[F.bostrike1,F.bostrike6], dmg:window.__hits}","label":"BO-light"},
+
+ {"eval":"player1.x=640;player2.x=700;window.__c.clear();window.__hits.length=0;window.__on=true;return 1"},
+ {"key":"KeyG","hold":0.08},{"wait":0.9},
+ {"eval":"window.__on=false; const F=SPRITES.oni.frames; return {move:'BO heavy', cells:[...window.__c].sort((a,b)=>a-b), want:[F.bosweep1,F.bosweep6], dmg:window.__hits}","label":"BO-heavy"},
+
+ {"key":"KeyV","hold":0.06},{"wait":0.3},
+ {"eval":"player1.x=640;player2.x=700;window.__c.clear();window.__hits.length=0;window.__on=true;return {boStance:player1.boStance}","label":"V-off"},
+ {"key":"KeyF","hold":0.08},{"wait":0.9},
+ {"eval":"window.__on=false; const F=SPRITES.oni.frames; return {move:'neutral F after dropping bo', cells:[...window.__c].sort((a,b)=>a-b), want:[F.glneu1,F.glneu6]}","label":"after-drop"}
+]

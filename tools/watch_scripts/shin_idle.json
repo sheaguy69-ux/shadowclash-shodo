@@ -1,0 +1,12 @@
+[
+ {"wait": 1.2},
+ {"key": "Space"},
+ {"wait": 0.6},
+ {"eval": "gameMode='training'; cpuMode=false; p1Pick=2; p2Pick=5; stagePick='bamboo'; attractMode=false; startNewGame(); return 'boot'", "label": "boot"},
+ {"wait": 3.2},
+ {"eval": "moveListOpen=false; player1.x=420; player2.x=780; player2.hp=999; return player1.spec.name+' SHEET_V='+SHEET_V+' idle->'+SPRITES.shin.frames.idle+' cols='+SPRITES.shin.cols", "label": "state"},
+ {"wait": 1.2},
+ {"shoot": "shin_idle"},
+ {"wait": 0.6},
+ {"shoot": "shin_idle2"}
+]

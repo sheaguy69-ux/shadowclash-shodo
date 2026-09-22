@@ -1,0 +1,13 @@
+[
+ {"wait":1.2},{"key":"Space"},{"wait":0.5},
+ {"eval":"gameMode='training'; cpuMode=false; p1Pick=8; p2Pick=0; stagePick='bamboo'; attractMode=false; startNewGame(); return 'boot'"},
+ {"wait":3.0},
+ {"eval":"window.__c=new Set(); setInterval(()=>{ if(player1.state==='ATTACK_LIGHT') window.__c.add(player1.drawCell); },4); return 'ok'"},
+ {"eval":"player1.x=640;player2.x=700;player2.hp=999;window.__c.clear();return 1"},
+ {"down":"KeyD"},{"key":"KeyF","hold":0.08},{"wait":0.9},{"up":"KeyD"},
+ {"eval":"const F=SPRITES.oni.frames; return {move:'Fwd+F', drew:[...window.__c].sort((a,b)=>a-b), want:F.glfwd1+'..'+F.glfwd6}","label":"FwdF"},
+ {"eval":"player1.x=640;player2.x=700;window.__c.clear();return 1"},
+ {"down":"KeyD"},{"key":"KeyF","hold":0.08},{"wait":0.9},
+ {"key":"KeyF","hold":0.08},{"wait":0.9},{"up":"KeyD"},
+ {"eval":"const F=SPRITES.oni.frames; return {move:'Fwd+F x2', drew:[...window.__c].sort((a,b)=>a-b)}","label":"FwdF2"}
+]

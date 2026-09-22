@@ -1,0 +1,9 @@
+[
+ {"wait": 1.2},
+ {"key": "Space"},
+ {"wait": 0.5},
+ {"eval": "gameMode='training'; cpuMode=false; p1Pick=6; p2Pick=7; stagePick='bamboo'; attractMode=false; startNewGame(); return 'boot'", "label": "boot"},
+ {"wait": 3.0},
+ {"eval": "return {p1:player1.spec.name, p2:player2.spec.name, moveListOpen:moveListOpen}", "label": "who"},
+ {"shoot": "mokurai-vs-exile"}
+]

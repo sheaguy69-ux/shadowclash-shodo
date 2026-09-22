@@ -1,0 +1,17 @@
+[
+ {"wait": 1.2},
+ {"key": "Space"},
+ {"wait": 0.5},
+ {"eval": "gameMode='training'; cpuMode=false; p1Pick=8; p2Pick=0; stagePick='bamboo'; attractMode=false; startNewGame(); return 'boot'", "label": "boot"},
+ {"wait": 3.0},
+ {"eval": "return {sheetV: SHEET_V, p1: player1.spec.name, moveListOpen: moveListOpen, oniLines: (MOVES_LIST[player1.spec.name]||[]).length, rosterMissingAList: NINJA_ROSTER.map(f=>f.name).filter(n=>!MOVES_LIST[n]), listsWithNoFighter: Object.keys(MOVES_LIST).filter(n=>!NINJA_ROSTER.some(f=>f.name===n))}", "label": "movelist-coverage"},
+ {"eval": "return MOVES_LIST[player1.spec.name]", "label": "oni-lines"},
+ {"shoot": "movelist-on"},
+ {"key": "KeyL", "hold": 0.05},
+ {"wait": 0.4},
+ {"eval": "return {moveListOpen: moveListOpen}", "label": "after-toggle"},
+ {"shoot": "movelist-off"},
+ {"key": "KeyL", "hold": 0.05},
+ {"wait": 0.4},
+ {"shoot": "movelist-back-on"}
+]

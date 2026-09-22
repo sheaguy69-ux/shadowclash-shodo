@@ -1,0 +1,75 @@
+[
+ {
+  "wait": 1.0
+ },
+ {
+  "key": "Enter"
+ },
+ {
+  "wait": 1.2
+ },
+ {
+  "eval": "document.getElementById('title-screen').classList.add('hidden');return 'hidden by hand \u2014 attractMode is still in its TDZ this early'",
+  "label": "title"
+ },
+ {
+  "wait": 0.5
+ },
+ {
+  "eval": "document.documentElement.style.zoom='0.60';var a=document.querySelector('aside'); if(a) a.style.display='none';document.getElementById('title-screen').classList.add('hidden');window.scrollTo(0,0); return 'z'",
+  "label": "zoom"
+ },
+ {
+  "wait": 0.4
+ },
+ {
+  "shoot": "select_empty"
+ },
+ {
+  "eval": "const c=[...document.querySelectorAll('*')].filter(x=>x.children.length===0&&x.textContent.trim()==='Kael');let el=c[0];for(let i=0;i<6&&el;i++){if(el.className&&/cursor|card|rounded/.test(el.className))break;el=el.parentElement;}(el||c[0]).click();return 'ok'",
+  "label": "p1"
+ },
+ {
+  "wait": 0.4
+ },
+ {
+  "eval": "const c=[...document.querySelectorAll('*')].filter(x=>x.children.length===0&&x.textContent.trim()==='Ember');let el=c[0];for(let i=0;i<6&&el;i++){if(el.className&&/cursor|card|rounded/.test(el.className))break;el=el.parentElement;}(el||c[0]).click();return 'ok'",
+  "label": "p2"
+ },
+ {
+  "wait": 0.5
+ },
+ {
+  "eval": "const t=document.querySelector('[data-stage=\"drowned\"]'); if(t) t.click(); return 'stage'",
+  "label": "stage"
+ },
+ {
+  "wait": 0.5
+ },
+ {
+  "shoot": "select_picked"
+ },
+ {
+  "eval": "var b=document.getElementById('btn-timer'); if(b) b.click(); return 'tog'"
+ },
+ {
+  "wait": 0.4
+ },
+ {
+  "shoot": "select_toggle"
+ },
+ {
+  "eval": "var e=document.getElementById('character-selection'); e.scrollTop=e.scrollHeight; return e.scrollTop",
+  "label": "scroll"
+ },
+ {
+  "wait": 0.4
+ },
+ {
+  "shoot": "select_bottom"
+ },
+ {
+  "eval": "function bg(el){return el?getComputedStyle(el).backgroundImage.includes('plate')?'PLATE':'frame':'missing';}var ro=[...document.querySelectorAll('#character-selection .sticky button')].find(b=>/RING-OUTS/.test(b.textContent));var md=document.querySelector('.mode-btn.sc-on');var tr=document.querySelector('#difficulty-row button.border-yellow-400');var f=document.getElementById('btn-fight');var card=document.querySelector('#ninja-grid [data-pick]');var tile=document.querySelector('#stage-row .stage-tile.border-yellow-400');return {ringOuts:bg(ro), ringLabel:ro?ro.textContent.trim():null, mode:bg(md), modeLabel:md?md.textContent.trim():null, tier:bg(tr), fight:bg(f), stampedCards:document.querySelectorAll('#ninja-grid [data-pick]').length, stageTile:!!tile, sealOnCard:card?getComputedStyle(card,'::after').backgroundImage.includes('seal-pick'):null, sealOnTile:tile?getComputedStyle(tile,'::after').backgroundImage.includes('seal-stage'):null}",
+  "label": "STATES"
+ }
+]
