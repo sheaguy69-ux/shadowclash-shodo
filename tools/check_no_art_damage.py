@@ -62,7 +62,13 @@ def must(*args: str) -> bytes:
 
 
 def staged_sheets() -> list[str]:
-    names = must("diff", "--cached", "--name-only").decode().split()
+    # ⛔ --diff-filter=d EXCLUDES DELETIONS. A retired fighter's sheet cannot be read at the
+    # index — that is what deleting it MEANS — and `load(INDEX, ..., required=True)` treated
+    # the absence as "unreadable", so this guard refused EVERY commit that removed a sheet.
+    # Oni's retirement sat unrecorded because of it. Nothing is lost by skipping them: a
+    # deletion has no art to damage, check_sheets_whole.py still holds the manifests, and
+    # tools/check_oni_retired.py is the ruler for a removal being intended.
+    names = must("diff", "--cached", "--name-only", "--diff-filter=d").decode().split()
     return sorted(
         {Path(n).stem for n in names if n.startswith("web/assets/sprites/") and n.endswith(".png")}
     )
