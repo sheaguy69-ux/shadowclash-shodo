@@ -2,7 +2,7 @@
   "frameW": 300,
   "frameH": 248,
   "footY": 218,
-  "cols": 406,
+  "cols": 410,
   "frames": {
     "airhurt1": 180,
     "airhurt2": 181,
@@ -386,7 +386,11 @@
     "402": true,
     "403": true,
     "404": true,
-    "405": true
+    "405": true,
+    "406": true,
+    "407": true,
+    "408": true,
+    "409": true
   },
   "frameClear": {
     "99": [

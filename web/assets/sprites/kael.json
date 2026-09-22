@@ -220,7 +220,14 @@
     "dive3": 343,
     "dive4": 344,
     "dive5": 344,
-    "dive6": 344
+    "dive6": 344,
+    "turn1": 318,
+    "jsquat1": 299,
+    "land1": 304,
+    "land2": 300,
+    "land3": 103,
+    "skid1": 21,
+    "skid2": 20
   },
   "weapon_type": "Katana & Wakizashi / Tant\u014d",
   "martial_art_discipline": "Niten Ichi-ry\u016b & Tant\u014djutsu",
