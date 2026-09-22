@@ -3,3 +3,7 @@ media/
 # macOS Finder junk
 .DS_Store
 __pycache__/
+
+# watch_game.py makes a throwaway Chrome profile per run (tools/watch_game.py:265,
+# `profile = out / "_chrome"`). The log.txt beside it is the result; this is the junk.
+_chrome/
