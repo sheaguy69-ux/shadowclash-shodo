@@ -10794,6 +10794,7 @@
                     // BOTH bodies, which is what sells the weight.
                     const tier = sourceHitbox && sourceHitbox.tier;
                     const isHeavy = tier === STATE.ATTACK_HEAVY, isSpec = tier === STATE.ATTACK_SPECIAL;
+                    const isMed = tier === STATE.ATTACK_MEDIUM;
                     const kick = isSpec ? 3.2 : isHeavy ? 2.8 : 1;
                     this.vx = impactFacing * (40 + push * 0.4) * kick;
                     this.blockPushTimer = isSpec ? 0.34 : isHeavy ? 0.30 : 0.12;
@@ -10807,7 +10808,8 @@
                         screenShakeAmount = Math.max(screenShakeAmount, isSpec ? 6 : 5);
                         createSmokePuff(this.x + this.width / 2 - attacker.facing * 6, this.y + this.height, 4, 0.5);
                     }
-                    hitstopRemaining = Math.max(hitstopRemaining, bladeOnBlade(attacker, this, sourceHitbox) ? 3 * 1000 / 60 : isSpec ? 70 : isHeavy ? 60 : 30);
+                    hitstopRemaining = Math.max(hitstopRemaining, bladeOnBlade(attacker, this, sourceHitbox) ? 3 * 1000 / 60
+                        : isSpec ? 70 : isHeavy ? 60 : isMed ? 45 : 30);
                     // A GUARD IS A PARRY when both sides carry steel: the strike lands on
                     // the blocker's OWN BLADE, so it rings and throws sparks exactly like a
                     // clash — just shorter, because the guard absorbs instead of trading.
@@ -11037,7 +11039,8 @@
                 const stopMs = sourceHitbox?.tier === STATE.ATTACK_SPECIAL
                     ? (dmg >= 10 ? Math.min(166, 100 + dmg * 3) : Math.min(67, 33 + dmg * 3)) * FEEL.stopMul
                         + (sourceHitbox?.hasujiHit ? HASUJI_STOP : 0)
-                    : (sourceHitbox?.tier === STATE.ATTACK_HEAVY ? 4 : 2) * 1000 / 60;
+                    : (sourceHitbox?.tier === STATE.ATTACK_HEAVY ? 4
+                        : sourceHitbox?.tier === STATE.ATTACK_MEDIUM ? 3 : 2) * 1000 / 60;
                 hitstopRemaining = Math.max(hitstopRemaining, stopMs);          // trades keep the BIGGER freeze
                 screenShakeAmount = Math.max(screenShakeAmount, dmg * 0.6 * FEEL.shakeMul);
                 // ...and it rattles ALONG the blow: away from the attacker, tilted UP
