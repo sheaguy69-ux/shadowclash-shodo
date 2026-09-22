@@ -62,8 +62,14 @@ const out = await ev(String.raw`(async()=>{
    for(const [tier,st] of Object.entries(TIERS)){
     for(const [d,set] of Object.entries(DIRS)){
       if(typeof smokeFields!=='undefined') smokeFields.length=0;
-      const p=new Player(1,150,GROUND_Y-(air?150:48),spec,true);
-      p.opponent=new Player(2,240,GROUND_Y-48,spec,false); p.opponent.opponent=p;
+      // ⛔ MID-SCREEN, NOT x=150. Exile's wall anchor reaches ANCHOR_RANGE=210 and x=150
+      // leaves a 155px gap to the left wall, so BOTH her Up+Specials took the hitboxless
+      // grapple branch and this probe reported her only wall-independent anti-air and her
+      // heli spin as dead inputs. Park clear of every wall-gated branch; the pair keeps
+      // its 90px spacing so nothing about the matchup changes.
+      const PX=Math.round(canvas.width/2)-40;
+      const p=new Player(1,PX,GROUND_Y-(air?150:48),spec,true);
+      p.opponent=new Player(2,PX+90,GROUND_Y-48,spec,false); p.opponent.opponent=p;
       p.facing=1; p.isGrounded=!air; p.attackAir=air; p.vy=air?100:0;
       p.chakra=100; p.stamina=100;
       p.getInputAxis=()=>0; p.isDownPressed=()=>false; p.isUpPressed=()=>false;
@@ -81,7 +87,41 @@ const out = await ev(String.raw`(async()=>{
         if(!cells.includes(i2)) cells.push(i2);
         for(const f of famOf(i2)) if(!fams.includes(f)) fams.push(f);
       }
-      rows.push({where:air?'air':'ground', tier, dir:d,
+      // ⛔ A HITBOXLESS MOVE IS NOT A DEAD INPUT. Exile's Forward+Special is a wall
+      // GRAPPLE and her Up+Special is the chain ANCHOR — both are traversal, both are
+      // hitboxless on purpose, and whichever one is in range at the probe's x reads as
+      // "nothing happened" to a check that only counts boxes. Kael's back/up Heavy and
+      // Ember's and Mokurai's back Special are PARRIES, hitboxless for the same reason.
+      // Record what the press actually armed, so 'no box' and 'no move' stop being the
+      // same answer.
+      // ⛔ AND A BOX CAN ARRIVE LATE. This probe reads the instant of the press, but
+      // Mizu's Up+Special spawns at frame 49 and Tsubasa's Fwd+Special at frame 32, so
+      // both reported as dead inputs while both hit for real. Run the move on a SECOND,
+      // identical fighter for its whole recovery and take the PEAK — the first player is
+      // left untouched because the art sampling above rides attackAnim.start.
+      let boxPeak=0, boxFrame=-1, lateDmg=0;
+      {
+        const r=new Player(1,PX,GROUND_Y-(air?150:48),spec,true);
+        r.opponent=new Player(2,PX+90,GROUND_Y-48,spec,false); r.opponent.opponent=r;
+        r.facing=1; r.isGrounded=!air; r.attackAir=air; r.vy=air?100:0;
+        r.chakra=100; r.stamina=100;
+        r.getInputAxis=()=>0; r.isDownPressed=()=>false; r.isUpPressed=()=>false;
+        r.state=STATE.IDLE; r.attackT=0; r.lock=0; r.stunTimer=0; r.rollTimer=0; r.rollRecover=0; r.sayaLock=0;
+        set(r);
+        try{ r.executeAttack(STATE[st]); }catch(e){}
+        for(let f=0;f<60;f++){
+          try{ r.update(1/60, r.opponent); }catch(e){ break; }
+          if(r.hitboxes.length>boxPeak){ boxPeak=r.hitboxes.length; if(boxFrame<0) boxFrame=f; }
+          lateDmg=Math.max(lateDmg, r.hitboxes.reduce((a,h)=>a+(h.damage||0),0));
+        }
+      }
+      const tool = [ p.anchorTimer>0 && 'anchor', p.grappleT>0 && 'grapple',
+                     p.tether && 'tether', p.vanishTimer>0 && 'vanish',
+                     p.parryFlashTimer>0 && 'parry', p.armorTimer>0 && 'armor',
+                     p.state===STATE.PARRY_STANCE && 'parry-stance',
+                     p.state===STATE.BLOCKING && 'guard' ].filter(Boolean);
+      rows.push({where:air?'air':'ground', tier, dir:d, tool, boxPeak, boxFrame,
+                 lateDmg:Math.round(lateDmg*10)/10,
                  box:p.kageActs.length-b, proj:(p.projectiles||[]).length,
                  field:(typeof smokeFields!=='undefined'?smokeFields.length:0), err,
                  dmg:Math.round(p.kageActs.slice(b).reduce((a,k)=>a+(k.dmg||0),0)*10)/10,
