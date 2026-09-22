@@ -167,8 +167,17 @@ def main():
        f"attack animation cells use Shodō too {ft['outlinedAttackCells']}")
     ok(ft['damage'] > 0, f"...and they take HP off: {ft['hpBefore']} -> {ft['hpAfter']} "
                          f"({ft['damage']} damage)")
-    ok(ft['hitstopFrames'] > 0, f"a landed hit freezes the frame — {ft['hitstopFrames']} "
-                                f"frames of hitstop, so contact is felt")
+    # ⛔ THIS IS A CUMULATIVE COUNT OVER THE WHOLE BURST, NOT ONE HIT. The loop above
+    # presses KeyF every 6 frames and KeyG every 18 across 140 rAF frames — ~24 lights and
+    # ~8 heavies — and increments once per FRAME in which hitstopRemaining > 0. The old
+    # wording, "a landed hit freezes the frame — N frames of hitstop", read that total as
+    # the cost of a SINGLE hit and was quoted as such. It is also the wrong unit:
+    # hitstopRemaining is declared `// ms` at web/index.html:1978. Per-hit truth, from the
+    # engine: clean light 33.3ms (2f), heavy 66.7ms (4f), special up to 207.5ms, KO 360ms;
+    # blocked light 30ms, heavy 60ms, special 70ms, blade-on-blade 50ms.
+    ok(ft['hitstopFrames'] > 0, f"contact is felt — {ft['hitstopFrames']} frames spent in "
+                                f"hitstop across the whole {ft['landed']}-hit burst "
+                                f"(cumulative, not per hit)")
     ok(ft['p1Untouched'], "the attacker takes nothing while the defender does — no friendly fire")
     ok(ko['koHp'] <= 0, f"HP reaches zero and the fighter goes down (ko at {ko['koHp']})")
     ok(ko['winsAfter'] != ko['winsBefore'],
