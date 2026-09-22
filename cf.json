@@ -1,0 +1,26 @@
+[
+ {
+  "wait": 1.2
+ },
+ {
+  "key": "Space"
+ },
+ {
+  "wait": 0.5
+ },
+ {
+  "eval": "gameMode='2p';cpuMode=false;p1Pick=2;p2Pick=5;stagePick='bamboo';attractMode=false;startNewGame();return 1",
+  "label": "boot"
+ },
+ {
+  "wait": 2.2
+ },
+ {
+  "eval": "\nconst frame=()=>new Promise(r=>requestAnimationFrame(r));\nconst out=[];\n// case A: as shipped. case B: gsfwd1..8 aliased onto gsback cells (IN MEMORY ONLY).\n// case C: kheel1..8 aliased onto kpush cells, to prove back+L's row choice.\nasync function fire(tag, dkeys, tier){\n  p1Pick=2;p2Pick=5;startNewGame();roundIntroTimer=0;await frame();await frame();\n  const p=player1; if(p.spec.id!==2){out.push({tag,ERR:'not shin'});return;}\n  const F=SPRITES.shin.frames; const CELL={}; for(const k in F)(CELL[F[k]]=CELL[F[k]]||[]).push(k);\n  for(const k in keys)keys[k]=false;\n  p.x=400;p.facing=1;p.stamina=100;p.chakra=100;p.chainComboTier=0;p.attackHasConnected=false;p.connectTime=-1e9;\n  const spawned=[];const orig=p.spawnHitbox.bind(p);\n  p.spawnHitbox=function(w,h,d,dl,kb,o){spawned.push([Math.round(w),Math.round(h),Math.round(d),+(dl||0).toFixed(2),Math.round(kb||0),Object.keys(o||{}).filter(x=>o[x]===true).sort().join('+')].join('/'));return orig(w,h,d,dl,kb,o);};\n  dkeys.forEach(k=>keys[k]=true);\n  p.executeAttack(STATE[tier]);\n  const dur=p.attackAnim?Math.round(p.attackAnim.dur):0, kick=p.kickKind;\n  const seen=[];let proj=0;\n  for(let f=0;f<70;f++){dkeys.forEach(k=>keys[k]=true);await frame();dkeys.forEach(k=>keys[k]=true);\n    proj=Math.max(proj,(p.projectiles||[]).length);\n    if(p.attackAnim)seen.push(spriteFrameIndex(p,F));\n    if(!p.isAttackingState()&&f>6)break;}\n  dkeys.forEach(k=>keys[k]=false);p.spawnHitbox=orig;\n  const u=[...new Set(seen)];\n  out.push({tag, kick, box:[...new Set(spawned)].join(' | '), proj, dur,\n            projKinds:[...new Set((p.projectiles||[]).map(x=>x.kind))].join(','),\n            alias:u.map(i=>(CELL[i]||[]).join('=')).join(' > ')});\n}\nawait fire('A shipped fwd+S', ['KeyD'], 'ATTACK_SPECIAL');\nawait fire('A shipped back+L', ['KeyA'], 'ATTACK_LIGHT');\n// inject\nconst Fx=SPRITES.shin.frames;\nfor(let i=1;i<=8;i++) Fx['gsfwd'+i]=Fx['gsback'+i];\nfor(let i=1;i<=5;i++) Fx['kheel'+i]=Fx['kpush'+i];\nawait fire('B +gsfwd fwd+S', ['KeyD'], 'ATTACK_SPECIAL');\nawait fire('C +kheel back+L', ['KeyA'], 'ATTACK_LIGHT');\nfor(let i=1;i<=8;i++) delete Fx['gsfwd'+i];\nfor(let i=1;i<=5;i++) delete Fx['kheel'+i];\nwindow.__C=out; return 'ok';\n",
+  "label": "cf"
+ },
+ {
+  "eval": "return window.__C",
+  "label": "CF"
+ }
+]

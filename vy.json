@@ -1,0 +1,26 @@
+[
+ {
+  "wait": 1.2
+ },
+ {
+  "key": "Space"
+ },
+ {
+  "wait": 0.5
+ },
+ {
+  "eval": "gameMode='2p';cpuMode=false;p1Pick=2;p2Pick=3;stagePick='bamboo';attractMode=false;startNewGame();return 1",
+  "label": "boot"
+ },
+ {
+  "wait": 2.2
+ },
+ {
+  "eval": "\nconst frame = () => new Promise(r => requestAnimationFrame(r));\nconst out = {};\nfor (const vy of [-40, -400]) {\n for (const [dn,dk] of Object.entries({up:['KeyW'],neutral:[],fwd:['KeyD'],back:['KeyA'],down:['KeyS']})) {\n  for (const bn of ['L','H','S']) {\n    p1Pick = 2; p2Pick = 3; startNewGame(); roundIntroTimer = 0;\n    await frame(); await frame();\n    const p = player1; const F = SPRITES.shin.frames;\n    const CELL = {}; for (const k in F) (CELL[F[k]] = CELL[F[k]] || []).push(k);\n    for (const k in keys) keys[k] = false;\n    p.x = 400; p.facing = 1; p.stamina = 100; p.chakra = 100;\n    p.chainComboTier = 0; p.attackHasConnected = false; p.connectTime = -1e9;\n    p.state = STATE.JUMP; p.isGrounded = false; p.y = GROUND_Y - 200; p.vy = vy;\n    const spawned = [];\n    const orig = p.spawnHitbox.bind(p);\n    p.spawnHitbox = function(w,h,d,dl,kb,o){ spawned.push([Math.round(w),Math.round(h),Math.round(d),+(dl||0).toFixed(2),Math.round(kb||0),Object.keys(o||{}).filter(k=>o[k]===true).sort().join('+')].join('/')); return orig(w,h,d,dl,kb,o); };\n    dk.forEach(k=>keys[k]=true);\n    p.executeAttack(STATE['ATTACK_'+({L:'LIGHT',H:'HEAVY',S:'SPECIAL'}[bn])]);\n    const seen=[];\n    for (let f=0; f<70; f++){ dk.forEach(k=>keys[k]=true); await frame(); dk.forEach(k=>keys[k]=true);\n      if (p.attackAnim) seen.push(spriteFrameIndex(p,F));\n      if (!p.isAttackingState() && f>6) break; }\n    dk.forEach(k=>keys[k]=false); p.spawnHitbox = orig;\n    const u=[...new Set(seen)];\n    out['vy'+vy+'.'+dn+'.'+bn] = { who:p.spec.name+'#'+p.spec.id, y0:Math.round(p.y), box:[...new Set(spawned)].sort().join(' | '), moveArt:p.moveArt,\n      dur: p.attackAnim?Math.round(p.attackAnim.dur):0, alias:u.map(i=>(CELL[i]||[]).join('=')).join(' > ') };\n  }\n }\n}\nwindow.__V = out; return 'ok';\n",
+  "label": "vy"
+ },
+ {
+  "eval": "return window.__V",
+  "label": "VY"
+ }
+]

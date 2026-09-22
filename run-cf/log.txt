@@ -1,0 +1,4 @@
+rAF/sec at start: 29
+boot: 1
+cf: "ok"
+CF: [{"tag": "A shipped fwd+S", "kick": null, "box": "", "proj": 1, "dur": 320, "projKinds": "wire", "alias": "special1=sneu1 > special2=sneu2 > special3=sneu3 > special4=sneu4 > special5=sneu5 > special6=sneu6 > special7=sneu7 > special8=sneu8"}, {"tag": "A shipped back+L", "kick": "heel", "box": "44/30/4/0.1/60/behind", "proj": 0, "dur": 175, "projKinds": "", "alias": "ksweep2=ghdown2 > ksweep3 > ksweep4=ghdown3 > ksweep5=ghdown4"}, {"tag": "B +gsfwd fwd+S", "kick": null, "box": "", "proj": 3, "dur": 220, "projKinds": "", "alias": "gsback1=gsfwd1 > gsback2=gsfwd2 > gsback3=gsfwd3 > gsback4=gsfwd4 > gsback5=gsfwd5 > gsback6=gsfwd6 > gsback7=gsfwd7 > gsback8=gsfwd8"}, {"tag": "C +kheel back+L", "kick": "heel", "box": "44/30/4/0.1/60/behind", "proj": 0, "dur": 175, "projKinds": "", "alias": "kpush1=ghfwd4=kheel1 > kpush2=kheel2"}]

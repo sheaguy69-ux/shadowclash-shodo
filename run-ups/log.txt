@@ -1,0 +1,4 @@
+rAF/sec at start: 60
+boot: 1
+upS: "ok"
+UPS: [{"who": "Shin#2", "vy": -40, "box": "48/30/13/0.22/125/", "moveArt": null, "dur": 400, "alias": "aneu1 > aneu2 > aneu3 > aneu4 > aneu5 > aneu6 > aneu7 > aneu8"}, {"who": "Shin#2", "vy": -181, "box": "44/150/14/0.12/120/launch+up", "moveArt": "srisaa", "dur": 460, "alias": "srisaa1=ghup1 > srisaa2=ghup2 > srisaa3=ghup3 > srisaa4=ghup4 > srisaa5 > srisaa6=ghup5 > srisaa7=ghup6 > srisaa8"}, {"who": "Shin#2", "vy": -400, "box": "44/150/14/0.12/120/launch+up", "moveArt": "srisaa", "dur": 460, "alias": "srisaa1=ghup1 > srisaa2=ghup2 > srisaa3=ghup3 > srisaa4=ghup4 > srisaa5 > srisaa6=ghup5 > srisaa7=ghup6 > srisaa8"}]
