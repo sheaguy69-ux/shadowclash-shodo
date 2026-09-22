@@ -931,7 +931,7 @@
 {
   "engine_settings": {
     "physics_profile": "LETHAL_NINJA_FOOTSIES",
-    "gravity": -11.0,
+    "gravity": -16.5,
     "friction": 0.92,
     "has_wall_climb": true,
     "has_smoke_dash_cancel": true,
@@ -5499,8 +5499,15 @@
                                 // SPRING FROND: no landing — the leaf hurls you up,
                                 // air jump refreshed so the launch chains into routes
                                 if (plat.spring) {
+                                    // ⛔ SCALED WITH GRAVITY, because this one is TRAVERSAL.
+                                    // A spring exists to put you on a specific ledge, so its
+                                    // height is load-bearing the way WALL_LIFT's is — raw, the
+                                    // 1100 -> 1650 change dropped it 236px -> 157px and it would
+                                    // have stopped reaching. The bespoke RISING ATTACKS are left
+                                    // raw on purpose: their height is feel, and that is the
+                                    // owner's call, not a side effect of a gravity knob.
                                     this.y = plat.y - this.height;
-                                    this.vy = -720;
+                                    this.vy = -720 * JUMP_GRAVITY_SCALE;
                                     this.isGrounded = false;
                                     this.jumpsLeft = Math.max(this.jumpsLeft, 1);
                                     createSmokePuff(this.x + this.width / 2, plat.y, 5, 0.5);
@@ -10948,7 +10955,14 @@
                 if (sourceHitbox && sourceHitbox.launch) {
                     // rising launcher: pop into juggle height (launchVy = a
                     // dedicated launcher's stronger pop, e.g. Ember's up attack)
-                    this.vy = sourceHitbox.launchVy ?? -430; this.isGrounded = false;
+                    // ⛔ SCALED, at the ONE site that applies a launch. Gravity went 1100 -> 1650
+                    // to take the float out of the jump, and JUMP_GRAVITY_SCALE already keeps the
+                    // JUMP's height across that change — but the ~20 authored launchVy constants are
+                    // raw, so every juggle would have peaked 33% lower and the whole air game would
+                    // have shrunk with the jump. One multiply here covers every launcher: the apex a
+                    // launch reaches is unchanged, only the hang shortens. Measured -430: 81px before,
+                    // 81px after.
+                    this.vy = (sourceHitbox.launchVy ?? -430) * JUMP_GRAVITY_SCALE; this.isGrounded = false;
                     this.stunTimer = Math.max(this.stunTimer, 0.5);
                 }
                 if (sourceHitbox && sourceHitbox.wallsplat && !this.wallSplatUsed
