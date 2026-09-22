@@ -1,0 +1,71 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Spark FX — before / after</title>
+<style>
+  body{background:#0b0d12;color:#cbd5e1;font:13px/1.6 ui-monospace,monospace;margin:0;padding:20px}
+  h1{font-size:15px;letter-spacing:.2em;margin:0 0 4px;color:#e2e8f0}
+  h2{font-size:12px;letter-spacing:.14em;margin:22px 0 6px;color:#94a3b8;font-weight:700}
+  h2 b{color:#f0c040}
+  canvas{background:#12151c;border:1px solid #263041;border-radius:6px;display:block}
+  p{color:#64748b;margin:4px 0 0;font-size:11px}
+</style>
+<h1>SHADOWCLASH — IMPACT SPARKS</h1>
+<p>One block impact, 4&times; zoom, six frames at 60fps (cel cuts, left&rarr;right). This burst fires on <b>every</b> hit, block and clash — ~70 call sites, all through <code>createSparks</code>.</p>
+<div id="out"></div>
+<script>
+const FRAMES=[0,2,4,7,10,14], CELL=190, ZOOM=4;
+function burst(color,thin,rnd){
+  const P=[];
+  for(let i=0;i<14;i++){
+    const ang=rnd()*Math.PI*2;
+    const sp=(thin?220:160)+rnd()*(thin?340:320);
+    P.push({x:0,y:0,vx:Math.cos(ang)*sp,vy:Math.sin(ang)*sp-60,
+      radius:thin?rnd()*1.4+0.8:rnd()*2.6+1.2,
+      color:i<5?'#ffffff':(i<9?'#ffe9a8':color),
+      life:0.3+rnd()*0.25});
+  }
+  return P;
+}
+// same seed for all three strips, so the ONLY difference is the renderer
+function seeded(){let s=1337;return()=>{s=(s*1664525+1013904223)>>>0;return s/4294967296;};}
+function strip(label,note,mode,color){
+  const h=document.createElement('h2');h.innerHTML=label;
+  const cv=document.createElement('canvas');
+  cv.width=CELL*FRAMES.length; cv.height=CELL;
+  const g=cv.getContext('2d');
+  const state=burst(color,mode==='c',seeded());
+  let shot=0;
+  const maxF=FRAMES[FRAMES.length-1];
+  for(let f=0;f<=maxF;f++){
+    if(f===FRAMES[shot]){
+      const ox=shot*CELL;
+      g.save();
+      g.beginPath();g.rect(ox,0,CELL,CELL);g.clip();
+      g.translate(ox+CELL/2,CELL/2);g.scale(ZOOM,ZOOM);
+      for(const p of state){
+        if(p.life<=0)continue;
+        if(mode==='a'){                       // FILLED CIRCLE — the bubble
+          g.fillStyle=p.color;g.beginPath();g.arc(p.x,p.y,p.radius,0,6.283);g.fill();
+        }else{                                // SHARD — velocity-stretched line
+          const sp=Math.hypot(p.vx,p.vy)||1,k=Math.min(14,sp*0.035);
+          g.strokeStyle=p.color;g.lineWidth=p.radius;
+          g.globalAlpha=Math.max(0,Math.min(1,p.life/0.35));
+          g.beginPath();g.moveTo(p.x,p.y);g.lineTo(p.x-p.vx/sp*k,p.y-p.vy/sp*k);g.stroke();
+          g.globalAlpha=1;
+        }
+      }
+      g.restore();
+      g.strokeStyle='#1e2634';g.strokeRect(ox+.5,.5,CELL-1,CELL-1);
+      g.fillStyle='#475569';g.font='10px ui-monospace,monospace';
+      g.fillText('f'+f,ox+8,CELL-8);
+      shot++;
+    }
+    for(const p of state){p.x+=p.vx/60;p.y+=p.vy/60;p.vy+=380/60;p.life-=1/60;}
+  }
+  const n=document.createElement('p');n.textContent=note;
+  document.getElementById('out').append(h,cv,n);
+}
+strip('A &mdash; <b>NOW: the color bubbles</b>','14 filled circles, radius 1.2-3.8px, drawn at the contact point. This is what reads as a hitbox marker.','a','#60a5fa');
+strip('B &mdash; shards, unchanged size','Same particles, stretched along their own velocity (the path the game already uses for directional debris).','b','#60a5fa');
+strip('C &mdash; <b>shards, thinned</b>','radius 0.8-2.2, speed floor 220 — nothing sits still long enough to read as a dot.','c','#60a5fa');
+</script>
