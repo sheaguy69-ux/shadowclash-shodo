@@ -104,9 +104,12 @@
         .sc-card { background: linear-gradient(180deg, var(--ink-2), var(--ink-1)); border: 1px solid var(--line); border-left: 3px solid var(--fc, var(--ember)); border-radius: 6px; padding: 6px; text-align: center; cursor: pointer; transition: all .16s ease; }
         .sc-card:hover { border-color: var(--fc, var(--ember)); transform: translateY(-2px); box-shadow: 0 8px 22px rgba(0,0,0,.5); }
         .sc-card .arch { font-size: 9px; letter-spacing: .18em; font-weight: 700; color: var(--paper-dim); text-transform: uppercase; }
-        .sc-plaque { flex: 1; display: flex; align-items: center; justify-content: center; margin: 4px 0; background: linear-gradient(180deg, #f0e9d8, #e2d9c2); border-radius: 4px; border: 1px solid rgba(0,0,0,.35); overflow: hidden; }
-        /* Approved SHODO busts already contain their framing: show the whole painting. */
-        .sc-plaque { height: 7.5rem; }
+        /* Approved SHODO busts already contain their framing: show the whole painting.
+           FIXED basis, never `flex: 1` — flex-grow carries an implicit `flex-basis: 0%`
+           that beats a co-declared `height`, so every card was handing its portrait
+           whatever vertical room its OWN name/weapon text happened to leave: 37px on
+           Mokurai, 77px on Exile, eight different faces at eight different sizes. */
+        .sc-plaque { flex: 0 0 5.5rem; height: 5.5rem; display: flex; align-items: center; justify-content: center; margin: 4px 0; background: linear-gradient(180deg, #f0e9d8, #e2d9c2); border-radius: 4px; border: 1px solid rgba(0,0,0,.35); overflow: hidden; }
         .sc-plaque img { height: 100%; width: 100%; object-fit: contain; }
         .hud-portrait { width: clamp(32px, 4vw, 48px); aspect-ratio: 1;
                         object-fit: contain; border: 1px solid var(--line); border-radius: 3px; }
@@ -239,6 +242,10 @@
             background: url('assets/ui/shodo/rule.png') no-repeat center / 100% 100%;
         }
         #character-selection .sc-card {
+            /* the 14px brush frame eats 28px of the h-48; with the plaque on a fixed
+               basis the card must be free to grow past it, or a two-line weapon line
+               pushes the badge out through the bottom of the frame. */
+            height: auto !important; min-height: 12rem;
             background: rgba(255,255,255,.16) !important;
             border: 14px solid transparent !important;
             border-image: var(--sh-frame) 44 / 14px stretch !important;
