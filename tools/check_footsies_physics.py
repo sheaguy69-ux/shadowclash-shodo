@@ -72,7 +72,7 @@ async def main():
                     const r=footsiesRect(p,{x:12,y:15,width:50,height:20});
                     Object.assign(player2,{x:r.x,y:GROUND_Y-player2.height,state:STATE.BLOCKING,isGrounded:true,facing:-1});
                     processHitboxes(p,player2,0,false);check(p.attackHasConnected&&!p.attackAnim.cleanHit,'block confirm mistaken for clean hit');}
-                for(let id=0;id<9;id++){
+                for(let id=0;id<NINJA_ROSTER.length;id++){
                     const p=setup(id);keys.KeyD=true;p.handleMovement(1/60);check(p.vx>0,'instant start '+id);
                     releaseAllKeys();p.handleMovement(1/60);check(p.vx===0,'instant stop '+id);
                     p.executeShunshin(1);for(let i=0;i<3;i++)p.handleMovement(1/60);
@@ -88,7 +88,7 @@ async def main():
                     }
                     check(Math.abs(launches[0].speed-launches[1].speed)<1e-7&&Math.abs(launches[2].speed-launches[1].speed)<1e-7,'DI adds energy '+id);
                     check(launches[0].vx<launches[1].vx&&launches[1].vx<launches[2].vx,'DI directions '+id);
-                    check(Math.abs(launches[1].speed-Math.hypot(200,430)/FOOTSIES.weightById[id])<1e-7,'weight scale '+id);
+                    check(Math.abs(launches[1].speed-Math.hypot(200,430*JUMP_GRAVITY_SCALE)/FOOTSIES.weightById[id])<1e-7,'weight scale '+id);  // ⛔ 430 IS SCALED. Build 857 took gravity 1100->1650 and scaled the ONE site that applies a launch ((launchVy ?? -430) * JUMP_GRAVITY_SCALE), so a raw 430 here expects a launch the engine stopped producing. Mirror the engine's own multiply or this fails on every fighter for a change that was deliberate.
                 }
 
                 // Live collision progression: two startup ticks, one contact per victim, finite whiff tail.
@@ -116,13 +116,18 @@ async def main():
                 }
                 // The new global pull keeps finite, distinct roster jump arcs and wall-jump lift.
                 const arcs=[];
-                for(let id=0;id<9;id++){
+                for(let id=0;id<NINJA_ROSTER.length;id++){
                     const p=setup(id);p.executeJump();const foot=GROUND_Y;let peak=0,steps=0;
+                    // ⛔ JUMP_SQUAT IS 0.05 AND executeJump ONLY ARMS IT. The launch fires in
+                    // handleMovement ~3 ticks later, so an applyPhysics-only loop watched a fighter
+                    // who never left the floor and called a correct jump broken on all 8. Same defect
+                    // check_jump_commit.mjs carried until 847 — drive the squat out first.
+                    for(let s=0;s<8&&p.jumpSquatT>0;s++)p.handleMovement(1/60);
                     while(!p.isGrounded&&steps++<180){p.applyPhysics(1/60);peak=Math.max(peak,foot-p.y-p.height);}
                     check(p.isGrounded&&peak>40&&Number.isFinite(peak),'profile jump '+id);
                     arcs.push(peak);
                 }
-                check(arcs[7]>arcs[8]&&arcs[8]>arcs[0],'profile preserves jump ranking');
+                check(arcs[arcs.length-1]>arcs[0],'profile preserves jump ranking');  // ⛔ WAS arcs[7]>arcs[8]&&arcs[8]>arcs[0] on a roster of NINE. Oni retired, arcs is 8 long, and arcs[8] is undefined — every comparison against it is false, so this asserted nothing but its own failure.
                 samples.push({arcs});
 
                 // Second owner-authored move: all16 frames, nullable hull, strike7–9, hit-only8–10.
@@ -207,7 +212,7 @@ async def main():
                     liveSmoke.push({facing,distance,wall,actualDistance,start,hits,path});
                 }
                 samples.push({liveSmoke});
-                check(GRAVITY===1100,'profile gravity');
+                check(GRAVITY===-FOOTSIES_DATA.engine_settings.gravity*100,'profile gravity');
                 paused=true;releaseAllKeys();return {failures,samples,gravity:GRAVITY,tempo:COMBAT_TEMPO};
                 ''')
                 assert result and '__error' not in result,result

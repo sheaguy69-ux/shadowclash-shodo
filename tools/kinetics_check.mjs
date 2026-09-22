@@ -2,7 +2,24 @@
 // Kinetics self-check for the motion roadmap (jump arc + lean spring).
 // Mirrors the exact formulas in web/index.html — if someone edits those curves,
 // re-mirror them here or this check lies. Run: node tools/kinetics_check.mjs
-const GRAVITY = 1100, DT = 1 / 240;
+// ⛔ GRAVITY IS DERIVED FROM THE ENGINE, NOT MIRRORED. The header above says
+// "re-mirror them here or this check lies" — and then it lied: GRAVITY went 1100 -> 1650
+// at build 857 and this file kept simulating the old arc, so a jump-arc self-check was
+// grading a curve the game no longer has.
+// And it cannot be read with the siblings' constOf() regex, because GRAVITY is NOT a
+// literal — index.html:1633 computes it as
+//   -engine_settings.gravity * engine_settings.units.gravity_and_velocity_pixels_per_unit
+// so `const GRAVITY = <number>` never matches and constOf returns NaN. Do the same
+// multiplication off the same authored JSON the engine parses, and the mirror cannot
+// drift again no matter which of the two numbers moves.
+import { readFileSync } from 'node:fs';
+const SRC = readFileSync(new URL('../web/index.html', import.meta.url), 'utf8');
+const open = SRC.indexOf('<script id="footsies-data"');
+const FOOTSIES = JSON.parse(SRC.slice(SRC.indexOf('>', open) + 1, SRC.indexOf('</script>', open)));
+const ES = FOOTSIES.engine_settings;
+const GRAVITY = -ES.gravity * ES.units.gravity_and_velocity_pixels_per_unit;
+if (!(GRAVITY > 0)) throw new Error(`GRAVITY derived as ${GRAVITY} from engine_settings`);
+const DT = 1 / 240;
 
 // --- D: asymmetric jump arc (applyPhysics) ---
 function simJump(jumpVy, asym) {
