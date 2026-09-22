@@ -20,6 +20,10 @@
             user-select: none;
         }
 
+        /* Keep pause controls inside the visible screen, even on tall arenas. */
+        #pause-screen { position: fixed; z-index: 80; padding: 12px; overflow: auto; }
+        #pause-screen > div { width: min(100%, 24rem); max-height: 100%; overflow-y: auto; flex-shrink: 0; }
+
         .arcade-font {
             font-family: 'Press Start 2P', monospace;
         }
@@ -890,9 +894,9 @@
                     </div>
 
                     <!-- Pause overlay: Esc or the ⏸ button -->
-                    <div id="pause-screen" class="absolute inset-0 bg-black/85 z-20 flex flex-col items-center justify-center hidden">
+                    <div id="pause-screen" role="dialog" aria-modal="true" aria-labelledby="pause-title" class="absolute inset-0 bg-black/85 z-20 flex flex-col items-center justify-center hidden">
                         <div class="text-center p-6 border border-cyan-600 bg-gray-950/90 rounded-2xl max-w-sm">
-                            <h2 class="arcade-font text-cyan-400 text-lg md:text-xl tracking-wider mb-6">PAUSED</h2>
+                            <h2 id="pause-title" class="arcade-font text-cyan-400 text-lg md:text-xl tracking-wider mb-6">PAUSED</h2>
                             <button id="btn-resume" class="px-6 py-3 bg-green-600 hover:bg-green-500 text-xs font-black tracking-widest rounded-lg border border-green-500 w-full mb-3">
                                 <i class="fa-solid fa-play"></i> RESUME
                             </button>
@@ -15635,6 +15639,7 @@
         // gesture (middle-click) is reserved for it if players ask.
         let mouseMode = false;
         let mouseAxis = 0;
+        let mouseInputReady = true;
         let mouseCX = 0, mouseCY = 0;     // cursor in canvas coords
         let mouseWasAbove = false;
         const MOUSE_DEADZONE = 26;
@@ -15715,6 +15720,8 @@
         (() => {
             const cv = document.getElementById('game-canvas');
             cv.addEventListener('mousemove', e => {
+                if (paused) return;
+                mouseInputReady = true;
                 const r = cv.getBoundingClientRect();
                 mouseCX = (e.clientX - r.left) * (cv.width / r.width);
                 mouseCY = (e.clientY - r.top) * (cv.height / r.height);
@@ -15739,7 +15746,7 @@
 
         // per-frame: steer P1 toward the cursor + edge-triggered jump
         function mouseControl() {
-            if (!mouseMode || !matchActive || !player1 || player1.isCpuDriven()) { mouseAxis = 0; return; }
+            if (!mouseMode || !mouseInputReady || !matchActive || !player1 || player1.isCpuDriven()) { mouseAxis = 0; return; }
             const cx = player1.x + player1.width / 2;
             const dx = mouseCX - cx;
             mouseAxis = Math.abs(dx) > MOUSE_DEADZONE ? Math.sign(dx) : 0;
@@ -15816,6 +15823,7 @@
         }
 
         function onHandResults(res) {
+            if (paused) return;
             if (player1 && player1.isCpuDriven()) return;
             const lms = res.multiHandLandmarks;
             if (!lms || !lms.length) {
@@ -16003,10 +16011,31 @@
 
         // --- PAUSE (Esc or the ⏸ button) ---
         let paused = false;
+        let pauseInputEpoch = 0;
         function setPaused(on) {
             if (on === paused) return;
             if (on && !matchActive) return;   // nothing to pause outside a match
             paused = on;
+            pauseInputEpoch++;
+            // Pause is an input boundary: old holds/chords must not become a new
+            // move when Resume is pressed. Preserve the action already in flight.
+            releaseAllKeys();
+            hitstopQueue.length = 0;
+            mouseAxis = handAxis = 0;
+            mouseInputReady = false;
+            handTargetX = null;
+            for (const role of Object.values(handRoles)) {
+                role.hist.length = 0;
+                role.raw = role.pose = null; role.n = 0; role.armed = false;
+            }
+            for (const p of new Set([player1, player2, ...teamP1, ...teamP2, ...brawlAll])) {
+                if (!p) continue;
+                p.bufferedAttack = p.groundJumpStart = null;
+                p.jumpBufferTimer = 0;
+                p._tapDir = p._tapT = p._lt = p._ht = p._mt = p._st = 0;
+                p._mChak = p._sChak = undefined;
+            }
+            if (!paused) lastTime = performance.now();
             document.getElementById('pause-screen').classList.toggle('hidden', !paused);
             sfx('select');
         }
@@ -18228,7 +18257,7 @@
         window.addEventListener('keyup', e => {
             keys[e.code] = false;
             physKeys.delete(e.code);
-            if (!matchActive || !player1 || !player2) return;
+            if (paused || !matchActive || !player1 || !player2) return;
             // Variable jump height: releasing the jump key early shortens the arc
             if (e.code === 'KeyW' && !player1.isCpuDriven()) player1.cutJump();   // its P2 sibling below already asks; this one never did
             // ⛔ SEAT GATE, same as every other P2 input. Ungated, ArrowUp's keyup cut the
@@ -18242,8 +18271,12 @@
         // logically DOWN forever (fighter walks/blocks/crouches on return). Flush all
         // held keys on blur / tab-hide so nothing sticks.
         const releaseAllKeys = () => { for (const k in keys) keys[k] = false; physKeys.clear(); };
-        window.addEventListener('blur', releaseAllKeys);
-        document.addEventListener('visibilitychange', () => { if (document.hidden) releaseAllKeys(); });
+        const pauseOnFocusLoss = () => {
+            releaseAllKeys();
+            if (matchActive && !attractMode && !cutscene) setPaused(true);
+        };
+        window.addEventListener('blur', pauseOnFocusLoss);
+        document.addEventListener('visibilitychange', () => { if (document.hidden) pauseOnFocusLoss(); });
 
         // Detect touch interfaces and trigger virtual layouts
         window.addEventListener('touchstart', function detectTouch() {
@@ -18258,6 +18291,7 @@
             if (!btn) return;
             btn.addEventListener('touchstart', (e) => {
                 e.preventDefault();
+                if (paused || !matchActive) return;
                 const owner = keyString.startsWith('p1_') ? player1 : player2;
                 if (owner && (owner === player1 ? owner.isCpuDriven() : !isP2Human())) return;
                 keys[keyString] = true;
@@ -18307,16 +18341,17 @@
             const pad = document.getElementById(padId);
             if (!pad) return;
             const DIRS = ['up', 'down', 'left', 'right'];
-            let touchId = null;
+            let touchId = null, touchEpoch = 0;
             const setDirection = (dir = null) => {
                 const wasUp = keys[prefix + 'up'];
                 DIRS.forEach(d => keys[prefix + d] = d === dir);
                 if (wasUp && dir !== 'up') {
                     const owner = prefix === 'p1_' ? player1 : player2;
-                    if (matchActive && owner && (owner === player1 ? !owner.isCpuDriven() : isP2Human())) owner.cutJump();
+                    if (!paused && matchActive && owner && (owner === player1 ? !owner.isCpuDriven() : isP2Human())) owner.cutJump();
                 }
             };
             const steer = (t) => {
+                if (paused || !matchActive) { touchId = null; setDirection(); return null; }
                 const owner = prefix === 'p1_' ? player1 : player2;
                 if (owner && (owner === player1 ? owner.isCpuDriven() : !isP2Human())) { setDirection(); return null; }
                 const el = document.elementFromPoint(t.clientX, t.clientY);
@@ -18329,6 +18364,7 @@
                 e.preventDefault();
                 const t = e.changedTouches[0];
                 touchId = t.identifier;
+                touchEpoch = pauseInputEpoch;
                 const dir = steer(t);
                 if (!matchActive || !player1 || !player2 || !dir) return;
                 const p = prefix === 'p1_' ? player1 : player2;
@@ -18344,6 +18380,7 @@
             }, { passive: false });
             pad.addEventListener('touchmove', (e) => {
                 e.preventDefault();
+                if (touchEpoch !== pauseInputEpoch) { touchId = null; setDirection(); return; }
                 for (const t of e.changedTouches) if (t.identifier === touchId) steer(t);
             }, { passive: false });
             const drop = (e) => {
@@ -18464,6 +18501,10 @@
         }
         let padFocus = null, padMenuId = null;
         const padMenuPrev = [new Set(), new Set()];
+        // Buttons held in a menu belong to that menu until released. In
+        // particular, Resume (South/East) must not also become Light/Special.
+        const padMenuBlocked = [new Set(), new Set()];
+        const padAxisBlocked = [[false, false], [false, false]];
         function setPadFocus(el) {
             if (padFocus === el) return;
             if (padFocus) padFocus.classList.remove('pad-focus');
@@ -18533,13 +18574,24 @@
                 // when the screen opened is released and no attack can fire behind it —
                 // except Start, which still has to reach Escape to unpause.
                 const menu = menuRoot;
+                const blocked = padMenuBlocked[i];
+                const axesBlocked = padAxisBlocked[i];
+                for (let axis = 0; axis < 2; axis++) {
+                    if (Math.abs(gp?.axes[axis] || 0) <= PAD_DEAD) axesBlocked[axis] = false;
+                    else if (menu) axesBlocked[axis] = true;
+                }
+                for (const b of blocked) if (!gp?.buttons[b]?.pressed) blocked.delete(b);
                 if (menu) {
+                    if (gp && gp.connected && gp.mapping === 'standard') {
+                        for (const b in PAD_BUTTONS)
+                            if (PAD_BUTTONS[b] !== 'pause' && gp.buttons[b]?.pressed) blocked.add(b);
+                    }
                     if (gp && gp.connected && gp.mapping === 'standard'
                         && gp.buttons[9] && gp.buttons[9].pressed) now.add('Escape');
                     padMenuNav(pads[i], i, menu);
                 } else if (gp && gp.connected && gp.mapping === 'standard') {
                     for (const b in PAD_BUTTONS) {
-                        if (!gp.buttons[b] || !gp.buttons[b].pressed) continue;
+                        if (!gp.buttons[b] || !gp.buttons[b].pressed || blocked.has(b)) continue;
                         const act = PAD_BUTTONS[b];
                         if (act === 'pause') { now.add('Escape'); continue; }
                         if (act === 'throw') { now.add(MAP.light); now.add(MAP.heavy); continue; }
@@ -18547,8 +18599,8 @@
                     }
                     // The left stick doubles the d-pad so a stick-only pad still walks.
                     const ax = gp.axes[0] || 0, ay = gp.axes[1] || 0;
-                    if (ax < -PAD_DEAD) now.add(MAP.left); else if (ax > PAD_DEAD) now.add(MAP.right);
-                    if (ay < -PAD_DEAD) now.add(MAP.up);   else if (ay > PAD_DEAD) now.add(MAP.down);
+                    if (!axesBlocked[0]) { if (ax < -PAD_DEAD) now.add(MAP.left); else if (ax > PAD_DEAD) now.add(MAP.right); }
+                    if (!axesBlocked[1]) { if (ay < -PAD_DEAD) now.add(MAP.up); else if (ay > PAD_DEAD) now.add(MAP.down); }
                 }
                 // EDGES ONLY. Re-sending a held button every frame would retrigger the
                 // jump and the attack 60 times a second — the same thing e.repeat is
