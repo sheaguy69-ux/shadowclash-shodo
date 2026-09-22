@@ -1,0 +1,30 @@
+number,fighter,move,engine_row,master_relpath,frames_relpath,frame_status,implementation_note
+1,Oni,Air light,aneu1..8,masters/new20/oni/oni-shodo-air-light-staff-swipe-8f-v1-review.png,frames/ready/oni-air-light,READY_ALPHA,Neutral airborne Light; replace grounded iai-fang fallback
+2,Oni,Wall cling needle throw,wallneedle1..8,masters/new20/oni/oni-shodo-wall-cling-needle-throw-no-wall-8f-v1-review.png,frames/ready/oni-wall-no-wall,READY_ALPHA,No painted wall; wallslide may remain the settled hold
+3,Executioner,Crouch,crouch_1..8,masters/new20/executioner/executioner-shodo-crouch-low-guard-8f-v2-eight-equal-review.png,frames/ready/exec-crouch,READY_ALPHA,Extend crouch playback beyond four keys so all eight authored beats can breathe
+4,Executioner,Air heavy,hneu1..8,masters/new20/executioner/executioner-shodo-falling-overhead-air-heavy-8f-v1-review.png,frames/ready/exec-air-heavy,READY_ALPHA,Trace airborne Heavy branch and replace grounded gallows-crescent fallback
+5,Exile,Crouch,crouch_1..8,masters/existing9/exile/exile-shodo-kusarigama-crouch-8f-v1-review.png,frames/source-only-bordered/exile-crouch,SOURCE_ONLY_BORDERED,Strip drawn panel border before keying and packing
+6,Exile,Thrown tumble,grabbed1..8,masters/new20/exile/exile-shodo-airborne-thrown-tumble-8f-v1-review.png,frames/ready/exile-tumble,READY_ALPHA,Victim STATE.THROWN route
+7,Exile,Air light,aneu1..8,masters/new20/exile/exile-shodo-aerial-sickle-light-8f-v1-review.png,frames/ready/exile-air-light,READY_ALPHA,Replace repeated legacy xair fallback with complete row
+8,Exile,Launcher,launcher live route,masters/existing9/exile/exile-shodo-gallows-hook-rising-reap-launcher-8f-v1-review.png,frames/source-only-bordered/exile-launcher,SOURCE_ONLY_BORDERED,Strip borders then trace the live launcher flag before assigning keys
+9,Exile,Back special,gsback1..8,masters/existing9/exile/exile-shodo-grave-chain-reversal-parry-counter-8f-v1-review.png,frames/source-only-bordered/exile-back-special,SOURCE_ONLY_BORDERED,Owner choice is reversal parry counter; not gravehound pursuit
+10,Kael,Down-air cleave,adown1..8,masters/existing9/kael/kael-shodo-falling-star-cleave-down-air-8f-v1-review.png,frames/source-only-bordered/kael-down-air,SOURCE_ONLY_BORDERED,Strip border; trace captured airborne Down input
+11,Kael,Neutral air special,sneu1..8,masters/existing9/kael/kael-shodo-sky-fang-cross-neutral-air-8f-v2-arm-corrected-review.png,frames/source-only-bordered/kael-neutral-air-special,SOURCE_ONLY_BORDERED,Strip border; use corrected-arm take
+12,Tsubasa,Forward heavy rush,rgrush1..8,masters/new20/tsubasa/tsubasa-shodo-forward-heavy-rush-8f-v1-review.png,frames/ready/tsubasa-heavy-rush,READY_ALPHA,Forward heavy route
+13,Tsubasa,Down Light low sweep,lowtanto1..8,masters/new20/tsubasa/tsubasa-shodo-down-light-low-sweep-8f-v1-review.png,frames/ready/tsubasa-low-light,READY_ALPHA,Down Light route
+14,Tsubasa,Dive cut,divecut1..8,masters/new20/tsubasa/tsubasa-shodo-dive-cut-down-air-special-8f-v1-review.png,frames/ready/tsubasa-dive,READY_ALPHA,Down-air Special route
+15,Tsubasa,Air throw,airthrow1..8,masters/new20/tsubasa/tsubasa-shodo-air-throw-grab-drop-8f-v2-open-hand-review.png,frames/ready/tsubasa-air-throw,READY_ALPHA,Use open-hand v2; Up Special route
+16,Ember,Blade-trap parry,eparry1..8,masters/new20/ember/ember-shodo-blade-trap-parry-8f-v2-contained-x-review.png,frames/ready/ember-parry,READY_ALPHA,Use contained-X v2; extend dedicated five-beat read to authored eight beats
+17,Mizu,Neutral heavy,heavy neutral live route,masters/new20/mizu/mizu-shodo-neutral-heavy-bo-swing-8f-v1-review.png,frames/ready/mizu-heavy,READY_ALPHA,Replace light-thrust fallback on neutral Heavy
+18,Mizu,Rising staff anti-air,ristaff1..8,masters/new20/mizu/mizu-shodo-rising-staff-anti-air-8f-v1-review.png,frames/ready/mizu-rise,READY_ALPHA,Up Heavy route
+19,Mizu,Low staff drive,bolow1..8,masters/new20/mizu/mizu-shodo-low-staff-drive-8f-v1-review.png,frames/ready/mizu-low-drive,READY_ALPHA,Down Heavy route
+20,Mizu,Vaulting staff slam,gsup1..8,masters/new20/mizu/mizu-shodo-vaulting-staff-slam-8f-v1-review.png,frames/ready/mizu-vault,READY_ALPHA,Up Special route; physics supplies world height
+21,Mizu,Thrown tumble,grabbed1..8,masters/new20/mizu/mizu-shodo-airborne-thrown-tumble-8f-v1-review.png,frames/ready/mizu-tumble,READY_ALPHA,Victim STATE.THROWN route
+22,Mokurai,Bell-ringer,mbell1..8,masters/new20/mokurai/mokurai-shodo-bell-ringer-up-heavy-8f-v2-no-bell-review.png,frames/ready/mokurai-bell,READY_ALPHA,Use no-bell v2; extend current five-cell collector to eight
+23,Mokurai,Palm blast,mblast1..8,masters/new20/mokurai/mokurai-shodo-palm-blast-back-heavy-8f-v1-review.png,frames/ready/mokurai-palm,READY_ALPHA,Back Heavy route; extend current five-cell collector to eight
+24,Mokurai,Thrown tumble,grabbed1..8,masters/new20/mokurai/mokurai-shodo-airborne-thrown-tumble-8f-v1-review.png,frames/ready/mokurai-tumble,READY_ALPHA,Victim STATE.THROWN route
+25,Mokurai,Wall cling,mwall1..8,masters/new20/mokurai/mokurai-shodo-wall-cling-no-wall-8f-v1-review.png,frames/ready/mokurai-wall,READY_ALPHA,No painted wall; extend current two-frame hold to eight-beat catch and slide
+26,Shin,Neutral heavy,heavy neutral live route,masters/existing9/shin/shin-shodo-stone-splitting-palm-heavy-8f-v1-review.png,frames/source-only-bordered/shin-heavy,SOURCE_ONLY_BORDERED,Strip border then replace neutral Heavy fallback
+27,Shin,Launcher,srisaa1..8,masters/existing9/shin/shin-shodo-bamboo-splitter-rising-knee-launcher-8f-v2-one-eye-corrected-review.png,frames/source-only-bordered/shin-launcher,SOURCE_ONLY_BORDERED,Strip border; use one-eye corrected v2
+28,Shin,Parry stance,parry live route,masters/existing9/shin/shin-shodo-shadow-thread-reversal-parry-counter-8f-v2-frame4-restored-review.png,frames/source-only-bordered/shin-parry,SOURCE_ONLY_BORDERED,Strip border; use restored-frame-4 v2
+29,Shin,Super,sneu1..8,masters/existing9/shin/shin-shodo-silent-canopy-falling-star-burial-super-8f-v1-review.png,frames/source-only-bordered/shin-super,SOURCE_ONLY_BORDERED,Strip border and trace the live super flag before final key assignment

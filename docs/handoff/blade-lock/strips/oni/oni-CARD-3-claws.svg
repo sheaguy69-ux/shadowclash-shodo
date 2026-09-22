@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1900" height="1120" viewBox="0 0 1900 1120">
+  <rect width="1900" height="1120" fill="#111116"/>
+  <rect width="1900" height="120" fill="#202027"/>
+  <text x="34" y="70" fill="#f7f7f9" font-family="Arial, Helvetica, sans-serif" font-size="54" font-weight="800">ONI — BLADE LOCK IDENTITY CARD</text>
+  <text x="36" y="105" fill="#ff334d" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700">CORRECTED OWNER RULE — EXACTLY THREE RIGHT-HAND CLAWS</text>
+
+  <rect x="30" y="145" width="940" height="790" rx="14" fill="#ffffff" stroke="#555762" stroke-width="3"/>
+  <image href="oni-corrected-reference-3-claws.png" x="45" y="160" width="910" height="665" preserveAspectRatio="xMidYMid meet"/>
+  <rect x="54" y="832" width="892" height="82" rx="8" fill="#17171d"/>
+  <text x="78" y="868" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="25" font-weight="800">APPROVED CORRECTION: 3 CLAWS — RIGHT HAND ONLY</text>
+  <text x="78" y="898" fill="#aeb3c0" font-family="Arial, Helvetica, sans-serif" font-size="20">Left hand wrapped and clawless · two swords stay sheathed on back</text>
+
+  <text x="1010" y="178" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="32" font-weight="800">NON-NEGOTIABLE CONTINUITY</text>
+  <rect x="1010" y="200" width="850" height="350" rx="12" fill="#202027" stroke="#555762" stroke-width="2"/>
+  <image href="oni-claw-closeup-3.png" x="1030" y="220" width="430" height="310" preserveAspectRatio="xMidYMid meet"/>
+  <text x="1490" y="260" fill="#ffbd2e" font-family="Arial, Helvetica, sans-serif" font-size="30" font-weight="800">COUNT: 1 · 2 · 3</text>
+  <text x="1490" y="305" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="23" font-weight="700">RIGHT HAND ONLY</text>
+  <text x="1490" y="342" fill="#d6d8df" font-family="Arial, Helvetica, sans-serif" font-size="21">Three long, separated,</text>
+  <text x="1490" y="371" fill="#d6d8df" font-family="Arial, Helvetica, sans-serif" font-size="21">dark-gunmetal blades.</text>
+  <text x="1490" y="417" fill="#ff5267" font-family="Arial, Helvetica, sans-serif" font-size="21" font-weight="700">Never 4. Never 5.</text>
+  <text x="1490" y="451" fill="#ff5267" font-family="Arial, Helvetica, sans-serif" font-size="21" font-weight="700">Never mirror the claw.</text>
+
+  <rect x="1010" y="575" width="850" height="360" rx="12" fill="#202027" stroke="#555762" stroke-width="2"/>
+  <text x="1040" y="620" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="800">ASSET CHECKLIST</text>
+  <text x="1040" y="670" fill="#ff334d" font-family="Arial, Helvetica, sans-serif" font-size="30">□</text><text x="1084" y="668" fill="#e8e9ed" font-family="Arial, Helvetica, sans-serif" font-size="22">Exactly three claws in every frame</text>
+  <text x="1040" y="715" fill="#ff334d" font-family="Arial, Helvetica, sans-serif" font-size="30">□</text><text x="1084" y="713" fill="#e8e9ed" font-family="Arial, Helvetica, sans-serif" font-size="22">Claw remains on right hand only</text>
+  <text x="1040" y="760" fill="#ff334d" font-family="Arial, Helvetica, sans-serif" font-size="30">□</text><text x="1084" y="758" fill="#e8e9ed" font-family="Arial, Helvetica, sans-serif" font-size="22">Left hand wrapped and clawless</text>
+  <text x="1040" y="805" fill="#ff334d" font-family="Arial, Helvetica, sans-serif" font-size="30">□</text><text x="1084" y="803" fill="#e8e9ed" font-family="Arial, Helvetica, sans-serif" font-size="22">White horned mask and red eye preserved</text>
+  <text x="1040" y="850" fill="#ff334d" font-family="Arial, Helvetica, sans-serif" font-size="30">□</text><text x="1084" y="848" fill="#e8e9ed" font-family="Arial, Helvetica, sans-serif" font-size="22">Two swords remain sheathed on back</text>
+  <text x="1040" y="895" fill="#ff334d" font-family="Arial, Helvetica, sans-serif" font-size="30">□</text><text x="1084" y="893" fill="#e8e9ed" font-family="Arial, Helvetica, sans-serif" font-size="22">No extra limbs, claws, weapons, or effects</text>
+
+  <rect x="0" y="970" width="1900" height="150" fill="#202027"/>
+  <text x="34" y="1015" fill="#ffbd2e" font-family="Arial, Helvetica, sans-serif" font-size="27" font-weight="800">LOCK ACTION</text>
+  <text x="34" y="1055" fill="#e8e9ed" font-family="Arial, Helvetica, sans-serif" font-size="22">Right claw traps the opponent’s edge at a fixed high 45° contact for frames 01–08.</text>
+  <text x="34" y="1090" fill="#aeb3c0" font-family="Arial, Helvetica, sans-serif" font-size="20">Frames 09–10 resolve WIN / LOSE. The back swords never become the binding weapon.</text>
+</svg>

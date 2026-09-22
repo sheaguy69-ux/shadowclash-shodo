@@ -1,0 +1,152 @@
+BLADE LOCK — the prompt to paste into an outside still-generator.
+Paste PART 1 once, then append ONE fighter block from PART 2.
+Attach that fighter's refs/<name>-card.png (identity) and refs/<name>-idle.png (the seed
+for cell 1). The full brief with the measured numbers is GPT-BLADE-LOCK-HANDOFF.md.
+
+================================ PART 1 — every set ================================
+
+You are drawing new animation cells for a 2D fighting game called Shadow Clash.
+
+THE MEDIUM — read first
+Clean high-contrast 2D CEL ILLUSTRATION / vector look. Heavy black outlines, readable
+silhouette, controlled dark palette, glowing featureless angled eyes. THIS IS NOT PIXEL
+ART — do not pixelate, do not posterize, do not reduce the palette, do not add a pixel
+grid. Chibi proportions (big head, short limbs), matching the reference exactly.
+Flat WHITE background. PNG. 2K minimum on the long edge.
+
+⛔ Every cell is a PURE SIDE PROFILE facing LEFT — the character looks toward the LEFT
+edge of the image. Not right. LEFT. Match the direction the reference image faces exactly.
+Never draw a right-facing or three-quarter view.
+
+WHAT I NEED — TEN cells of a BLADE LOCK
+Two fighters' weapons have caught against each other and they are straining, like the
+deadlock struggle in a samurai duel.
+
+You are drawing ONE fighter, ALONE in the frame. Do NOT draw two fighters. The opponent
+is NOT in the image — this fighter is pressing against someone invisible, off to the
+LEFT (the direction they are facing). The game slides two separate drawings together until their weapons meet.
+
+  1    CATCH. The weapons have just met. Weight arriving forward over the front foot, both
+       arms braced, head up. The frame of impact, not the swing before it.
+  2    SETTLE. The catch absorbs. Elbows compress, rear foot digs in, shoulders drop.
+  3-8  STRAIN — six frames of ONE continuous held push. These LOOP on screen, so they must
+       read as ONE POSE BREATHING: the body creeping deeper, the weapon trembling, weight
+       shifting between the feet. Not six different poses, and not six identical drawings.
+  9    WIN. Breaks the bind open. Front foot steps THROUGH, weapon drives forward and up
+       past the contact point, chest opens, full extension.
+  10   LOSE. Thrown off. Torso rocks back, weapon knocked wide off the centre line, guard
+       broken open, back foot catching the weight. Off balance but STILL ON BOTH FEET —
+       this is not a knockdown.
+
+  (Ten cells rather than six because the strain LOOPS: at the engine's 9fps loop rate a
+  bind lasting 1.15s cycles a 3-frame loop 3.4 times, which reads as a stutter. Six strain
+  frames cycle 1.7 times and read as one continuous strain. The engine takes any count.)
+
+⛔ THIS IS A STRAINING BIND, NOT A THRUST — the correction that mattered most on the
+first batch. Every one of the first five sets came back as a straight-armed poke: weapon
+held out at full arm's length with an upright body behind it. That is a thrust, and it is
+wrong. The fighter is pressing HARD against an invisible opponent's weapon that is pushing
+BACK:
+  - weight pitched forward ONTO the front foot, not sitting back over the hips
+  - elbows BENT and compressed, weapon held CLOSE to the body, not extended
+  - rear leg straight and braced, rear foot dug into the ground
+  - shoulders low and driving forward, head up
+  - in cells 3-8 the body is ONE STRAIGHT LINE from the rear heel to the weapon
+Think tug-of-war, or a rugby scrum — a body committed against resistance. Cells 9 and 10
+are the only ones where the arms extend.
+
+⛔ SIZE — THE ONLY SIZE RULE THAT MATTERS
+
+Every cell in this set must have the figure at EXACTLY the same body height. Measure from
+the soles of the feet to the crown of the head — INCLUDING hair, hood and horns, EXCLUDING
+the weapon. That measurement must be identical in all cells, to within 1%.
+
+The POSE changes; the SIZE does not. If a pose does not fit, make the CANVAS bigger — never
+scale the figure to fit.
+
+⛔ Do NOT try to match this fighter's size to any OTHER fighter's. That is corrected
+automatically after delivery, by rescaling the whole set against the fighter's existing
+in-game art. Only INTERNAL consistency matters here — and it is the one thing that cannot
+be corrected afterwards, because a single uniform scale cannot reconcile cells that were
+drawn at different sizes. A set whose cells disagree by more than 6% is rejected outright.
+
+⛔ THE CONTACT POINT — MID-CHEST, AND LEVEL. THIS IS THE MOST COMMON FAILURE.
+(Why it is strict here specifically: these cells are HELD on screen for over a second with
+both fighters visible and nearly still, and each fighter is drawn ALONE then slid into place
+by the game. The weapons only touch if every fighter puts their weapon on the SAME line. A
+fast clash animation would not care; a held bind cares completely.)
+In cells 1-8 the weapon's binding edge must sit at ONE fixed spot:
+
+  HEIGHT   just UNDER HALF the figure's total body height, measured up from the feet.
+           On a figure drawn 1000px foot-to-head that is about 480px up — the MIDDLE OF
+           THE CHEST. Level, roughly horizontal.
+  FORWARD  ahead of the body toward the LEFT edge, the side they face.
+
+⛔ NOT UP BESIDE THE HEAD. The first kael attempt crossed his blades at roughly 80% of his
+body height with the tips angled upward. Every fighter binds on the SAME world line, and a
+short fighter holding a long staff still holds it at mid-chest — so a bind drawn at head
+height cannot meet the opponent at all. It simply misses.
+
+⛔ IT MUST NOT DRIFT between cells 1-8 — same height, same distance forward, in all eight.
+The body leans and compresses AROUND it; the contact point itself does not move.
+
+⛔ NO EFFECTS. AT ALL. Violated in two batches out of four, so stated exhaustively:
+no speed lines, no impact flashes, no GLOW, no sparks, no debris or floating chips, no
+strain ticks or vibration marks, no dust, no sweat drops.
+
+The game draws all of its own effects and composites these cells directly, so anything drawn
+in sits FROZEN on screen for over a second as an obvious artifact.
+
+Detached specks are deleted automatically at pack time — but GLOW FUSED TO A WEAPON cannot be
+separated from it and is PERMANENT. Draw the pose and nothing else.
+
+METHOD — DO THIS, IT MATTERS MOST
+Do NOT generate ten independent images. Work in a CHAIN, each one edited from the last:
+
+   reference -> 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
+                         3 -> 9     (win branches off the strain)
+                         3 -> 10    (lose branches off the strain)
+
+Each step is a SMALL change to an image that already holds the pose. Independent images
+drift in body size and the animation boils on screen. If one cell comes out wrong,
+redo THAT ONE from its parent — never the whole set.
+
+Draw the weapon I name and no other. Do not add weapons, do not change the number of
+blades, do not add extra limbs. Keep the palette, outline weight, mask, hood, wraps and
+every accessory exactly as the reference shows them.
+
+=========================== PART 2 — pick ONE fighter ============================
+
+FIGHTER: KAEL — youngest of the roster. Weapon for this set: the LONG KATANA, and he
+binds with that. ⛔ He carries a SECOND SHORTER BLADE in his off hand — it must be IN
+FRAME and live, held ready, in every cell. The first attempt dropped it entirely and drew
+him one-sword. Two blades, always.
+
+FIGHTER: THE EXECUTIONER — oldest and tallest, but only slightly. Weapon: ONE huge
+NODACHI held in TWO HANDS. He binds with his WEIGHT, not his arms — plant and lean, the
+blade barely moves. ⛔ NEVER one-handed, and never drawn as a light katana: the blade is
+long, wide and heavy, and BOTH hands are on the grip in every cell. TWO attempts have now
+come back one-handed with the arm extended straight — that is a fencing lunge, not a bind.
+
+FIGHTER: TSUBASA — weapon: TWO TANTO KNIVES in REVERSE GRIP (blade running back along
+the forearm). Short blades, so the bind is CLOSE IN, elbows high, both knives involved.
+⛔ NEVER one knife. NEVER a forward grip. The first attempt drew a SINGLE knife held
+forward like a dagger thrust — both knives, both reversed, or the cell is unusable.
+
+FIGHTER: EMBER — weapon: IRON CLAWS (tekko-kagi) on BOTH hands, NOT a sword. He does not
+cross blades, he TRAPS the opponent's edge in the claws and holds it. That trap is the pose.
+Match the claw count to the reference exactly. ⛔ NO GLOW on the claws — the last set came
+back with green energy fused to the claw tips, which cannot be stripped out afterwards.
+
+FIGHTER: MIZU — visibly the shortest fighter, and she holds the LONGEST weapon: one long
+WOODEN BO STAFF, BOTH hands wide apart on the shaft. A staff bind is a LEVER braced
+across the body, not an edge-to-edge cross.
+
+FIGHTER: SHIN — weapon for this set: a KUNAI held in his hand (not thrown). Short reach,
+so the bind is very close in. His fists are never part of this.
+
+================================== NOT IN THIS BATCH ==================================
+
+EXILE and ONI are excluded — no canon art for either exists in this repo, so there is
+nothing correct to seed from. Do not draw them from anything here.
+BUDDHA never binds (bare hands).

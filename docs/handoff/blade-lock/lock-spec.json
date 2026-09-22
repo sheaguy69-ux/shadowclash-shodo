@@ -1,0 +1,451 @@
+{
+  "generated_by": "tools/sprites/make_lock_handoff.py",
+  "anchor_onscreen": {
+    "yAboveFeet": 34.0,
+    "xFromCenter": 34.0
+  },
+  "cells": [
+    "lock1",
+    "lock2",
+    "lock3",
+    "lock4",
+    "lock5",
+    "lock6"
+  ],
+  "beats": [
+    {
+      "cell": "lock1",
+      "name": "BIND \u2014 impact",
+      "direction": "Weapons have just caught. Weight pitched forward over the front foot, both arms braced, head up. The frame of the catch, not the swing before it."
+    },
+    {
+      "cell": "lock2",
+      "name": "BIND \u2014 settle",
+      "direction": "The catch absorbs. Elbows compress a little, rear foot digs, shoulders drop. Body height must NOT change from lock1."
+    },
+    {
+      "cell": "lock3",
+      "name": "STRAIN \u2014 a",
+      "direction": "The held push. Deep lean, both hands committed, whole body a straight line from rear heel to the weapon."
+    },
+    {
+      "cell": "lock4",
+      "name": "STRAIN \u2014 b",
+      "direction": "Same stance, the tremble: a few px of shift in the shoulders and blade only. lock3+lock4 loop for as long as the struggle lasts, so they must read as ONE pose breathing, never as two poses."
+    },
+    {
+      "cell": "lock5",
+      "name": "WIN \u2014 push through",
+      "direction": "Shoves the bind open. Front foot steps THROUGH, weapon drives forward and up past the crossing point, chest open, full extension."
+    },
+    {
+      "cell": "lock6",
+      "name": "LOSE \u2014 thrown off",
+      "direction": "Loses the bind. Torso rocks back, weapon knocked wide off the centre line, guard broken open, back foot catching the weight. Off balance but still on both feet \u2014 this is not a knockdown."
+    }
+  ],
+  "lockSets": [
+    {
+      "fighter": "executioner",
+      "weapon": "nodachi",
+      "phase": 1,
+      "note": "Two-handed nodachi. His only weapon \u2014 one set covers him.",
+      "cells": [
+        "executioner-nodachi-lock1",
+        "executioner-nodachi-lock2",
+        "executioner-nodachi-lock3",
+        "executioner-nodachi-lock4",
+        "executioner-nodachi-lock5",
+        "executioner-nodachi-lock6"
+      ]
+    },
+    {
+      "fighter": "kael",
+      "weapon": "katana",
+      "phase": 1,
+      "note": "The long blade, the bind he leads with.",
+      "cells": [
+        "kael-katana-lock1",
+        "kael-katana-lock2",
+        "kael-katana-lock3",
+        "kael-katana-lock4",
+        "kael-katana-lock5",
+        "kael-katana-lock6"
+      ]
+    },
+    {
+      "fighter": "kael",
+      "weapon": "wakizashi",
+      "phase": 2,
+      "note": "Off-hand short blade. Niten Ichi-ry\u016b parries with it, so it is a genuinely different bind \u2014 close in, elbow high, long blade still live.",
+      "cells": [
+        "kael-wakizashi-lock1",
+        "kael-wakizashi-lock2",
+        "kael-wakizashi-lock3",
+        "kael-wakizashi-lock4",
+        "kael-wakizashi-lock5",
+        "kael-wakizashi-lock6"
+      ]
+    },
+    {
+      "fighter": "tsubasa",
+      "weapon": "tanto",
+      "phase": 1,
+      "note": "Both reverse-grip tant\u014d together. One set \u2014 he never binds with just one.",
+      "cells": [
+        "tsubasa-tanto-lock1",
+        "tsubasa-tanto-lock2",
+        "tsubasa-tanto-lock3",
+        "tsubasa-tanto-lock4",
+        "tsubasa-tanto-lock5",
+        "tsubasa-tanto-lock6"
+      ]
+    },
+    {
+      "fighter": "ember",
+      "weapon": "claws",
+      "phase": 1,
+      "note": "Tekk\u014d-kagi. Not a cross \u2014 he TRAPS the opponent's edge in the claws.",
+      "cells": [
+        "ember-claws-lock1",
+        "ember-claws-lock2",
+        "ember-claws-lock3",
+        "ember-claws-lock4",
+        "ember-claws-lock5",
+        "ember-claws-lock6"
+      ]
+    },
+    {
+      "fighter": "mizu",
+      "weapon": "bo",
+      "phase": 1,
+      "note": "Long wooden b\u014d, hands wide. A lever braced across the body.",
+      "cells": [
+        "mizu-bo-lock1",
+        "mizu-bo-lock2",
+        "mizu-bo-lock3",
+        "mizu-bo-lock4",
+        "mizu-bo-lock5",
+        "mizu-bo-lock6"
+      ]
+    },
+    {
+      "fighter": "mizu",
+      "weapon": "hanbo",
+      "phase": 2,
+      "note": "Short stick. Much closer bind, one hand, nothing like the b\u014d pose.",
+      "cells": [
+        "mizu-hanbo-lock1",
+        "mizu-hanbo-lock2",
+        "mizu-hanbo-lock3",
+        "mizu-hanbo-lock4",
+        "mizu-hanbo-lock5",
+        "mizu-hanbo-lock6"
+      ]
+    },
+    {
+      "fighter": "exile",
+      "weapon": "kama",
+      "phase": 0,
+      "note": "BLOCKED \u2014 the packed sheet is a superseded design (headband + red kanji + one white eye). Her true look is the owner's LOW SHINOBI RUN reference: white hair streak, bare face, two red eyes, red slash markings. No cells until that sheet is in the repo.",
+      "cells": [
+        "exile-kama-lock1",
+        "exile-kama-lock2",
+        "exile-kama-lock3",
+        "exile-kama-lock4",
+        "exile-kama-lock5",
+        "exile-kama-lock6"
+      ]
+    },
+    {
+      "fighter": "shin",
+      "weapon": "kunai",
+      "phase": 1,
+      "note": "UNBLOCKED \u2014 the KUNAI HE HOLDS (his back+Heavy dash) now declares mat:'steel' per-hitbox, so it rings and binds. His FISTS still never bind, from his 'mail' fighter default, and his THROWN kunai are projectiles that deliberately do not bind \u2014 a blade in flight should not drag anyone into a held struggle. OLD NOTE, now wrong: kunai cannot bind today. Needs per-hitbox material first. His fists must never bind.",
+      "cells": [
+        "shin-kunai-lock1",
+        "shin-kunai-lock2",
+        "shin-kunai-lock3",
+        "shin-kunai-lock4",
+        "shin-kunai-lock5",
+        "shin-kunai-lock6"
+      ]
+    },
+    {
+      "fighter": "oni",
+      "weapon": "kanabo",
+      "phase": 2,
+      "note": "REDESIGNED ONI ONLY \u2014 canon is RECOVERY/oni-redesign/, never the old packed cells. Iron kanabo, binds and rings. The club scales 1.0x->2.0-2.5x on a strike, so the bind pose must show it PROJECTING, not at idle size. Waiting on his sheet being packed, not on a design decision.",
+      "cells": [
+        "oni-kanabo-lock1",
+        "oni-kanabo-lock2",
+        "oni-kanabo-lock3",
+        "oni-kanabo-lock4",
+        "oni-kanabo-lock5",
+        "oni-kanabo-lock6"
+      ]
+    },
+    {
+      "fighter": "oni",
+      "weapon": "fist",
+      "phase": 0,
+      "note": "NEVER BINDS. His claw/fist form is 'flesh' in the engine (fistMode), so it has no steel to meet an edge. Two forms, two behaviours \u2014 this is the clearest case in the roster for material living on the hitbox, not the fighter. Whether the CLAWS should bind is an owner ruling, not an assumption to make here.",
+      "cells": [
+        "oni-fist-lock1",
+        "oni-fist-lock2",
+        "oni-fist-lock3",
+        "oni-fist-lock4",
+        "oni-fist-lock5",
+        "oni-fist-lock6"
+      ]
+    }
+  ],
+  "fighters": [
+    {
+      "fighter": "kael",
+      "frameW": 300,
+      "frameH": 320,
+      "footY": 312,
+      "scale": 0.4023,
+      "weapon_type": "Katana & Wakizashi / Tant\u014d",
+      "discipline": "Niten Ichi-ry\u016b & Tant\u014djutsu",
+      "idleFrame": 67,
+      "idleBodyH": 174,
+      "idleHeadY": 138,
+      "idleCenterX": 149,
+      "onscreenH": 70.0,
+      "lockAnchor": {
+        "x": 64,
+        "y": 227
+      },
+      "nextFreeCell": 224,
+      "newCells": {
+        "lock1": 224,
+        "lock2": 225,
+        "lock3": 226,
+        "lock4": 227,
+        "lock5": 228,
+        "lock6": 229
+      },
+      "refCells": {
+        "idle": {
+          "frame": "idle",
+          "index": 67
+        },
+        "guard": {
+          "frame": "xblkguard",
+          "index": 114
+        },
+        "swing": {
+          "frame": "heavy_i3",
+          "index": 87
+        }
+      }
+    },
+    {
+      "fighter": "executioner",
+      "frameW": 300,
+      "frameH": 412,
+      "footY": 404,
+      "scale": 0.3804,
+      "weapon_type": "Nodachi / Single Katana",
+      "discipline": "Iaijutsu & Batt\u014djutsu",
+      "idleFrame": 70,
+      "idleBodyH": 185,
+      "idleHeadY": 219,
+      "idleCenterX": 149,
+      "onscreenH": 70.4,
+      "lockAnchor": {
+        "x": 60,
+        "y": 315
+      },
+      "nextFreeCell": 307,
+      "newCells": {
+        "lock1": 307,
+        "lock2": 308,
+        "lock3": 309,
+        "lock4": 310,
+        "lock5": 311,
+        "lock6": 312
+      },
+      "refCells": {
+        "idle": {
+          "frame": "idle",
+          "index": 70
+        },
+        "guard": {
+          "frame": "xblkguard",
+          "index": 102
+        },
+        "swing": {
+          "frame": "heavy_i3",
+          "index": 88
+        }
+      }
+    },
+    {
+      "fighter": "tsubasa",
+      "frameW": 301,
+      "frameH": 320,
+      "footY": 312,
+      "scale": 0.3608,
+      "weapon_type": "Dual Tant\u014d Knives",
+      "discipline": "Tant\u014djutsu (Reverse-Grip)",
+      "idleFrame": 112,
+      "idleBodyH": 193,
+      "idleHeadY": 120,
+      "idleCenterX": 151,
+      "onscreenH": 69.6,
+      "lockAnchor": {
+        "x": 57,
+        "y": 218
+      },
+      "nextFreeCell": 184,
+      "newCells": {
+        "lock1": 184,
+        "lock2": 185,
+        "lock3": 186,
+        "lock4": 187,
+        "lock5": 188,
+        "lock6": 189
+      },
+      "refCells": {
+        "idle": {
+          "frame": "idle",
+          "index": 112
+        },
+        "guard": {
+          "frame": "xblkguard",
+          "index": 74
+        },
+        "swing": {
+          "frame": "heavy_i3",
+          "index": 21
+        }
+      }
+    },
+    {
+      "fighter": "ember",
+      "frameW": 340,
+      "frameH": 377,
+      "footY": 369,
+      "scale": 0.3349,
+      "weapon_type": "Tekk\u014d-kagi (Iron Claws)",
+      "discipline": "Tekk\u014dkagijutsu / Shuk\u014djutsu",
+      "idleFrame": 128,
+      "idleBodyH": 207,
+      "idleHeadY": 163,
+      "idleCenterX": 170,
+      "onscreenH": 69.3,
+      "lockAnchor": {
+        "x": 68,
+        "y": 267
+      },
+      "nextFreeCell": 218,
+      "newCells": {
+        "lock1": 218,
+        "lock2": 219,
+        "lock3": 220,
+        "lock4": 221,
+        "lock5": 222,
+        "lock6": 223
+      },
+      "refCells": {
+        "idle": {
+          "frame": "idle",
+          "index": 128
+        },
+        "guard": {
+          "frame": "xblkguard",
+          "index": 102
+        },
+        "swing": {
+          "frame": "heavy_i3",
+          "index": 21
+        }
+      }
+    },
+    {
+      "fighter": "mizu",
+      "frameW": 300,
+      "frameH": 320,
+      "footY": 312,
+      "scale": 0.4,
+      "weapon_type": "B\u014d (Wooden Staff) / Hanb\u014d (Short Stick)",
+      "discipline": "B\u014djutsu & Hanb\u014djutsu",
+      "idleFrame": 90,
+      "idleBodyH": 156,
+      "idleHeadY": 157,
+      "idleCenterX": 150,
+      "onscreenH": 62.4,
+      "lockAnchor": {
+        "x": 65,
+        "y": 227
+      },
+      "nextFreeCell": 180,
+      "newCells": {
+        "lock1": 180,
+        "lock2": 181,
+        "lock3": 182,
+        "lock4": 183,
+        "lock5": 184,
+        "lock6": 185
+      },
+      "refCells": {
+        "idle": {
+          "frame": "idle",
+          "index": 90
+        },
+        "guard": {
+          "frame": "xblkguard",
+          "index": 64
+        },
+        "swing": {
+          "frame": "heavy_i3",
+          "index": 21
+        }
+      }
+    },
+    {
+      "fighter": "shin",
+      "frameW": 300,
+      "frameH": 320,
+      "footY": 312,
+      "scale": 0.3431,
+      "weapon_type": "Unarmed & Shuriken / Kunai",
+      "discipline": "Taijutsu & Shurikenjutsu",
+      "idleFrame": 116,
+      "idleBodyH": 194,
+      "idleHeadY": 119,
+      "idleCenterX": 151,
+      "onscreenH": 66.6,
+      "lockAnchor": {
+        "x": 52,
+        "y": 213
+      },
+      "nextFreeCell": 201,
+      "newCells": {
+        "lock1": 201,
+        "lock2": 202,
+        "lock3": 203,
+        "lock4": 204,
+        "lock5": 205,
+        "lock6": 206
+      },
+      "refCells": {
+        "idle": {
+          "frame": "idle",
+          "index": 116
+        },
+        "guard": {
+          "frame": "xblkguard",
+          "index": 78
+        },
+        "swing": {
+          "frame": "heavy_i3",
+          "index": 21
+        }
+      }
+    }
+  ]
+}

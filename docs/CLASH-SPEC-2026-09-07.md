@@ -1,0 +1,11 @@
+# Clash spec — September 7, 2026
+
+Local SHODO-EDITION :9101 implementation. Owner clarification: automatic blade locks remain, exclusively for blade-against-blade contact (steel/iron attack materials). Both fighters must be grounded and unstunned, with the existing10-second lock cooldown elapsed. Wood, fists, mail and flexible chains cannot trigger this lock. Existing mash contest and art remain; the proposed alternative0.5-second contest is not implemented. Clashes during cooldown cancel both complete attacks into neutral.
+
+The conflicting sketch/rules/JSON values were resolved as 6 frames (100 ms) of true gameplay freeze, 8 px outward recoil on thaw, and 4 frames of ±5 px X/Y shake. Recoil follows relative positions, including swapped player sides. Neutral input previously erased vx; a one-time displacement applies the impulse through existing wall collision. Startup, expired and non-clash boxes do not clash; authored hitboxes refresh from their current frame before intersection. Entire hitbox arrays, recovery, move art and scheduled follow-ups clear together. Automatic blade locks retain their existing held-pair behavior instead of recoiling apart.
+
+Metallic contact sparks use the existing W06 contact flare and shard renderer: 10 normal / 18 guard / 30 clash particles, four supplied colors, 3–7 game-frame lifespan, 6–18 px/game-frame launch speed, gravity. Existing material rules still suppress metal sparks for wood/flesh. Normal light/heavy hitstop is 2/4 frames; metal guard is 3. Special/KO-specific freezes retain their existing handling. No sprite asset changes.
+
+Validation: node tools/blade_lock_check.mjs (146 passed); python3 tools/check_clash_spec.py (real browser, startup/expiry/no-overlap exclusion, reversed positions, five-material automatic lock eligibility, attack/queue cleanup, particle counts/units, six frozen simulation samples, four shake frames, thaw recoil and no repeated hitboxes). Fourteen consecutive renderer captures in media/clash-spec-20260907/filmstrip.jpg; result.json records timer samples. git diff --check passes. This is a targeted engine check, not an all-matchup visual certification.
+
+Concurrent footsies work was preserved. The before/after index.patch also contains concurrent edits and is evidence only, not a patch to apply or stage wholesale. No commit, push or deployment.
