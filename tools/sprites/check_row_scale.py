@@ -26,6 +26,7 @@ import sys
 
 import numpy as np
 from PIL import Image
+Image.MAX_IMAGE_PIXELS = None   # executioner's strip passed PIL's 179M-pixel bomb cap at 601 cols (SHEET_V 863)
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 from cut_sheet_grid import PAGE, grid

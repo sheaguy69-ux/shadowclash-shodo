@@ -33,6 +33,7 @@ shortlist four cells. That is a small enough pile to just look at.
 import json, pathlib, sys
 import numpy as np
 from PIL import Image
+Image.MAX_IMAGE_PIXELS = None   # executioner's strip passed PIL's 179M-pixel bomb cap at 601 cols (SHEET_V 863)
 
 SPR = pathlib.Path(__file__).resolve().parents[2] / 'web/assets/sprites'
 SHORT = 0.72      # of the fighter's median cell height

@@ -37,6 +37,7 @@ import sys
 
 import numpy as np
 from PIL import Image
+Image.MAX_IMAGE_PIXELS = None   # executioner's strip passed PIL's 179M-pixel bomb cap at 601 cols (SHEET_V 863)
 from scipy import ndimage
 
 # Per fighter: hue window (deg; lo>hi wraps through 0), saturation window, min brightness,
