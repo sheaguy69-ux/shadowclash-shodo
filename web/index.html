@@ -2329,6 +2329,105 @@
             }
             ctx.drawImage(source, 0, 0, sw, sh, dx, dy, dw, dh);
         }
+        // ==== CHAMPION'S PINK EYE (Exile) — owner, Sep 23 2026. First he asked for the eye
+        // to go "completely white"; then, seeing it: "think like if hers iris turn a glowing
+        // pinkish-color, instead of white or gold". PINK IS THE RULING. The body keeps the
+        // white aura and white rim, so the eye is the one hot point in a cold silhouette.
+        // An OVERLAY cell, never an art edit: the sheet is untouched and this exists only
+        // while frenzyTimer runs.
+        //
+        // ⛔ FINDING THE EYE BY COLOUR DOES NOT WORK ON THIS SHEET, and it was tried first.
+        // Her iris reads rgb(255,197,44) in her idle — but HER GOLD TRIM IS THE SAME AMBER.
+        // Measured over all 431 cells: a tight iris-coloured window found a single clean
+        // cluster in only 104, and loosening it put the pink on her cheekbone. Capping the
+        // search at the head did not save it either: 76 of 165 LIVE cells at best, and the
+        // ones that failed were mostly cells where her eye is plainly visible.
+        //
+        // SO FIND THE FACE FIRST, THEN THE EYE INSIDE IT. Her skin is a warm tan of only
+        // mild saturation; the trim is far more saturated and the suit is near-black, so
+        // skin separates cleanly where iris colour cannot. Inside the face box, the eye is
+        // simply the most saturated warm ink. Measured: 159 of 165 live cells, and a marked
+        // render of twelve poses — idle, run, guard, hurt, jump, attack — put the mark on
+        // her eye in eleven. The six misses are turned-away or mid-swing frames where the
+        // eye is not drawn, and those correctly get no pink at all.
+        //
+        // Built once per cell and cached: one pass over one cell the first time it draws.
+        const eyeCellCache = new Map();
+        function championEyeCell(img, idx, fw, fh) {
+            const key = `${img.currentSrc || img.src}|${idx}`;
+            if (eyeCellCache.has(key)) return eyeCellCache.get(key);
+            let made = null;
+            try {
+                const src = keyedShodoCell(img, idx * fw, 0, fw, fh);
+                const d = src.getContext('2d', { willReadFrequently: true })
+                             .getImageData(0, 0, fw, fh).data;
+                const at = (x, y) => (y * fw + x) * 4;
+                let x0 = fw, y0 = fh, x1 = -1, y1 = -1;
+                for (let y = 0; y < fh; y++) for (let x = 0; x < fw; x++) {
+                    if (d[at(x, y) + 3] < 8) continue;
+                    if (x < x0) x0 = x; if (y < y0) y0 = y;
+                    if (x > x1) x1 = x; if (y > y1) y1 = y;
+                }
+                if (x1 >= x0 && y1 >= y0) {
+                    const cut = Math.min(y1, y0 + Math.round((y1 - y0) * 0.45));
+                    // 1. HER FACE — warm tan, bright, only mildly saturated.
+                    const fxs = [], fys = [];
+                    for (let y = y0; y <= cut; y++) for (let x = x0; x <= x1; x++) {
+                        const i = at(x, y), r = d[i], g = d[i + 1], b = d[i + 2];
+                        if (d[i + 3] < 60 || r < 165 || r > 250 || g < 125 || g > 215
+                            || b < 85 || b > 175) continue;
+                        const sv = Math.max(r, g, b) - Math.min(r, g, b);
+                        if (sv < 25 || sv > 115) continue;
+                        fxs.push(x); fys.push(y);
+                    }
+                    if (fxs.length >= 20) {
+                        const pct = (arr, q) => { const a2 = arr.slice().sort((m, n) => m - n);
+                            return a2[Math.min(a2.length - 1, Math.floor(a2.length * q))]; };
+                        const ax0 = pct(fxs, 0.05), ax1 = pct(fxs, 0.95);
+                        const ay0 = pct(fys, 0.05), ay1 = pct(fys, 0.95);
+                        // 2. THE EYE — the most saturated warm ink inside that face box.
+                        const wx = [], wy = [], ws = [];
+                        for (let y = ay0; y <= ay1; y++) for (let x = ax0; x <= ax1; x++) {
+                            const i = at(x, y), r = d[i], g = d[i + 1], b = d[i + 2];
+                            if (d[i + 3] < 60 || r < 150 || g < 110 || b > 130) continue;
+                            const sv = Math.max(r, g, b) - Math.min(r, g, b);
+                            if (sv < 70) continue;
+                            wx.push(x); wy.push(y); ws.push(sv);
+                        }
+                        if (ws.length >= 3) {
+                            const thr = Math.max(70, pct(ws, 0.90));   // the IRIS, not her cheek highlights
+                            let cx = 0, cy = 0, n = 0;
+                            for (let k = 0; k < ws.length; k++)
+                                if (ws[k] >= thr) { cx += wx[k]; cy += wy[k]; n++; }
+                            cx /= n; cy /= n;
+                            const cell = document.createElement('canvas');
+                            cell.width = fw; cell.height = fh;
+                            const g2 = cell.getContext('2d');
+                            // the iris itself, forced to a hot pink
+                            g2.fillStyle = '#ff5ec8';
+                            for (let k = 0; k < ws.length; k++) {
+                                const dx = wx[k] - cx, dy = wy[k] - cy;
+                                if (ws[k] >= thr && dx * dx + dy * dy < 30) g2.fillRect(wx[k], wy[k], 1, 1);
+                            }
+                            // ...and a TIGHT bloom, so it reads as a lit eye and not a headlight.
+                            // The first pass used r=26 at 0.85 alpha and blew her whole face
+                            // out — eyepatch, mask and brow all vanished into it. The bloom
+                            // must stay smaller than the socket it sits in.
+                            const gr = g2.createRadialGradient(cx, cy, 0, cx, cy, 8);
+                            gr.addColorStop(0, 'rgba(255,200,242,0.58)');
+                            gr.addColorStop(0.5, 'rgba(255,110,210,0.22)');
+                            gr.addColorStop(1, 'rgba(255,90,200,0)');
+                            g2.fillStyle = gr;
+                            g2.beginPath(); g2.arc(cx, cy, 8, 0, Math.PI * 2); g2.fill();
+                            made = cell;
+                        }
+                    }
+                }
+            } catch (e) { made = null; }   // a tainted or unreadable cell just gets no eye
+            eyeCellCache.set(key, made);
+            return made;
+        }
+
         function keyedShodoCell(img, sx, sy, sw, sh) {
             const key = `${img.currentSrc || img.src}|${sx}|${sy}|${sw}|${sh}`;
             if (shodoCellCache.has(key)) return shodoCellCache.get(key);
@@ -11406,7 +11505,14 @@
                 // the cells the sheet already has: a rim glow the fighter carries.
                 // The shadowBlur set here is inherited by the sprite draw below, which
                 // is the whole trick — one property, no second render pass.
-                if (this.muki > 0) {
+                if (this.spec.id === 7 && this.frenzyTimer > 0) {
+                    // CHAMPION: a white rim on the body itself, paired with the aura behind
+                    // it in drawSprite. FIRST in this chain on purpose — it is a five-second
+                    // earned mode and no momentary stance may mask the only tell that says
+                    // her 1.25x fragility is currently switched off.
+                    ctx.shadowBlur = 11 + Math.sin(animClock * 5.2) * 4;
+                    ctx.shadowColor = '#ffffff';
+                } else if (this.muki > 0) {
                     // MUKI-KAMAE: hot red, and it PULSES faster as the stance runs out,
                     // so the last second reads as a timer rather than as a surprise.
                     const urgency = 1 + (1 - Math.min(1, this.muki / MUKI_DUR)) * 3;
@@ -15227,6 +15333,21 @@
             // out of the gold halo. Drawn behind the body in the same feet-anchored
             // transform so it tracks the pose; the ring breathes at a wrong beat
             // because the mode is supposed to read off.
+            // CHAMPION'S AURA — owner, Sep 23 2026: "add a glow, a whitish glow to her".
+            // Deliberately the same engine-drawn treatment as THE CRACK below, because both
+            // are second forms and should read as the same KIND of event. Hers is cleaner and
+            // colder, and it BREATHES on the beat instead of against it: the monk's mode is
+            // coming apart, hers is the glass cannon briefly becoming solid.
+            if (p.spec.id === 7 && p.frenzyTimer > 0) {
+                const ax = 0, ay = -man.footY * S * 0.52, ar = fw * S * 0.66;
+                const pulse = 0.82 + Math.sin(animClock * 5.2) * 0.18;
+                const g = ctx.createRadialGradient(ax, ay, ar * 0.18, ax, ay, ar);
+                g.addColorStop(0, `rgba(255,255,255,${0.34 * pulse})`);
+                g.addColorStop(0.70, `rgba(236,241,255,${0.15 * pulse})`);
+                g.addColorStop(1, 'rgba(214,226,255,0)');
+                ctx.fillStyle = g;
+                ctx.beginPath(); ctx.arc(ax, ay, ar, 0, Math.PI * 2); ctx.fill();
+            }
             if (p.cracked) {
                 const ax = 0, ay = -man.footY * S * 0.52, ar = fw * S * 0.62;
                 const g = ctx.createRadialGradient(ax, ay, ar * 0.2, ax, ay, ar);
@@ -15248,6 +15369,13 @@
             }
             drawShodoFrame(ctx, man.img, idx * fw, 0, fw, fh,
                            -fw * S / 2, -anchorFor(idx), fw * S, fh * S);
+            // ...and the eye goes white ON TOP of the body, in the same feet-anchored local
+            // space the hit-flash uses, so it tracks every pose and mirror for free.
+            if (p.spec.id === 7 && p.frenzyTimer > 0) {
+                const eye = championEyeCell(man.img, idx, fw, fh);
+                if (eye) ctx.drawImage(eye, 0, 0, fw, fh,
+                                       -fw * S / 2, -anchorFor(idx), fw * S, fh * S);
+            }
             ctx.restore();
             // VICTIM HIT-FLASH: the receiver blinks white so the connect reads
             // instantly; holds frozen through hitstop — that's the point.
