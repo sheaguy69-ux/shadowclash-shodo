@@ -21,13 +21,20 @@ const ev = x => new Promise((res,rej)=>{const n=id++;pend.set(n,{res,rej});ws.se
 
 const out = await ev(String.raw`(async () => {
   const wait=async(t,m)=>{for(let i=0;i<200;i++){if(t())return;await new Promise(r=>setTimeout(r,50));}throw new Error(m)};
-  await wait(()=>typeof SPRITES!=='undefined'&&SPRITES.oni&&SPRITES.oni.ready,'sheets');
+  // ⛔ WAS SPRITES.oni.ready — AND ONI RETIRED AT 853, so this gate could never get past
+  // its own first line. It failed honestly rather than lying, which is why it went
+  // unnoticed rather than green. Mizu is the right probe for a SMOKE check: she is the
+  // only fighter who casts a field anyone can hide in (the one smokeFields.push in the
+  // file), so if her sheet is up the thing this gate measures is loadable.
+  await wait(()=>typeof SPRITES!=='undefined'&&SPRITES.mizu&&SPRITES.mizu.ready,'sheets');
   const R=n=>NINJA_ROSTER.find(s=>s.name.toLowerCase()===n);
   const out={};
   // ---- MIZU MIST ----
   smokeFields.length=0;
   const mz=new Player(1,300,GROUND_Y-48,R('mizu'),true);
-  const en=new Player(2,340,GROUND_Y-48,R('oni'),false);
+  // The opponent here is only a BODY to be dimmed by her cloud — nothing about this
+  // assertion is fighter-specific. It was Oni, who retired at 853.
+  const en=new Player(2,340,GROUND_Y-48,R('kael'),false);
   mz.opponent=en; en.opponent=mz;
   // ⛔ CAST THE REAL MOVE. This used to push a field with hardcoded numbers and then assert
   // those same numbers back — it happily reported duration 7 after the game had been changed
@@ -51,8 +58,14 @@ const out = await ev(String.raw`(async () => {
   const hpBefore=en.hp; // mist must not hurt
   out.mistNoDamage = en.hp===hpBefore;
 
-  // ---- ONI SMOKE BOMB: hit / block / dodge ----
-  const mk=()=>{const o=new Player(1,300,GROUND_Y-48,R('oni'),true);
+  // ---- CONTACT ROUTING: hit / block / dodge ----
+  // ⛔ TITLED "ONI SMOKE BOMB" AND BUILT AN ONI, BUT MEASURES NEITHER. 'strike' is a bare
+  // takeDamage(4, ..., tier: ATTACK_SPECIAL) — no bomb, no field, nothing that reads the
+  // attacker's identity. It asserts the three contact routes: clean damage, reduced through
+  // a guard, zero through i-frames. Oni retired at 853 so R('oni') returned undefined and
+  // 'new Player' died on spec.sizeScale. Repointed to a live fighter; the assertions are
+  // byte-identical because none of them ever depended on who was swinging.
+  const mk=()=>{const o=new Player(1,300,GROUND_Y-48,R('shin'),true);
                 const v=new Player(2,320,GROUND_Y-48,R('kael'),false);
                 o.opponent=v;v.opponent=o;return [o,v];};
   const strike=(o,v)=>{v.takeDamage(4,o,{pushback:90,tier:STATE.ATTACK_SPECIAL});};
