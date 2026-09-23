@@ -78,11 +78,36 @@ out.laughCell = spriteFrameIndex(p, F);
 p.laughAnim = false; p.attackAnim = null; p.state = STATE.IDLE;
 
 // 4. the madness has no guard: +20% taken while cracked
-const hp = (on) => { const q = new Player(1, 150, GROUND_Y - 48, NINJA_ROSTER[6], true);
+// 4. THE ILLUSION. Owner, Sep 23 2026: the screen must show him crumbling while he is in
+//    fact winning. Four numbers, and every one of them is a way the trick dies quietly:
+//      * he really takes MORE      -> the mode is still the old all-cost version
+//      * he really deals LESS      -> "make it actually stronger" never landed
+//      * the HUD tells the truth   -> there is no trick, just a buff
+//      * the lie never reconciles  -> the bars stay wrong forever and read as a bug
+const fresh = (on) => { const q = new Player(1, 150, GROUND_Y - 48, NINJA_ROSTER[6], true);
   q.opponent = foe; q.hp = q.maxHp; q.comboHits = 0; q.invulnTimer = 0; q.stunTimer = 0;
-  q.blockTimer = 0; q.cracked = on; q.crackTimer = on ? 5 : 0;
-  q.takeDamage(20, foe, {}); return q.maxHp - q.hp; };
-out.hpNormal = hp(false); out.hpCracked = hp(true);
+  q.blockTimer = 0; q.hpLie = 0; q.cracked = on; q.crackTimer = on ? 5 : 0; return q; };
+// (a) what he REALLY takes
+const taken = (on) => { const q = fresh(on); foe.cracked = false;
+  q.takeDamage(20, foe, {}); return { real: q.maxHp - q.hp, shown: q.maxHp - hudHp(q) }; };
+const tN = taken(false), tC = taken(true);
+out.takenNormal = tN.real; out.takenCracked = tC.real; out.takenShownCracked = tC.shown;
+// (b) what he REALLY deals — a fresh VICTIM hit by a cracked Mokurai
+const dealt = (on) => { const v = new Player(2, 400, GROUND_Y - 48, NINJA_ROSTER[0], false);
+  const m = fresh(on); v.opponent = m; m.opponent = v;
+  v.hp = v.maxHp; v.comboHits = 0; v.invulnTimer = 0; v.stunTimer = 0; v.blockTimer = 0; v.hpLie = 0;
+  v.takeDamage(20, m, {}); return { real: v.maxHp - v.hp, shown: v.maxHp - hudHp(v) }; };
+const dN = dealt(false), dC = dealt(true);
+out.dealtNormal = dN.real; out.dealtCracked = dC.real; out.dealtShownCracked = dC.shown;
+// (c) THE REVEAL — once the madness ends the bars must walk back to the truth
+const rv = fresh(true); foe.cracked = false;
+rv.takeDamage(20, foe, {});
+const lieAt = rv.hpLie;
+rv.cracked = false; rv.crackTimer = 0;
+for (let i = 0; i < 120; i++) rv.update(1 / 60, foe);   // 2s — CRACK_REVEAL is 0.7
+out.lieDuring = lieAt; out.lieAfter = rv.hpLie;
+out.revealedTruth = Math.abs(hudHp(rv) - rv.hp) < 0.5;
+out.hpNormal = tN.real; out.hpCracked = tC.real;
 
 // 5. the SPENT KNEEL draws its own art, not the base crouch
 reset(); p.cracked = false; p.crackSpent = CRACK_SPENT; p.state = STATE.IDLE;
@@ -189,10 +214,35 @@ def main():
     ok(crack_cell(r['laughCell']), f"LAUGHING BELL draws its own row (cell {r['laughCell']})")
     ok(crack_cell(r['spentCell']), f"the SPENT KNEEL draws its own art (cell {r['spentCell']})")
     print()
-    ratio = r['hpCracked'] / r['hpNormal'] if r['hpNormal'] else 0
-    ok(abs(ratio - 1.2) < 0.02,
-       f"the madness has no guard: {r['hpNormal']:.2f} HP normal vs {r['hpCracked']:.2f} "
-       f"cracked = {ratio:.3f}x (want 1.2)")
+    print('\n  THE ILLUSION — the HUD lies, the fight does not\n')
+    tr = r['takenCracked'] / r['takenNormal'] if r['takenNormal'] else 0
+    ok(tr < 0.99, f"REAL: cracked TAKES LESS — {r['takenNormal']:.2f} normal "
+                  f"vs {r['takenCracked']:.2f} cracked ({tr:.3f}x)")
+    dr_ = r['dealtCracked'] / r['dealtNormal'] if r['dealtNormal'] else 0
+    ok(dr_ > 1.01, f"REAL: cracked DEALS MORE — {r['dealtNormal']:.2f} normal "
+                   f"vs {r['dealtCracked']:.2f} cracked ({dr_:.3f}x)")
+    ok(r['takenShownCracked'] > r['takenCracked'],
+       f"SHOWN: his own bar drops MORE than he really lost — "
+       f"{r['takenShownCracked']:.2f} shown vs {r['takenCracked']:.2f} real")
+    ok(r['dealtShownCracked'] < r['dealtCracked'],
+       f"SHOWN: their bar drops LESS than they really lost — "
+       f"{r['dealtShownCracked']:.2f} shown vs {r['dealtCracked']:.2f} real")
+    ok(r['lieDuring'] > 0, f"the lie is actually banked while it runs ({r['lieDuring']:.2f} HP hidden)")
+    ok(abs(r['lieAfter']) < 0.001, f"THE REVEAL: the lie clears once it ends (left {r['lieAfter']:.4f})")
+    ok(r['revealedTruth'], '...and the bar then reads the real HP')
+
+
+    print('\n  THE EARN LOOP\n')
+    ok(r['lockedBefore'], 'he starts LOCKED — nothing in the save says otherwise')
+    ok(r['unlockedByTrial'],
+       'THE TRIAL: carrying a FULL karma bar through live frames EARNS the mode')
+    ok(r['trialCounted'] == 1, f"...and it counted exactly one fill (got {r['trialCounted']})")
+    ok(r['channelCracked'], 'EARNED: the real Down+Guard channel now CRACKS him')
+    ok(r['channelSpent'] == 0, f"...and it still spends all 15 karma (left {r['channelSpent']})")
+    ok(not r['channelWentGold'], '...and it is the madness, not the gold')
+    ok(not r['lockedCracked'], 'LOCKED: the same channel does NOT crack him')
+    ok(r['lockedGoldTimer'] > 0,
+       f"...it falls through to ENLIGHTENMENT instead ({r['lockedGoldTimer']}s of gold)")
 
     if fails:
         print(f'\n{len(fails)} FAILED')

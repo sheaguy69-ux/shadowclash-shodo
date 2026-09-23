@@ -1714,7 +1714,24 @@
         // damage taken +20%; ends in a punishable SPENT KNEEL. The aura is
         // ENGINE-DRAWN (white, gray outline — never baked); the black eyes are in
         // the cells. Full design: tools/check_crack.py (crack-mode checker).
-        const CRACK_DUR = 6, CRACK_FEINT = 0.12, CRACK_SPENT = 0.8, CRACK_TAKEN = 1.2;
+        const CRACK_DUR = 6, CRACK_FEINT = 0.12, CRACK_SPENT = 0.8;
+        // ⛔ THE CRACK IS AN ILLUSION MODE — owner, Sep 23 2026. It used to be all cost:
+        // his hitboxes landed late AND he took +20%, with no upside at all, so a FULL karma
+        // bar bought something strictly worse than the SHORT bar's Enlightenment. Backwards
+        // for a mode you now have to earn.
+        //
+        // His ruling: "make it actually stronger, but I do wanna keep the mind game, but
+        // reverse it as it look like he's getting weaker and taking more damage... in
+        // reality, everything is really the other way around. The opponent attacks is
+        // weaker and they are taking more damage."
+        //
+        // So the HUD LIES and the fight does not. REAL is the first pair, SHOWN is the
+        // second, and the two only reconcile when the madness ends — which is the reveal.
+        const CRACK_TAKEN = 0.8;        // REAL: the madness is HARDER to hurt, not easier
+        const CRACK_DEALT = 1.25;       // REAL: ...and it hits harder
+        const CRACK_SHOW_TAKEN = 1.5;   // SHOWN: his bar falls twice as fast as it should
+        const CRACK_SHOW_DEALT = 0.5;   // SHOWN: theirs falls half as fast
+        const CRACK_REVEAL = 0.7;       // s for the bars to snap to the truth once it ends
         // ENLIGHTENMENT: a CPU-driven Mokurai below 40% HP turns gold, once per
         // round — wider halo, longer reflect window, wounds knitting. In the
         // monk's own idiom: calm, not rage.
@@ -3658,6 +3675,7 @@
                 this.upAtkAnim = false;        // renders upatk1-6 while true
                 this.airUpAnim = false;        // air Up+Light poke: renders the skyward cell
                 this.karma = 0;                // MOKURAI: stored force from hits/blocks/counters
+                this.hpLie = 0;                // THE CRACK: shown HP minus real HP (see hudHp)
                 this.enlightenTimer = 0;       // >0 = ENLIGHTENED: wider halo, longer reflect, regen
                 this.meditateTimer = 0;        // MOKURAI meditation channel (hold Down+Guard 2.0s)
                 this.enlightenUsed = false;    // enlightenment is once per round
@@ -4629,6 +4647,14 @@
                 if (this.markedT > 0 && (this.markedT -= dt) <= 0) this.markedBy = null;
                 this.updateClone(dt);          // KAGE-KAMI echo lifecycle
                 if (this.chain) this.updateChain(dt);
+                // THE REVEAL. While the madness runs the bars stay wrong; the moment it
+                // ends they walk to the truth over CRACK_REVEAL, and THAT is the beat the
+                // mode is built around — the opponent finds out what actually happened.
+                if (!this.cracked && this.hpLie !== 0) {
+                    const step = (this.maxHp / CRACK_REVEAL) * dt;
+                    this.hpLie = Math.abs(this.hpLie) <= step ? 0
+                        : this.hpLie - Math.sign(this.hpLie) * step;
+                }
                 // THE CRACK (CPU Mokurai, once per round): below 40% HP the mask
                 // cracks — the golden phase is REPLACED by the madness at the
                 // Second Door (owner, Aug 2 2026). Calm was the lie.
@@ -10837,10 +10863,19 @@
             }
 
             damageToHealth(raw) {
-                return raw * HEALTH_DAMAGE_SCALE * this.defenseFactor
+                const out = raw * HEALTH_DAMAGE_SCALE * this.defenseFactor
                     * (this.cracked ? CRACK_TAKEN : 1)
                     * (this.muki > 0 ? MUKI_TAKEN : 1)
                     * (this.kageNui ? KAGE_TAKEN : 1);
+                // THE CRACK'S LIE, banked HERE because this is the one converter every
+                // health loss funnels through — three separate sites write this.hp, and a
+                // lie maintained at each of them would drift apart the first time a fourth
+                // appeared. hpLie is "shown minus real", so the bars stay wrong by exactly
+                // the amount the madness has hidden, and nothing else has to know.
+                if (this.cracked) this.hpLie += out * (CRACK_SHOW_TAKEN - 1);
+                else if (this.opponent && this.opponent.cracked)
+                    this.hpLie -= out * (1 - CRACK_SHOW_DEALT);
+                return out;
             }
 
             takeDamage(dmg, attacker, sourceHitbox = null, isProjectile = false) {
@@ -10916,8 +10951,9 @@
 
                 // MOKURAI ENLIGHTENED damage boost: +3 on every hit for 5s
                 if (attacker && attacker.enlightenTimer > 0 && attacker.spec.id === 6) dmg += 3;
-                // THE CRACK pays for its lies: the madness has no guard — +20% taken.
-                // Incoming health modifiers are shared by damageToHealth below.
+                // THE CRACK HITS HARDER, and the HUD will not admit it. The matching
+                // reduction on what he TAKES rides on damageToHealth below, with the lie.
+                if (attacker && attacker.cracked) dmg *= CRACK_DEALT;
 
                 // If parrying stance is currently active (Tsubasa special)
                 if (this.state === STATE.PARRY_STANCE && this.parryFlashTimer > 0) {
@@ -19647,7 +19683,7 @@
             'Tsubasa':     ["F / J / G / H — light · medium · heavy · parry stance", "Fwd+G — REVERSE-GRIP RUSH (2 stabs) · Down+G — low tanto", "Up+G — RISING TWIN SLASH · Back+G — EVASIVE FLICK", "Down+H — AERIAL DIVE CUT · Up+H — AIR-THROW SETUP", "Fwd+H — pass-through slash", "Back+H — TANTO REVERSE FLURRY (4 rakes)", "Down/Fwd/Back+F — kicks", "air Down+G — Meteor Break", "F+G — throw", "X — TAUNT: he juggles both tanto. No hitbox; any input cancels it"],
             'Ember':       ["F / J / G / H — light · medium · heavy · armored claw dash", "Fwd+H — SHRED CHARGE (armored, 2 hits)", "Down+H — GROUND RIP (low, trips)", "Up+H — CEILING HOOK (leaves the floor)", "Fwd+G — CLAW REND (2 tears) · Down+G — LOW CLAW RAKE", "Back+G — CLAW RETREAT SWIPE", "Up+G — rising double-claw launcher", "Back+H — BLADE-TRAP PARRY (catch -> X-shred)", "H on wall — pounce dive", "Down/Fwd/Back+F — kicks", "air Down+G — Meteor Break", "F+G — claw-slice throw"],
             'Kael':        ["F / J / G / H — light · medium · heavy · double slash", "Fwd+H — TRAVELLING CROSS SLASH", "Up+H — SKYWARD FANG (planted anti-air)", "Fwd+G — TWIN CYCLONE (2 rings) · Down+G — LOW-HIGH SCISSOR", "Up+G — HIGH PARRY · Back+G — LOW PARRY", "Down+H — rising launcher (invuln start)", "Back+H — NITEN PARRY (wakizashi -> katana)", "Down/Fwd/Back+F — kicks", "air Down+G — Meteor Break", "F+G — throw"],
-            'Mokurai':      ["F / J / G / H — light · medium · overhead slam · palm special", "Back+G — SAGE'S PALM (slow blast; hold Up/Down to aim)", "Up+G — BELL RINGER (planted anti-air, launches)", "Fwd+H — PRAYER ORBIT (armored spinning advance, 3 hits)", "Back+H — ZEN REFLECT (catch a hit, automatic palm counter)", "Up+H — neutral special on ground · in air — SKY CATCH (hand catch, spikes)", "KARMA — hits, blocks and counters store up to 15 power for your next damaging Special", "Down+H — temple bell (hits both sides) · in air — BELL TOLL (dive, rings on landing)", "Down/Fwd/Back+F — sweep · front · high kicks", "hold Down+C 2s on a SHORT karma bar — ENLIGHTENMENT (once/round)", "hold Down+C 2s on a FULL karma bar — THE CRACK: 6s of feint-rhythm madness, spends all 15 karma, +20% damage taken, ends in a punishable kneel","F+G — throw"],
+            'Mokurai':      ["F / J / G / H — light · medium · overhead slam · palm special", "Back+G — SAGE'S PALM (slow blast; hold Up/Down to aim)", "Up+G — BELL RINGER (planted anti-air, launches)", "Fwd+H — PRAYER ORBIT (armored spinning advance, 3 hits)", "Back+H — ZEN REFLECT (catch a hit, automatic palm counter)", "Up+H — neutral special on ground · in air — SKY CATCH (hand catch, spikes)", "KARMA — hits, blocks and counters store up to 15 power for your next damaging Special", "Down+H — temple bell (hits both sides) · in air — BELL TOLL (dive, rings on landing)", "Down/Fwd/Back+F — sweep · front · high kicks", "hold Down+C 2s on a SHORT karma bar — ENLIGHTENMENT (once/round)", "hold Down+C 2s on a FULL karma bar — THE CRACK: 6s of feint-rhythm madness. The HUD LIES: it shows him crumbling and his hits landing soft, while he really takes LESS and deals MORE. Spends all 15 karma, ends in a punishable kneel","F+G — throw"],
             'Exile':       ["F / J / G / H — light · medium · heavy · heli spin", "V (P2: K) — CHAMPION MODE at a full CHAIN bar (20s: faster, quicker recovery, and she stops taking 1.25x)", "Fwd+H — chain-grapple to the wall", "Up+H — chain to the wall (anchor + kunai)", "Back+H — IAIJUTSU CROSS (blink corridor)", "Down+H — SERPENT'S TONGUE (floor chain, trips)", "Fwd+G — Side Reach · Back+G — Counter-Weight", "Up+G — Up Reach (anti-air) · Down+G — low slash", "Up+F — up-flick (fast anti-air poke)", "Down/Fwd/Back+F — sweep · push · heel kicks", "wall cling — F throws KUNAI (x3)", "air Down+G — Sky Down-Smash", "F+G — throw"],
         };
         function drawMoveList(ctx) {
@@ -20453,14 +20489,14 @@
             if (!player1 || !player2) return;
 
             // HP Transitions
-            document.getElementById('hud-p1-hp').style.width = (player1.hp / player1.maxHp * 100) + "%";
+            document.getElementById('hud-p1-hp').style.width = (hudHp(player1) / player1.maxHp * 100) + "%";
             // white health — the recoverable pool drawn as a pale segment past the red
-            document.getElementById('hud-p1-gray').style.width = Math.min(100, (player1.hp + (player1.grayHp || 0)) / player1.maxHp * 100) + "%";
-            document.getElementById('hud-p1-hp-text').innerText = Math.round(player1.hp) + " / " + player1.maxHp;
+            document.getElementById('hud-p1-gray').style.width = Math.min(100, (hudHp(player1) + (player1.grayHp || 0)) / player1.maxHp * 100) + "%";
+            document.getElementById('hud-p1-hp-text').innerText = Math.round(hudHp(player1)) + " / " + player1.maxHp;
 
-            document.getElementById('hud-p2-hp').style.width = (player2.hp / player2.maxHp * 100) + "%";
-            document.getElementById('hud-p2-gray').style.width = Math.min(100, (player2.hp + (player2.grayHp || 0)) / player2.maxHp * 100) + "%";
-            document.getElementById('hud-p2-hp-text').innerText = Math.round(player2.hp) + " / " + player2.maxHp;
+            document.getElementById('hud-p2-hp').style.width = (hudHp(player2) / player2.maxHp * 100) + "%";
+            document.getElementById('hud-p2-gray').style.width = Math.min(100, (hudHp(player2) + (player2.grayHp || 0)) / player2.maxHp * 100) + "%";
+            document.getElementById('hud-p2-hp-text').innerText = Math.round(hudHp(player2)) + " / " + player2.maxHp;
 
             // Stamina Indicators
             document.getElementById('hud-p1-stamina').style.width = player1.stamina + "%";
@@ -20497,6 +20533,16 @@
                             `<span class="w-4 h-1.5 rounded-sm" style="background:${i < n ? color : '#1f2937'}"></span>`).join('');
                 }
             }
+        }
+
+        // WHAT THE SCREEN CLAIMS THIS FIGHTER HAS LEFT. Equal to real HP for everyone,
+        // every round, except while THE CRACK is running — then it is off by exactly the
+        // amount the madness is hiding (see damageToHealth). Never reads 0 on a living
+        // fighter: an empty bar on someone still standing reads as a bug, not a bluff, and
+        // the KO itself always fires on the REAL hp.
+        function hudHp(p) {
+            const shown = p.hp - (p.hpLie || 0);
+            return Math.max(p.hp > 0 ? 1 : 0, Math.min(p.maxHp, shown));
         }
 
         function resolveGameOver(matchWinnerIdx = null) {
