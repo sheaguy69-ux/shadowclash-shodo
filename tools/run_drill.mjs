@@ -10,7 +10,7 @@ import { spawn, spawnSync } from 'node:child_process';
 import { mkdtemp } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-const port = 9100, dbg = 9337;
+const port = 9101, dbg = 9337;
 const drill = Number(process.argv[2] ?? 1), secs = Number(process.argv[3] ?? 8);
 const profile = await mkdtemp(path.join(tmpdir(), 'drill-'));
 // reap the previous run and WAIT for the port to actually free — back-to-back drills
@@ -18,7 +18,7 @@ const profile = await mkdtemp(path.join(tmpdir(), 'drill-'));
 spawnSync('pkill', ['-f', `remote-debugging-port=${dbg}`], { stdio: 'ignore' });
 await new Promise(r => setTimeout(r, 800));
 if (!await fetch(`http://127.0.0.1:${port}/`).then(r => r.ok).catch(() => false)) {
-  console.error('no server on :9100 — python3 tools/serve.py 9100 web'); process.exit(1);
+  console.error('no server on :9100 — python3 tools/serve.py 9101 web'); process.exit(1);
 }
 const chrome = spawn('/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
   ['--headless=new','--disable-gpu','--no-first-run',`--remote-debugging-port=${dbg}`,

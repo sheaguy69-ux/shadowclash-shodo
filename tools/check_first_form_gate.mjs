@@ -1,5 +1,7 @@
 #!/usr/bin/env node
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import assert from 'node:assert/strict';
 
 const lane = readFileSync(new URL('./lane.py', import.meta.url), 'utf8');
@@ -7,23 +9,41 @@ const html = readFileSync(new URL('../web/index.html', import.meta.url), 'utf8')
 const agents = readFileSync(new URL('../AGENTS.md', import.meta.url), 'utf8');
 const claude = readFileSync(new URL('../CLAUDE.md', import.meta.url), 'utf8');
 const serve = readFileSync(new URL('./serve.py', import.meta.url), 'utf8');
+const watch = readFileSync(new URL('./watch_game.py', import.meta.url), 'utf8');
+const TOOLS = dirname(fileURLToPath(import.meta.url));
 
 const ports = lane.match(/^ALLOWED_PORTS\s*=\s*\{([^}]+)\}\s*$/m);
 assert.ok(ports, 'lane ALLOWED_PORTS declaration is missing');
 assert.deepEqual(ports[1].split(',').map(Number).sort((a, b) => a - b), [9100, 9101, 9102],
   'lane must allow exactly 9100, 9101, and 9102');
 
-for (const [name, text] of [['AGENTS.md', agents], ['CLAUDE.md', claude], ['tools/serve.py', serve]]) {
-  assert.match(text, /recovered rollback[\s\S]{0,100}:9100/i, `${name} must name recovered rollback :9100`);
-  assert.match(text, /Shodō[\s\S]{0,100}:9101/i, `${name} must name Shodō :9101`);
-  assert.match(text, /approved-art gallery[\s\S]{0,100}:9102/i, `${name} must name the gallery :9102`);
-}
+// ⛔ :9101 IS THE TREE (owner, Sep 22 2026). This used to require all three rulebook files
+// to recite the three-port split in one exact phrasing, which pinned WORDING rather than
+// behaviour — commit 879 rewrote the rulebook, kept the ruling, and broke this gate for
+// changing the sentence around it. What matters is that the TOOLS point at his tree, so
+// that is what is asserted now. :9100 and :9102 stay reachable; they are just not defaults.
 assert.match(serve, /PORT\s*=\s*int\(sys\.argv\[1\]\)\s*if len\(sys\.argv\) > 1 else 9101/,
   'serve.py default must be :9101 while preserving explicit port arguments');
-assert.match(agents, /`python3 tools\/serve\.py 9101 web`/,
-  'AGENTS operator guidance must provide the Shodō :9101 command');
-assert.match(claude, /`python3 tools\/serve\.py 9101 web`/,
-  'CLAUDE operator guidance must provide the Shodō :9101 command');
+assert.match(watch, /GAME_URL = os\.environ\.get\('SHADOWCLASH_URL', 'http:\/\/localhost:9101\/index\.html'\)/,
+  'watch_game.py must default to :9101 — every check_*.py in tools/ inherits this URL');
+for (const [name, text] of [['AGENTS.md', agents], ['CLAUDE.md', claude]])
+  assert.match(text, /:9101/, `${name} must still name :9101 as the tree`);
+
+// AND NO TOOL MAY QUIETLY DEFAULT BACK. A single re-introduced `port = 9100` sends a whole
+// harness at the rollback tree while the work is committed here — the exact split that made
+// an agent "STEAL 9100 from whoever held it just to run a probe".
+const toolFiles = readdirSync(TOOLS).filter(f => (f.endsWith('.mjs') || f.endsWith('.py')) && !f.includes(' 2.'));
+const offenders = [];
+for (const f of toolFiles) {
+  if (f === 'lane.py' || f === 'check_first_form_gate.mjs') continue;   // both legitimately name all three
+  // CODE, not prose: watch_game.py documents the :9100 override in a comment on purpose,
+  // and the help strings name it too. Strip comment lines before testing, or the gate
+  // fails on its own instructions.
+  const t = readFileSync(join(TOOLS, f), 'utf8')
+    .split('\n').filter(l => !/^\s*(#|\/\/)/.test(l)).join('\n');
+  if (/(?:\bport\s*=\s*|PORT\s*\|\|\s*|localhost:|127\.0\.0\.1:)9100\b/.test(t)) offenders.push(f);
+}
+assert.deepEqual(offenders, [], `these tools still default to :9100 — ${offenders.join(', ')}`);
 assert.match(html, /const FIRST_FORM_ONLY = true;/,
   'first-form-only runtime constant is missing');
 assert.match(html, /function secondFormBlocked\(player\)/,

@@ -2,11 +2,11 @@ import { spawn, spawnSync } from 'node:child_process';
 import { mkdtemp } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-const port = 9100, dbg = 9336;
+const port = 9101, dbg = 9336;
 const profile = await mkdtemp(path.join(tmpdir(), 'mech-'));
 spawnSync('pkill', ['-f', `remote-debugging-port=${dbg}`], { stdio: 'ignore' });
 const alive = await fetch(`http://127.0.0.1:${port}/`).then(r => r.ok).catch(() => false);
-if (!alive) { console.error('start: python3 tools/serve.py 9100 web'); process.exit(1); }
+if (!alive) { console.error('start: python3 tools/serve.py 9101 web'); process.exit(1); }
 const chrome = spawn('/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
   ['--headless=new','--disable-gpu','--no-first-run',`--remote-debugging-port=${dbg}`,
    `--user-data-dir=${profile}`,`http://127.0.0.1:${port}/`], { stdio: 'ignore' });

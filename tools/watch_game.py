@@ -39,18 +39,20 @@ import websockets
 CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
 PORT = 9333
 
-# WHICH DESIGNATED URL TO GRADE. Two ports are law now (AGENTS.md rule 8): :9100 is the
-# shared review URL and :9101 is the second lane URL. `drive()` re-invokes this file as a
-# subprocess, so the child inherits this env var and every check_*.py / audit_*.py in
-# tools/ follows the same override with no change of its own:
+# ⛔ :9101 IS THE TREE (owner, Sep 22 2026). This defaulted to :9100 while serve.py
+# defaulted to :9101, so every harness in tools/ graded the ROLLBACK tree while the work
+# was being committed to the Shodo one — and an agent whose tree was on :9101 had to STEAL
+# 9100 from whoever held it just to run a probe. The comment here even described that as
+# normal. The default follows the owner's tree now; :9100 stays reachable by override.
 #
-#     SHADOWCLASH_URL=http://localhost:9101/index.html python3 tools/audit_moves.py
+# `drive()` re-invokes this file as a subprocess, so the child inherits this env var and
+# every check_*.py / audit_*.py in tools/ follows the same override with no change of its own:
 #
-# Without it a harness could only ever grade :9100 — so an agent whose tree was on :9101
-# had to STEAL 9100 from whoever held it just to run a probe. assert_serving_this_tree()
-# still voids the run if the chosen URL is not serving this tree, so the override cannot
-# be used to grade someone else's work by accident.
-GAME_URL = os.environ.get('SHADOWCLASH_URL', 'http://localhost:9100/index.html')
+#     SHADOWCLASH_URL=http://localhost:9100/index.html python3 tools/audit_moves.py
+#
+# assert_serving_this_tree() still voids the run if the chosen URL is not serving this tree,
+# so the override cannot be used to grade someone else's work by accident.
+GAME_URL = os.environ.get('SHADOWCLASH_URL', 'http://localhost:9101/index.html')
 
 
 def launch(url, profile):

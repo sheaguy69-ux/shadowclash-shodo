@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """CHAMPION MODE (Exile) — the smallest thing that fails if the mode breaks.
 
-  python3 tools/serve.py &          # 9100, the only server
+  python3 tools/serve.py &          # 9101, the owner's tree
   python3 tools/check_champion.py
 
 Drives the REAL page through tools/watch_game.py (headless Chrome, real rAF), because

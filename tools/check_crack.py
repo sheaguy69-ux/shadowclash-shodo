@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """THE CRACK (Mokurai's second form) — does the mode actually work, and does it DRAW.
 
-  python3 tools/serve.py &        # 9100, the only server
+  python3 tools/serve.py &        # 9101, the owner's tree
   python3 tools/check_crack.py
 
 The form was designed and packed on `fix/benched-trio-audit` and never merged. This file

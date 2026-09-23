@@ -11,12 +11,12 @@ import { mkdtemp, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 
-const port = +(process.env.PORT || 9100), dbg = 9339;   // own debug port — run_drill.mjs holds 9337 and the two raced
+const port = +(process.env.PORT || 9101), dbg = 9339;   // own debug port — run_drill.mjs holds 9337 and the two raced
 const out = process.argv[2] || '/tmp/PROOF-WALLCLING.png';
 const chromePath = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 
 const alive = await fetch(`http://127.0.0.1:${port}/`).then(r => r.ok).catch(() => false);
-if (!alive) { console.error(`no server on :${port} — start it once: python3 tools/serve.py 9100 web`); process.exit(1); }
+if (!alive) { console.error(`no server on :${port} — start it once: python3 tools/serve.py 9101 web`); process.exit(1); }
 
 spawnSync('pkill', ['-f', `remote-debugging-port=${dbg}`], { stdio: 'ignore' });
 const profile = await mkdtemp(path.join(tmpdir(), 'oni-proof-'));

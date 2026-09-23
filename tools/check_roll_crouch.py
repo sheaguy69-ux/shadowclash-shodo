@@ -7,7 +7,7 @@ Two halves, and neither of them re-implements the engine:
   lowest ink row must sit exactly on footY, and the deepest crouch beat must be visibly
   below that fighter's own idle.
 
-  LIVE (real game on 9100) — boots a real match per fighter and calls the engine's OWN
+  LIVE (real game on 9101) — boots a real match per fighter and calls the engine's OWN
   spriteFrameIndex() on the real player object while walking rollTimer and crouchAt
   across their real ranges, so what is checked is the shipped picker. Then it inputs an
   actual roll and reads the CTM out of a hooked drawImage: drawSprite works in a
@@ -15,7 +15,7 @@ Two halves, and neither of them re-implements the engine:
   windmill shows up as rotation terms in that matrix. That is the bug this art exists to
   kill, and it is the one thing a static check cannot see.
 
-⛔ Never starts a server. Checks 9100 and fails with instructions.
+⛔ Never starts a server. Checks 9101 and fails with instructions.
 """
 import json
 import os
@@ -29,7 +29,7 @@ from playwright.sync_api import sync_playwright
 Image.MAX_IMAGE_PIXELS = None
 # Two designated ports are law (AGENTS.md rule 8). Same override every harness uses:
 #   SHADOWCLASH_URL=http://localhost:9101/index.html python3 tools/check_roll_crouch.py
-URL = os.environ.get('SHADOWCLASH_URL', 'http://127.0.0.1:9100/').replace('index.html', '')
+URL = os.environ.get('SHADOWCLASH_URL', 'http://127.0.0.1:9101/').replace('index.html', '')
 SPR = 'web/assets/sprites'
 ROSTER = ['executioner', 'mizu', 'shin', 'tsubasa', 'ember', 'kael', 'mokurai', 'exile']
 NO_ROLL = {'mokurai', 'exile'}     # they own authored dodges (mroll1-4 / slide1-4)
@@ -145,7 +145,7 @@ def live_checks():
         if urllib.request.urlopen(URL, timeout=5).status != 200:
             raise OSError
     except Exception:
-        sys.exit('⛔ 9100 is not serving the game.  python3 tools/serve.py 9100 web')
+        sys.exit('⛔ 9101 is not serving the game.  python3 tools/serve.py 9101 web')
 
     fails = []
     with sync_playwright() as pw:
@@ -171,8 +171,8 @@ def live_checks():
                    if m not in src]
         if missing:
             b.close()
-            sys.exit(f'⛔ 9100 is serving a TREE WITHOUT THIS WORK — missing {missing}.\n'
-                     f'   Rebind 9100 to this repo (never stand up a second port).')
+            sys.exit(f'⛔ 9101 is serving a TREE WITHOUT THIS WORK — missing {missing}.\n'
+                     f'   Rebind 9101 to this repo (never stand up a second port).')
 
         # WATCH mode: two CPUs, both players real, no input needed to keep a match alive.
         pg.keyboard.press('Enter')

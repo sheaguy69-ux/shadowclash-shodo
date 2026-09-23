@@ -11,7 +11,7 @@ import path from 'node:path';
 const root = process.cwd();
 const outputDir = process.argv[2] || 'media/facing-audit';
 await mkdir(outputDir, { recursive: true });
-const httpPort = +(process.env.PORT || 9100), debugPort = 9334;
+const httpPort = +(process.env.PORT || 9101), debugPort = 9334;
 const chromePath = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const profile = await mkdtemp(path.join(tmpdir(), 'sc-facing-chrome-'));
 
@@ -21,7 +21,7 @@ const profile = await mkdtemp(path.join(tmpdir(), 'sc-facing-chrome-'));
 // backed by a different tree. Use the shared server; never start or kill one here.
 const alive = await fetch(`http://127.0.0.1:${httpPort}/`).then(r => r.ok).catch(() => false);
 if (!alive) {
-  console.error(`no server on :${httpPort} — start it once with:  python3 tools/serve.py 9100 web`);
+  console.error(`no server on :${httpPort} — start it once with:  python3 tools/serve.py 9101 web`);
   process.exit(1);
 }
 const chrome = spawn(chromePath, ['--headless=new', '--disable-gpu', '--no-first-run', '--autoplay-policy=no-user-gesture-required',

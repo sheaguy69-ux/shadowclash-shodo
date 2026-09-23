@@ -28,12 +28,12 @@ import { mkdtemp } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 
-const port = +(process.env.PORT || 9100), dbg = 9354;
+const port = +(process.env.PORT || 9101), dbg = 9354;
 const profile = await mkdtemp(path.join(tmpdir(), 'sp-audit-'));
 const who = await fetch(`http://127.0.0.1:${port}/whoami`).then(r => r.json()).catch(() => null);
-if (!who) { console.error(`no server on :${port} — python3 tools/serve.py 9100 web`); process.exit(1); }
+if (!who) { console.error(`no server on :${port} — python3 tools/serve.py 9101 web`); process.exit(1); }
 if (path.resolve(who.tree) !== path.resolve(process.cwd())) {
-  console.error(`:9100 is serving ${who.tree}\nyou are in    ${process.cwd()}\nrebind (never add a second port):\n  kill ${who.pid} && python3 tools/serve.py 9100 web`);
+  console.error(`:9101 is serving ${who.tree}\nyou are in    ${process.cwd()}\nrebind (never add a second port):\n  kill ${who.pid} && python3 tools/serve.py 9101 web`);
   process.exit(1);
 }
 spawnSync('pkill', ['-f', `remote-debugging-port=${dbg}`], { stdio: 'ignore' });

@@ -2,7 +2,7 @@
 """Every mechanic, asserted against the engine's OWN constants — not against a number
 typed in here that can drift away from the game.
 
-  python3 tools/serve.py 9100 web &      # 9100, the only server
+  python3 tools/serve.py 9101 web &      # 9101, the owner's tree
   python3 tools/audit_mechanics.py
 
 The other harnesses in tools/ each own one feature. This one sweeps the systems that no

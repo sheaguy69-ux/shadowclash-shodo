@@ -32,8 +32,8 @@ import { mkdtemp } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 
-const url = new URL(process.env.SHADOWCLASH_URL || 'http://127.0.0.1:9100');
-const port = url.port || '9100';
+const url = new URL(process.env.SHADOWCLASH_URL || 'http://127.0.0.1:9101');
+const port = url.port || '9101';
 const chromePath = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const profile = await mkdtemp(path.join(tmpdir(), 'shin-mode2-'));
 

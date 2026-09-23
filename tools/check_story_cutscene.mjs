@@ -5,7 +5,7 @@ import path from 'node:path';
 
 // Story-cutscene check (docs/STORY-CUTSCENE-SYSTEM-DESIGN.md §9). Drives the REAL code path:
 // startCutscene -> advance/typewriter/skip -> handoff, plus static hooks (beginFight/gameLoop/resetRound).
-const port = 9100, dbg = 9344;
+const port = 9101, dbg = 9344;
 const profile = await mkdtemp(path.join(tmpdir(), 'sc-cutscene-'));
 spawnSync('pkill', ['-f', `remote-debugging-port=${dbg}`], { stdio: 'ignore' });
 // ⛔ WAIT FOR IT TO ACTUALLY DIE — the same loop check_jump_commit and check_air_art_holds
@@ -18,7 +18,7 @@ for (let i = 0; i < 60; i++) {
   await new Promise(r => setTimeout(r, 100));
 }
 const alive = await fetch(`http://127.0.0.1:${port}/`).then(r => r.ok).catch(() => false);
-if (!alive) { console.error('CHECK FAIL: start the shared server first — python3 tools/serve.py 9100 web'); process.exit(1); }
+if (!alive) { console.error('CHECK FAIL: start the shared server first — python3 tools/serve.py 9101 web'); process.exit(1); }
 const chrome = spawn('/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
   ['--headless=new','--disable-gpu','--no-first-run','--no-sandbox',`--remote-debugging-port=${dbg}`,`--user-data-dir=${profile}`,`http://127.0.0.1:${port}/`], { stdio: 'ignore' });
 const sleep = ms => new Promise(r => setTimeout(r, ms));

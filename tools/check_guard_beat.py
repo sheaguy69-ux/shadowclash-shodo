@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """EVERY fighter's guard must REACT — the braced beat, drawn, on a hit the guard ate.
 
-  python3 tools/serve.py 9100 web &      # 9100, the only server
+  python3 tools/serve.py 9101 web &      # 9101, the owner's tree
   python3 tools/check_guard_beat.py
 
 The guard is two pictures: the hold, and the beat where the body braces behind it.

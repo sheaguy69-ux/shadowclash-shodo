@@ -16,7 +16,7 @@ const dbg = 9339;
 // A driver CHECKS the one server — it never starts its own. Find the port whose
 // tree is THIS repo; anything else is someone else's build and would grade it.
 let port = null;
-for (const p of [9100, 9101]) {
+for (const p of [9101, 9100]) {
     const who = await fetch(`http://127.0.0.1:${p}/whoami`).then(r => r.json()).catch(() => null);
     if (who && path.resolve(who.tree) === repo) { port = p; break; }
 }

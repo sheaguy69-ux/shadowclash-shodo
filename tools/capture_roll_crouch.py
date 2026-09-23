@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Owner-review capture: the crouch and the ground roll, AS THE GAME DRAWS THEM.
 
-Screenshots the live canvas on 9100 beat by beat while the engine holds each state, so
+Screenshots the live canvas on 9101 beat by beat while the engine holds each state, so
 the strips and GIFs are the shipped render — the drawn cell plus every transform on top
 of it — and not a Python re-render of the sheet. A static re-render cannot see a ghost,
 and it cannot see the spin.
@@ -23,7 +23,7 @@ from playwright.sync_api import sync_playwright
 
 # Two designated ports are law (AGENTS.md rule 8). Same override every harness uses:
 #   SHADOWCLASH_URL=http://localhost:9101/index.html python3 tools/capture_roll_crouch.py
-URL = os.environ.get('SHADOWCLASH_URL', 'http://127.0.0.1:9100/').replace('index.html', '')
+URL = os.environ.get('SHADOWCLASH_URL', 'http://127.0.0.1:9101/').replace('index.html', '')
 OUT = pathlib.Path('media/roll-crouch-2026-08-13')
 PAIRS = [('Executioner', 'Mizu'), ('Shin', 'Tsubasa'), ('Ember', 'Kael'), ('Mokurai', 'Exile')]
 NO_ROLL = {'mokurai', 'exile'}
@@ -102,7 +102,7 @@ def main():
         if urllib.request.urlopen(URL, timeout=5).status != 200:
             raise OSError
     except Exception:
-        sys.exit('⛔ 9100 is not serving the game.  python3 tools/serve.py 9100 web')
+        sys.exit('⛔ 9101 is not serving the game.  python3 tools/serve.py 9101 web')
     OUT.mkdir(parents=True, exist_ok=True)
 
     with sync_playwright() as pw:
@@ -127,8 +127,8 @@ def main():
                                'p.state === STATE.ROLL) { lean = 0') if m not in src]
         if missing:
             b.close()
-            sys.exit(f'⛔ 9100 is serving a TREE WITHOUT THIS WORK — missing {missing}.\n'
-                     f'   Rebind 9100 to this repo (never stand up a second port).')
+            sys.exit(f'⛔ 9101 is serving a TREE WITHOUT THIS WORK — missing {missing}.\n'
+                     f'   Rebind 9101 to this repo (never stand up a second port).')
 
         def to_select():
             pg.keyboard.press('Enter'); pg.wait_for_timeout(400)

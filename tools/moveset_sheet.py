@@ -107,7 +107,7 @@ def main():
             sys.exit(f'probe failed: {r.stderr.strip()}')
         probe = json.loads(r.stdout)
     if pathlib.Path(probe['tree']).resolve() != tree:
-        sys.exit(f"probe measured {probe['tree']}, not {tree} — rebind :9100 or pass --tree")
+        sys.exit(f"probe measured {probe['tree']}, not {tree} — rebind :9101 or pass --tree")
     sheet_v = probe['sheet_v']
     engine = (tree / 'web/index.html').read_text()
 

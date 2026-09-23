@@ -98,9 +98,15 @@ The only rules here that exist to stop an accident rather than express a prefere
 `web/index.html` is the whole game — one file, one inline classic `<script>`, bare
 identifiers, no modules and no window globals. `godot/` is dead. Deliverables in `media/`.
 
-**`:9101` is Anthony's review surface — never kill it.** `:9100` is the recovered rollback,
-`:9102` the approved-art gallery. `curl -s localhost:<port>/whoami` before believing
-anything about what a page is serving.
+**`:9101` IS THE TREE** (owner, Sep 22 2026) — his review surface, and what every tool in
+`tools/` now defaults to. **Never kill it.** `python3 tools/serve.py 9101 web`.
+
+`:9100` is the recovered rollback and `:9102` the approved-art gallery; both stay reachable
+by override (`SHADOWCLASH_URL=http://localhost:9100/index.html <command>`), they are just
+not the default any more. They used to be: `serve.py` served `:9101` while ~39 harnesses
+graded `:9100`, so the checks measured the rollback tree while the work went to this one.
+
+`curl -s localhost:<port>/whoami` before believing anything about what a page is serving.
 
 Verify by watching, not by asserting: capture consecutive live frames. A static assert
 cannot see a ghost, and "it builds" is not verification.

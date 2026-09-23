@@ -22,17 +22,17 @@ import path from 'node:path';
 
 // ⛔ NEVER SPAWN A SERVER. There is ONE ShadowClash URL, :9100 (tools/serve.py). A driver
 // that starts its own is how a stale one silently graded the PREVIOUS sheet twice.
-const port = 9100, dbg = 9336;
+const port = 9101, dbg = 9336;
 const chromePath = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const profile = await mkdtemp(path.join(tmpdir(), 'oni-wire-'));
 
 const who = await fetch(`http://127.0.0.1:${port}/whoami`).then(r => r.json()).catch(() => null);
-if (!who) { console.error(`no server on :${port} — start it with: python3 tools/serve.py 9100 web`); process.exit(1); }
+if (!who) { console.error(`no server on :${port} — start it with: python3 tools/serve.py 9101 web`); process.exit(1); }
 // ⛔ AND IT MUST BE SERVING *THIS* TREE. :9100 served the main tree at SHEET_V 436 while
 // the live work sat at 446, so a grade here described a sheet nobody was editing.
 const here = process.cwd();
 if (path.resolve(who.tree) !== path.resolve(here)) {
-  console.error(`:9100 is serving ${who.tree}\nyou are in    ${here}\nrebind it (never add a second port):\n  kill ${who.pid} && python3 tools/serve.py 9100 web`);
+  console.error(`:9101 is serving ${who.tree}\nyou are in    ${here}\nrebind it (never add a second port):\n  kill ${who.pid} && python3 tools/serve.py 9101 web`);
   process.exit(1);
 }
 spawnSync('pkill', ['-f', `remote-debugging-port=${dbg}`], { stdio: 'ignore' });

@@ -14,7 +14,7 @@ import path from 'node:path';
 
 const NAME = (process.argv.includes('--name')
   ? process.argv[process.argv.indexOf('--name') + 1] : 'oni').toLowerCase();
-const port = +(process.env.PORT || 9100), dbg = 9371;
+const port = +(process.env.PORT || 9101), dbg = 9371;
 const who = await fetch(`http://127.0.0.1:${port}/whoami`).then(r => r.json()).catch(() => null);
 if (!who) { console.error(`no server on :${port}`); process.exit(1); }
 if (path.resolve(who.tree) !== path.resolve(process.cwd())) {

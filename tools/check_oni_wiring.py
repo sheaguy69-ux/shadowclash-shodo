@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """The six Oni moves wired on 2026-08-11 — do they DRAW their own cells?
 
-  python3 tools/serve.py 9100 web &      # 9100, the only server
+  python3 tools/serve.py 9101 web &      # 9101, the owner's tree
   python3 tools/check_oni_wiring.py
 
 ⛔ WHY THIS EXISTS SEPARATELY FROM audit_moves. That auditor clears a cell once the

@@ -43,14 +43,14 @@ import path from 'node:path';
 
 const NAME = (process.argv.includes('--name')
   ? process.argv[process.argv.indexOf('--name') + 1] : 'oni').toLowerCase();
-const port = 9100, dbg = 9335;
+const port = 9101, dbg = 9335;
 const chromePath = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 const here = spawnSync('git', ['rev-parse', '--show-toplevel'], { encoding: 'utf8' }).stdout.trim();
 let who;
 try { who = await fetch(`http://127.0.0.1:${port}/whoami`).then(r => r.json()); }
-catch { console.error(`no server on :${port} — start it: python3 tools/serve.py 9100 web`); process.exit(2); }
+catch { console.error(`no server on :${port} — start it: python3 tools/serve.py 9101 web`); process.exit(2); }
 if (!who || !who.tree) { console.error('server has no /whoami — it is an old serve.py; restart it from this tree'); process.exit(2); }
 if (path.resolve(who.tree) !== path.resolve(here)) {
   console.error(`⛔ :${port} is serving ${who.tree}\n   you are in    ${here}\n   Refusing to grade another tree's sheet. Rebind it first.`);

@@ -20,12 +20,12 @@ import path from 'node:path';
 
 const NAME = (process.argv.includes('--name')
   ? process.argv[process.argv.indexOf('--name') + 1] : 'oni').toLowerCase();
-const port = 9100, dbg = 9364;
+const port = 9101, dbg = 9364;
 const profile = await mkdtemp(path.join(tmpdir(), 'ml-'));
 const who = await fetch(`http://127.0.0.1:${port}/whoami`).then(r => r.json()).catch(() => null);
-if (!who) { console.error(`no server on :${port} — python3 tools/serve.py 9100 web`); process.exit(1); }
+if (!who) { console.error(`no server on :${port} — python3 tools/serve.py 9101 web`); process.exit(1); }
 if (path.resolve(who.tree) !== path.resolve(process.cwd())) {
-  console.error(`:9100 is serving ${who.tree}\nrebind: kill ${who.pid} && python3 tools/serve.py 9100 web`);
+  console.error(`:9101 is serving ${who.tree}\nrebind: kill ${who.pid} && python3 tools/serve.py 9101 web`);
   process.exit(1);
 }
 spawnSync('pkill', ['-f', `remote-debugging-port=${dbg}`], { stdio: 'ignore' });

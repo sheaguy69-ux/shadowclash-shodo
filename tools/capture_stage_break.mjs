@@ -19,7 +19,7 @@ const OUT = path.resolve('media/stage-break');
 // ⛔ HOUSE RULE 7: ONE server, port 9100, and a driver NEVER starts its own. This tool
 // shipped with `PORT = 4611` and spawned python3 tools/serve.py itself — a second port is
 // how one agent grades a tree another agent is not editing. It now uses 9100 and checks it.
-const PORT = 9100, DBG = 9341;
+const PORT = 9101, DBG = 9341;
 const CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const profile = await mkdtemp(path.join(tmpdir(), 'sc-break-'));
 await mkdir(OUT, { recursive: true });

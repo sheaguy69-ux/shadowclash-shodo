@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """SAYA-KAMAE must not ARM IRON GUARD REPRISAL — the Executioner's double-dip.
 
-  python3 tools/serve.py 9100 web &      # 9100, the only server
+  python3 tools/serve.py 9101 web &      # 9101, the owner's tree
   python3 tools/check_saya_reprisal.py
 
 Saya-Kamae (V+Down) is roster-wide: `modeKey` reads the direction BEFORE it branches on

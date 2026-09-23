@@ -1,6 +1,6 @@
 """Which PACKED CELLS can no input in the game reach?
 
-  python3 tools/serve.py 9100 web &          # the one server
+  python3 tools/serve.py 9101 web &          # the one server
   python3 tools/audit_cell_coverage.py                 # whole roster
   python3 tools/audit_cell_coverage.py --ids 8         # one fighter
   python3 tools/audit_cell_coverage.py --write-allow   # accept today's situational list
@@ -323,7 +323,7 @@ def run(ids):
                    check=True, capture_output=True, text=True)
     log = (OUT / 'run/log.txt').read_text()
     if 'CELLS: ' not in log:
-        sys.exit("probe produced no result — is 9100 serving THIS tree?")
+        sys.exit("probe produced no result — is 9101 serving THIS tree?")
     i = log.index('CELLS: ') + len('CELLS: ')
     raw = json.JSONDecoder().raw_decode(log[i:])[0]
     return {int(k): set(v) for k, v in raw.items()}

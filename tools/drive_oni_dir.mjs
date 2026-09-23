@@ -15,14 +15,14 @@ import path from 'node:path';
 // driver that starts its own is how three of them ended up running at once — and a
 // stale one on the driver's port silently graded the PREVIOUS sheet for two runs here.
 // Use the one server; if it is down, start it once by hand and leave it up.
-const port = 9100, dbg = 9334;
+const port = 9101, dbg = 9334;
 const chromePath = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const profile = await mkdtemp(path.join(tmpdir(), 'oni-dir-'));
 // ⛔ tools/serve.py, never `python3 -m http.server`: the plain server sends no cache
 // headers, so Chrome pins the previous oni.png and the run silently grades the OLD
 // sheet. It did exactly that here — reported 112 cells against a 100-cell file on disk.
 const alive = await fetch(`http://127.0.0.1:${port}/`).then(r => r.ok).catch(() => false);
-if (!alive) { console.error(`no server on :${port} — start it with: python3 tools/serve.py 9100 web`); process.exit(1); }
+if (!alive) { console.error(`no server on :${port} — start it with: python3 tools/serve.py 9101 web`); process.exit(1); }
 // ⛔ KILL ANY CHROME ALREADY ON THE DEBUG PORT FIRST. This attaches to whatever page it
 // finds there, so a LEAKED instance from an earlier run serves up its long-stale page and
 // the run silently grades an old sheet — it reported 100 cells against a 118-cell file

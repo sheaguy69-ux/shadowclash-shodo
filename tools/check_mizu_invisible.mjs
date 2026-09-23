@@ -7,11 +7,11 @@ import { spawn, spawnSync } from 'node:child_process';
 import { mkdtemp } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-const port=9100, dbg=9338;
+const port=9101, dbg=9338;
 const profile=await mkdtemp(path.join(tmpdir(),'invis-'));
 spawnSync('pkill',['-f',`remote-debugging-port=${dbg}`],{stdio:'ignore'});
 await new Promise(r=>setTimeout(r,800));
-if(!await fetch(`http://127.0.0.1:${port}/`).then(r=>r.ok).catch(()=>false)){console.error('no :9100');process.exit(1);}
+if(!await fetch(`http://127.0.0.1:${port}/`).then(r=>r.ok).catch(()=>false)){console.error('no :9101');process.exit(1);}
 const chrome=spawn('/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
  ['--headless=new','--disable-gpu','--no-first-run',`--remote-debugging-port=${dbg}`,
   `--user-data-dir=${profile}`,`http://127.0.0.1:${port}/`],{stdio:'ignore'});

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """The move tables and the cells behind them — asked of the RUNNING GAME, not of the text.
 
-  python3 tools/serve.py 9100 web &      # 9100, the only server
+  python3 tools/serve.py 9101 web &      # 9101, the owner's tree
   python3 tools/audit_moves.py
 
 REPLACES tools/check_moves.py, which answered every question by regex over 2MB of source

@@ -21,11 +21,11 @@ import { fileURLToPath } from 'node:url';
 
 const NAME = (process.argv.includes('--name')
   ? process.argv[process.argv.indexOf('--name') + 1] : 'kael').toLowerCase();
-const port = 9100, dbg = 9371;
+const port = 9101, dbg = 9371;
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const html = await readFile(path.join(root, 'web/index.html'));
 const alive = await fetch(`http://127.0.0.1:${port}/`).then(r => r.ok).catch(() => false);
-if (!alive) { console.error(`no server on :${port} — python3 tools/serve.py 9100 web`); process.exit(1); }
+if (!alive) { console.error(`no server on :${port} — python3 tools/serve.py 9101 web`); process.exit(1); }
 
 const profile = await mkdtemp(path.join(tmpdir(), 'ls-'));
 spawnSync('pkill', ['-f', `remote-debugging-port=${dbg}`], { stdio: 'ignore' });
@@ -206,7 +206,7 @@ const check = (ok, msg, detail) => {
   console.log(`${ok ? ' ok ' : 'FAIL'} ${msg}${detail ? '   ' + detail : ''}`);
   if (!ok) bad++;
 };
-console.log(`— ${who}, live on :9100 (document from this lane) —`);
+console.log(`— ${who}, live on :9101 (document from this lane) —`);
 const s0 = R.single.boxes[0] || {};
 check(R.single.boxes.length === 1 && near(s0.dmg, R.single.wantDmg)
       && near(s0.w, R.single.wantW) && near(s0.push, R.single.wantPush) && R.single.step === 0,

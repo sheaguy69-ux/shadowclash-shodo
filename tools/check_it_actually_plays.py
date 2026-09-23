@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Does the game PLAY? Boot to KO, with real key events. No component probes.
 
-  python3 tools/serve.py 9100 web &
+  python3 tools/serve.py 9101 web &
   python3 tools/check_it_actually_plays.py
 
 ⛔ WHY THIS EXISTS. Every other harness in tools/ measures a PART — does this cell draw,

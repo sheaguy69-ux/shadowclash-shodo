@@ -6,7 +6,7 @@ import path from 'node:path';
 
 const root = process.cwd();
 const outputDir = path.resolve(process.argv[2] || 'media/audit-runtime-2026-07-16');
-const httpPort = +(process.env.PORT || 9100);
+const httpPort = +(process.env.PORT || 9101);
 const debugPort = 9333;
 const chromePath = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const profile = await mkdtemp(path.join(tmpdir(), 'shadowclash-audit-chrome-'));
@@ -18,7 +18,7 @@ await mkdir(outputDir, { recursive: true });
 // backed by a different tree. Use the shared server; never start or kill one here.
 const alive = await fetch(`http://127.0.0.1:${httpPort}/`).then(r => r.ok).catch(() => false);
 if (!alive) {
-  console.error(`no server on :${httpPort} — start it once with:  python3 tools/serve.py 9100 web`);
+  console.error(`no server on :${httpPort} — start it once with:  python3 tools/serve.py 9101 web`);
   process.exit(1);
 }
 const chrome = spawn(chromePath, [
