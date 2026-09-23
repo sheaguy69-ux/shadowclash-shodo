@@ -180,7 +180,13 @@ const thrower=new Player(3,f.a.x-10,f.a.y,f.d.spec,true);
 thrower.throwVictim=f.a;thrower.throwTimer=.4;f.a.grabbedBy=thrower;f.a.state=STATE.THROWN;
 brawlAll=[f.d,f.a,thrower];key(f.guard,true);f.d.tryCornerBreak();
 check('brawl break preserves teammate paired throw',f.a.grabbedBy===thrower && f.a.state===STATE.THROWN && thrower.throwVictim===f.a && thrower.throwTimer===.4);
-f=fixture();gameMode='training';drillIdx=1;key('KeyC',true);f.d.hp=f.a.hp=MAX_HP;
+/* ⛔ FIND THE DRILL BY NAME, NEVER BY INDEX. This read drillIdx=1 and broke the day a
+   new mechanic was inserted above CORNER BREAK in the DRILLS array — the gate happily ran
+   a DIFFERENT drill and reported corner defense broken. Line 171 already selects it by
+   name; this is the same lookup, so any future insertion is free. */
+const cornerDrill=DRILLS.findIndex(d=>/corner/i.test(d.name));
+if(cornerDrill<0) throw new Error('no corner drill in DRILLS');
+f=fixture();gameMode='training';drillIdx=cornerDrill;key('KeyC',true);f.d.hp=f.a.hp=MAX_HP;
 let attacks=0,drillContacts=0;const normalDamage=f.d.takeDamage;
 f.d.takeDamage=function(...args){const oldHP=this.hp;normalDamage.apply(this,args);if(this.hp<oldHP)drillContacts++;};
 for(let i=0;i<600;i++){gameLoop(lastTime+1000/60);if(f.a.isAttackingState())attacks++;}
