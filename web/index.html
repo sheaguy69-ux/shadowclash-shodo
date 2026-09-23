@@ -593,6 +593,7 @@
                             <li><b class="text-gray-200">Throw:</b> Light+Heavy together up close — hold toward them for a forward toss or hold away for an over-shoulder back throw. Beats block. Ember's forward throw is a claw SLICE — they fly forward and tumble along the ground.</li>
                             <li><b class="text-gray-200">Ember Up Attack:</b> Hold <kbd>Up</kbd> + Heavy on the ground — rising double-claw launcher. Sends them HIGH for a juggle.</li>
                             <li><b class="text-gray-200">Weapon clash:</b> Two active weapon swings meeting at once cancel with sparks, recoil and a metal ring.</li>
+                            <li><b class="text-gray-200">Mist Ambush:</b> Mizu's mist hides her completely. A <b>Heavy</b> thrown from inside her own cloud is <i>unblockable</i> and hits harder — but it SPENDS the mist, hit or whiff — the cloud is gone and she fades back into view over about two thirds of a second. Guard won't save you; a Corner Break still will.</li>
                             <li><b class="text-gray-200">Blade lock:</b> Two <i>steel edges</i> meeting on the ground don't cancel — they LOCK. Mash Light/Heavy: lead by SIX presses and you break their guard and stand over a free hit — but never in the first 0.3s, however fast you mash. Neither leads, both recoil.</li>
                             <li><b class="text-gray-200">Shunshin:</b> Double-tap a direction to dash (15 chakra). Release or reverse after the opening burst to micro-dash; hold to travel farther. You can be clipped mid-dash.</li>
                             <li><b class="text-gray-200">Air control:</b> Hold a direction when a launch connects to influence its angle. Heavier fighters travel less. Neutral air Light cancels on landing.</li>
@@ -1787,6 +1788,9 @@
         const MUKI_COST     = 18;     // chakra to enter
         const MUKI_STARTUP  = 0.62;   // hitbox delay multiplier — the hyper-fast startup
         const MUKI_DMG      = 1.25;   // ...and it hits harder, because nothing defends it
+        // THE MIST AMBUSH. A heavy thrown from inside your own mist is unblockable and
+        // hits harder — and it SPENDS the cloud. See spawnHitbox, filed with the stances.
+        const AMBUSH_DMG    = 1.35;   // the payoff for giving up the cover
         const MUKI_TAKEN    = 1.5;    // damage TAKEN while formless. This is the risk.
 
         // ---- item 8: SAYA-KAMAE (鞘構え) — the grip switch -----------------------
@@ -3541,6 +3545,7 @@
                 this.leanSmooth = 0;         // spring-damped body lean (velocity-scaled, never snaps)
                 this.landSquash = 0;         // 1->0 landing-impact squash (weight)
                 this.hitSquashT = 0;         // 1->0 IMPACT squash on taking damage (see drawSprite)
+                this.ambushT = 0;            // >0 = MIST AMBUSH just fired (label only)
                 this.jumpSquatT = 0; this.skidT = 0; this.turnT = 0; this.skidDir = 1;   // transition beats
                 this.parryFlashTimer = 0;
                 this.crouchAt = -9;            // animClock the crouch was entered (sink beats)
@@ -4477,6 +4482,7 @@
                         vx: (Math.random() - 0.5) * 26, vy: -50 - Math.random() * 60,
                         len: 6 + 2 * this.dread, color: '#f97316', life: 0.3, maxLife: 0.3 });
                 if (this.hitSquashT > 0) this.hitSquashT -= dt;
+                if (this.ambushT > 0) this.ambushT -= dt;
                 // Hold the streak through anticipation. A connecting hit releases it
                 // immediately in processHitboxes; a whiff releases here at the same
                 // contact timing. This keeps the blur off the raised-weapon frame.
@@ -8288,6 +8294,49 @@
                 // dealt outside spawnHitbox and are NOT doubled; they have their own
                 // constants and their own balance.
                 if (this.kageNui) dmg *= KAGE_DMG;
+                // ---- THE MIST AMBUSH -------------------------------------------------
+                // Filed HERE with the stances for the reason the comment above gives: being
+                // unseen is a property of the STATE you are attacking from, not of which move
+                // you threw. One guard covers her whole kit instead of every heavy remembering.
+                //
+                // The mist already grants total invisibility with FULL offence — the block at
+                // the hiddenInSmoke definition says she "keeps full control and can attack
+                // straight out of it", and the drill measured her hidden 719 of 720 frames. So
+                // the cover was never the problem: the problem was that it bought her nothing
+                // to DO. A heavy out of her own cloud is now the ambush, unblockable and x1.35.
+                //
+                // ⛔ IT COSTS THE CLOUD, ON SPAWN, WHIFF OR HIT. That is the whole design.
+                // Owner deleted a 6s-cooldown-against-a-4s-mist because it "bought a guaranteed
+                // 2s window where she could be seen and punished — the balanced answer, and not
+                // the one asked for". This is NOT that tax reintroduced: nothing forces her to
+                // surface, and she can hold the mist forever exactly as before, poking with
+                // light/medium/special while invisible. The ambush is a thing she may CHOOSE to
+                // spend it on. Agency, not a timer. And because it costs on SPAWN, throwing it
+                // at nothing is a real whiff that hands the opponent the read — which is the
+                // counterplay the mist has never had.
+                //
+                // No fighter check is needed and none is written: hiddenInSmoke is only ever
+                // set for the owner of a `kind: 'mist'` field, and mist is cast in exactly one
+                // place. If Oni returns, his smokebomb clouds dim but never hide, so they
+                // cannot reach this branch.
+                if (this.hiddenInSmoke && (opts.tier || this.state) === STATE.ATTACK_HEAVY) {
+                    dmg *= AMBUSH_DMG;
+                    opts = { ...opts, unblockable: true };
+                    for (let i = smokeFields.length - 1; i >= 0; i--)
+                        if (smokeFields[i].kind === 'mist' && smokeFields[i].owner === this)
+                            smokeFields.splice(i, 1);
+                    // The cloud tearing open is the tell. Existing puff, existing cue — no new
+                    // art and no new colour (THE GRAY stands).
+                    createSmokePuff(this.x + this.width / 2, this.y + this.height / 2, 22, 1.4);
+                    sfx('whoosh_heavy');
+                    this.ambushT = 0.5;   // drives the world-space label only
+                    // ⛔ SPENDING THE CLOUD DOES NOT REVEAL HER AT ONCE, and that is the
+                    // engine's existing behaviour, not a choice made here: alpha climbs
+                    // back at `dt * 1.5` from the smoke/vanish recovery ramp, so she
+                    // MEASURES 0 -> 1.0 over 40 frames / ~667ms. She materialises out of
+                    // the dispersing smoke rather than popping into view. Do not 'fix'
+                    // this into a snap — the ramp is shared with the vanish transition.
+                }
                 // SAYA-KAMAE, gyaku-te: a reverse blade is SHORTER and QUICKER. The
                 // trade is the whole stance — you give up the tip to gain the frames.
                 if (this.gyakute) {
@@ -16481,6 +16530,24 @@
         const DRILLS = [
             { name: 'OFF' },
             {
+                // ⛔ EVERY NEW MECHANIC SHIPS WITH A DRILL (owner, Aug 10 2026). The MIST
+                // AMBUSH's whole claim is that it beats a guard, so the dummy's job is to
+                // hold one: walk in, then block and keep blocking. Cast mist (Down+Special),
+                // stand in it, throw HEAVY — it goes through the guard and the cloud is gone.
+                // Throw it at nothing and you are visible with nothing to show for it, which
+                // is the half the drill is really teaching.
+                name: 'MIST AMBUSH — cast mist, HEAVY from inside it (dummy guards)',
+                run: (me, B) => {
+                    const target = me.opponent;
+                    if (!target || target.hp <= 0 || me.stunTimer > 0) return;
+                    const dir = Math.sign(target.x - me.x) || me.facing;
+                    me.facing = dir;
+                    const distance = Math.abs((target.x + target.width / 2) - (me.x + me.width / 2));
+                    if (distance > 90) keys[dir > 0 ? B.keyR : B.keyL] = true;
+                    else keys[B.keyBlock] = true;   // in range: hold the guard it has to break
+                },
+            },
+            {
                 name: 'CORNER BREAK — back to a wall, HOLD GUARD (C)',
                 run: (me, B) => {
                     const target = me.opponent;
@@ -19365,7 +19432,7 @@
                 p.cornerRecoilT = p.cornerRecoilV = 0; p.wallSplatUsed = false;
                 p.hitboxes.length = 0; p.state = STATE.IDLE;
                 p.slamPhase = 0; p.slamRecover = 0; p.airFloatT = 0; p.airFloats = 0; p.groundBounce = false;
-                p.hitSquashT = 0; p.landSquash = 0;
+                p.hitSquashT = 0; p.landSquash = 0; p.ambushT = 0;
             }
             player1.facing = 1; player2.facing = -1;
             trainingStats.last = 0; trainingStats.combo = 0; trainingStats.total = 0;
@@ -21362,6 +21429,25 @@
                 const y = Math.max(132, p.y - 20);
                 ctx.fillStyle = 'rgba(10,12,18,0.88)'; ctx.fillRect(x - w / 2, y - 14, w, 21);
                 ctx.fillStyle = p.cornerGrace > 0 ? '#86efac' : '#facc15';
+                ctx.fillText(label, x, y + 1); ctx.restore();
+            }
+            // MIST AMBUSH — same idiom, same two colours, no new palette (THE GRAY stands).
+            // ⛔ DRAWN ONLY AFTER IT FIRES, NEVER WHILE SHE IS HIDDEN. A readiness label over
+            // an invisible fighter would paint a marker on the one thing the mist exists to
+            // hide, handing the opponent her exact position for free. By the time this shows,
+            // the cloud is already spent and she is already visible — so it tells the VICTIM
+            // what just hit them, which is the half that needed saying.
+            for (const p of (gameMode === 'brawl' ? brawlAll : [player1, player2])) {
+                if (!p || p.hp <= 0 || p.ambushT <= 0) continue;
+                ctx.save();
+                ctx.font = 'bold 12px monospace'; ctx.textAlign = 'center';
+                ctx.globalAlpha = Math.min(1, p.ambushT / 0.2);
+                const label = 'MIST AMBUSH — UNBLOCKABLE';
+                const w = ctx.measureText(label).width + 14;
+                const x = Math.max(w / 2 + 4, Math.min(canvas.width - w / 2 - 4, p.x + p.width / 2));
+                const y = Math.max(132, p.y - 20);
+                ctx.fillStyle = 'rgba(10,12,18,0.88)'; ctx.fillRect(x - w / 2, y - 14, w, 21);
+                ctx.fillStyle = '#facc15';
                 ctx.fillText(label, x, y + 1); ctx.restore();
             }
             // TAG TEAM — the corner: your partner's face and health, so you know
