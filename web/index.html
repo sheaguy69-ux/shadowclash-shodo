@@ -4327,7 +4327,7 @@
                 this.dashTimer = this.rollTimer = this.rollRecover = this.rushT = this.tauntT = 0;
                 this.thrustSlide = this.speedTrail = this.clashRecoil = this.wallJumpLock = 0;
                 this.slamPhase = this.slamRecover = this.airFloatT = this.flooredT = this.tumbleT = this.tumbleOnLand = 0;
-                this.groundBounce = this.spikedFall = this.skySmash = this.skySlam = this.bellDive = false;
+                this.groundBounce = this.spikedFall = this.skySmash = this.skySlam = this.throwSlam = this.bellDive = false;
                 this.grappleT = this.ceilLatch = this.wallDir = this.blockPushTimer = 0;
                 this.latchPlat = null; this.parryFlashTimer = this.armorTimer = this.meditateTimer = this.sayaLock = 0;
                 this.deflectT = this.techT = 0;
@@ -5873,6 +5873,17 @@
                     this.vy = 0;
                     this.isGrounded = true;
                     this.riding = null;
+                    // THROW LANDING (owner 9/23: "throws need my impacts, shaking of a
+                    // screen"): the release had all the juice and the body hit the floor
+                    // in silence. The slam is the moment — shake, freeze, dust, sound.
+                    if (this.throwSlam) {
+                        this.throwSlam = false;
+                        screenShakeAmount = Math.max(screenShakeAmount, 14);
+                        hitstopRemaining = Math.max(hitstopRemaining, 70);
+                        spawnFx('H08', this.x + this.width / 2, GROUND_Y, { w: 55 });
+                        createSmokePuff(this.x + this.width / 2, GROUND_Y);
+                        sfx('hit_heavy');
+                    }
                     }
                 }
 
@@ -10929,13 +10940,14 @@
                     hitstopRemaining = Math.max(hitstopRemaining, 140);
                 }
                 victim.isGrounded = false;
+                victim.throwSlam = !victim.skySlam;   // sky harvest has its own detonation
                 if (matchStats) {
                     matchStats.p[this.id - 1].dmg += healthDamage;
                     matchStats.p[this.id - 1].combo = Math.max(matchStats.p[this.id - 1].combo, 1);
                 }
                 trainHit(healthDamage, victim);
                 hitstopRemaining = Math.max(hitstopRemaining, 100);
-                screenShakeAmount = Math.max(screenShakeAmount, 9);
+                screenShakeAmount = Math.max(screenShakeAmount, 12);
                 flashAmount = Math.max(flashAmount, 0.16);
                 if (victim.hp <= 0) {
                     hitstopRemaining = Math.max(hitstopRemaining, 360);
@@ -20013,7 +20025,7 @@
                 p.vanishTimer = p.invulnTimer = p.armorTimer = p.blockPushTimer = p.parryFlashTimer = 0;
                 p.throwVictim = null; p.throwAir = p.throwReleased = false;
                 p.tumbleT = p.tumbleOnLand = p.flooredT = p.landT = p.jumpSquatT = p.skidT = p.turnT = 0;
-                p.skySmash = p.skySlam = p.bellDive = p.spikedFall = false;
+                p.skySmash = p.skySlam = p.throwSlam = p.bellDive = p.spikedFall = false;
                 p.leanSmooth = p.leanVel = p.landSquash = 0; p.alpha = 1; p.hiddenInSmoke = false;
                 p.windedTimer = p.chakraCd = 0; p.windedLatch = false;
                 p.riding = currentStage.abyss ? abyssSlabs[p.isP1 ? 0 : 1] : null;

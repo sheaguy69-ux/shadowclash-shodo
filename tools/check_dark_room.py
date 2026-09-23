@@ -280,7 +280,14 @@ def main():
     script = OUT / 'probe.json'
     script.write_text(json.dumps([
         {"wait": 1.2}, {"key": "Space"}, {"wait": 0.5},
-        {"eval": PROBE, "label": "DARK"},
+        # The probe runs past watch_game's 20s-per-eval CDP timeout on a loaded machine, so
+        # it runs in the background and is polled; each poll returns the moment it is done.
+        {"eval": "window.__darkR = null; window.__darkP = (async () => {" + PROBE + "})()"
+                 ".then(r => window.__darkR = r, e => window.__darkR = JSON.stringify({__err: String(e)}));"
+                 " return 'started';"},
+        *[{"eval": "await Promise.race([window.__darkP, new Promise(r => setTimeout(r, 15000))]);"
+                   " return window.__darkR !== null;"}] * 8,
+        {"eval": "return window.__darkR;", "label": "DARK"},
     ], indent=1))
     subprocess.run([sys.executable, str(REPO / 'tools/watch_game.py'),
                     '--script', str(script), '--out', str(OUT / 'run')],
