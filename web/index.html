@@ -1574,6 +1574,8 @@
             rivalry: { p1: 0, p2: 0 },    // lifetime HUMAN vs HUMAN match wins
             arcade: {},                   // per-ninja arcade clear counts
             story: {},                    // per-ninja story-climb clear counts
+            charged: {},                  // per-ninja count of full second-mode gauges — the TRIAL
+            unlocked: {},                 // per-ninja second mode EARNED, and it stays earned
             best: { combo: 0 },
             audio: { vol: 1, sfxOn: true },   // master volume (0-1 of the 0.35 bus) + SFX mute
         };
@@ -1635,36 +1637,45 @@
         const TERMINAL_VELOCITY = 1000;
         // Owner's faster ninja feel (Sep 5): one clock keeps motion, art and hits aligned.
         const COMBAT_TEMPO = 1.2;
-        // ⛔ EVERY SECOND MODE IS PAUSED. Owner, Sep 22 2026: "put everyone second on
-        // pause, I want to fully flesh out everybody second mode mechanics, and plus I
-        // plan on making that something that players must earn with every character to
-        // even unlock the second mode."
+        // ⛔ SECOND MODES ARE EARNED, NOT GIVEN. Owner, Sep 22 2026: "put everyone
+        // second on pause, I want to fully flesh out everybody second mode mechanics, and
+        // plus I plan on making that something that players must earn with every character
+        // to even unlock the second mode." Sep 23 he ruled what EARN means, and it is BOTH
+        // layers — unlock it once and it is yours forever, but you still have to CHARGE it
+        // in every match before you can spend it. No free second form at the bell, ever.
         //
-        // This was already the shared gate for the three V-toggle stances, and it already
-        // said "input, direct helpers and frame routers" — but THREE second modes were
-        // reaching the engine around it, and that is the whole repair:
-        //   · CHUDAN had an explicit BYPASS in modeKey (790/793 let it out once it had its
-        //     shodo art). Removed. It is the one live mode the owner deliberately switched
-        //     ON, so it is the one to switch back first if this pause was meant to spare it.
-        //   · THE CRACK is not on V at all — it is hold Down+C on a FULL karma bar — so it
-        //     never passed this way. Blocked at its own trigger, where it now falls through
-        //     to the ENLIGHTENMENT branch that was always the other half of that `if`.
-        //   · The two BOSS auto-modes (CPU Mokurai cracks under 40% HP, CPU Exile's chain
-        //     frenzy) fire off a timer with no input to gate. Blocked at their triggers too:
-        //     they run the identical mode code that is being redesigned. Delete those two
-        //     guards and the bosses have theirs back, nothing else changes.
+        //   LAYER 1  UNLOCK  permanent, save.unlocked[name], survives the browser.
+        //   LAYER 2  CHARGE  per match, the fighter's own gauge, full = spendable.
         //
-        // ONE SWITCH, and it is this one. When second modes become per-character unlocks,
-        // this becomes a per-player test instead of a global one; every call site already
-        // passes the player, so the shape does not have to change.
+        // LAYER 2 WAS NEVER NEW. Mokurai's KARMA (Aug 2) and Exile's CHAMPION bar (Aug 5)
+        // are exactly this already, each filling off something only that fighter does —
+        // karma off hits, blocks and counters; champion weighted toward damage TAKEN,
+        // because the lowest-defence body eats the most. That is why those two are first
+        // off the pause: their charge rule already existed and cost the owner no decision.
+        //
+        // THE FIRST FULL GAUGE IS THE TRIAL. You earn a mode by proving you can GENERATE
+        // it — fill the meter SECOND_UNLOCK_FILLS times in real matches and it unlocks for
+        // good. The character's economy teaches itself before it ever hands you the payoff,
+        // which is the whole point of making it earned instead of granted.
+        //
+        // EVERYONE ELSE IS STILL PAUSED EXACTLY AS 877 LEFT THEM. Executioner's CHUDAN,
+        // Mizu's HANBŌ, Shin's KAGE-NUI and Tsubasa's SAKATE have no charge rule yet, so
+        // FIRST_FORM_ONLY still covers them. Ember and Kael have no second mode at all —
+        // owner, Sep 23: "i will create later." Adding a name to SECOND_MODE_READY is how a
+        // fighter comes off the pause, one line, once his rule is ruled.
         const FIRST_FORM_ONLY = true;
+        const SECOND_MODE_READY = new Set(['Mokurai', 'Exile']);
+        const SECOND_UNLOCK_FILLS = 1;    // gauge-fills a trial costs. Raise it to lengthen every trial at once.
         function secondFormBlocked(player) {
-            if (!FIRST_FORM_ONLY) return false;
-            if (player) {
+            const name = player && player.spec ? player.spec.name : null;
+            const blocked = name && SECOND_MODE_READY.has(name)
+                ? !save.unlocked[name]    // redesigned: earned, or nothing
+                : FIRST_FORM_ONLY;        // not redesigned yet: paused where 877 left him
+            if (blocked && player) {
                 player.kageNui = false;
                 player.sakate = false;
                 player.hanbo = false;
-                // ⛔ AND THE REST OF THE LIST, or a mode set before the flag flipped rides
+                // ⛔ AND THE REST OF THE LIST, or a mode set before the gate closed rides
                 // on forever — updateStance() calls this every frame precisely so none of
                 // them can strand. crackTimer/crackIntro go with `cracked`: clearing the
                 // flag alone leaves the 6s timer running to a kneel nobody entered.
@@ -1672,7 +1683,7 @@
                 player.cracked = false; player.crackTimer = 0; player.crackIntro = 0;
                 player.frenzyTimer = 0;
             }
-            return true;
+            return blocked;
         }
         // Six airborne phases. Each sheet explicitly selects clean flight cells;
         // landing is separate because the source boards have different beat layouts.
@@ -3568,6 +3579,7 @@
                 this.dread = 0;                // EXECUTIONER: 0-3, landed heavies stack toward the EXECUTION
                 this.bossFrenzyUsed = false;   // CPU Exile's once-per-round second wind
                 this.champion = 0;             // EXILE: 0-CHAMPION_MAX, combat fills it; V/K spends it (see enterChampion)
+                this.secondWasFull = false;    // rising-edge latch for the unlock trial (see tickSecondUnlock)
                 this.ghosts = [];              // after-image trail snapshots (wire-step etc.)
                 this.clone = null;             // KAGE-KAMI shadow echo (one at a time; see castKageKami)
                 this.thrustSlide = 0;          // Executioner tsuki: seconds of travel left
@@ -4319,6 +4331,36 @@
                 sfx('parry');
             }
 
+            // ── THE EARN LAYER ─────────────────────────────────────────────────────
+            // ONE NUMBER for "how charged is this fighter's second mode", so the trial has a
+            // single thing to read and a new fighter joins by adding one ternary arm, not a
+            // parallel unlock path. Both gauges below already shipped; this only names them.
+            secondCharge()    { return this.spec.id === 6 ? this.karma : this.spec.id === 7 ? this.champion : 0; }
+            secondChargeMax() { return this.spec.id === 6 ? KARMA_MAX : this.spec.id === 7 ? CHAMPION_MAX : 0; }
+
+            // THE TRIAL. Rising edge only — a gauge parked at full for a long round is ONE
+            // fill, not sixty, and without the latch the first match would unlock everything
+            // at 60fps. Never fires in attract mode: the title screen's background fight must
+            // not earn the player's roster for him while he reads the menu.
+            tickSecondUnlock() {
+                const name = this.spec.name, max = this.secondChargeMax();
+                if (attractMode || !max || !SECOND_MODE_READY.has(name) || save.unlocked[name]) return;
+                if (this.secondCharge() < max) { this.secondWasFull = false; return; }
+                if (this.secondWasFull) return;
+                this.secondWasFull = true;
+                const n = save.charged[name] = (save.charged[name] || 0) + 1;
+                if (n >= SECOND_UNLOCK_FILLS) {
+                    save.unlocked[name] = true;
+                    roundBanner = { text: `${name.toUpperCase()} — SECOND FORM EARNED`, until: performance.now() + 2200 };
+                    screenShakeAmount = Math.max(screenShakeAmount, 11);
+                    sfx('parry');
+                    createSparks(this.x + this.width / 2, this.y + this.height / 2, '#ffd36e');
+                } else {
+                    roundBanner = { text: `${name.toUpperCase()} TRIAL ${n} / ${SECOND_UNLOCK_FILLS}`, until: performance.now() + 1200 };
+                }
+                persist();
+            }
+
             // Sheets without the cell must never sit stuck in a stance they cannot draw
             // (a fighter swap mid-session would otherwise strand the flag).
             updateStance() {
@@ -4328,6 +4370,7 @@
                 // ...and nothing SECOND stays set while the pause is on. Same reason, one
                 // rung wider: a flag set before the switch flipped has no other way out.
                 secondFormBlocked(this);
+                this.tickSecondUnlock();
             }
 
             // Central State Machine Updates
@@ -4486,7 +4529,13 @@
                 // cracks — the golden phase is REPLACED by the madness at the
                 // Second Door (owner, Aug 2 2026). Calm was the lie.
                 if (this.spec.id === 6 && !this.bossEnlightUsed && this.isCpuDriven()
-                    && !secondFormBlocked(this)        // paused with every other second mode
+                    // MASTERY-SCALED BOSSES — owner-approved, Sep 23 2026. The boss reads the
+                    // very same gate a human does, so it only gets this mode once the PLAYER
+                    // has earned that fighter's. Someone who has never carried a full gauge
+                    // never meets the phase; someone who has, fights it. The difficulty
+                    // climbs with the player's own mastery, and that is the intent — it was
+                    // flagged as a side effect of the earn layer and he ruled it deliberate.
+                    && !secondFormBlocked(this)
                     && this.hp > 0 && this.hp <= this.maxHp * BOSS_ENLIGHT_HP
                     && this.crackTimer <= 0 && matchActive) {
                     this.bossEnlightUsed = true;
@@ -4538,7 +4587,13 @@
                 // the chain wakes — faster step (curSpeed), 1.5x recovery (below),
                 // violet wisps. The FIRST boss teaches the rule: they all change.
                 if (this.spec.id === 7 && !this.bossFrenzyUsed && this.isCpuDriven()
-                    && !secondFormBlocked(this)        // paused with every other second mode
+                    // MASTERY-SCALED BOSSES — owner-approved, Sep 23 2026. The boss reads the
+                    // very same gate a human does, so it only gets this mode once the PLAYER
+                    // has earned that fighter's. Someone who has never carried a full gauge
+                    // never meets the phase; someone who has, fights it. The difficulty
+                    // climbs with the player's own mastery, and that is the intent — it was
+                    // flagged as a side effect of the earn layer and he ruled it deliberate.
+                    && !secondFormBlocked(this)
                     && this.hp > 0 && this.hp <= this.maxHp * BOSS_FRENZY_HP
                     && this.frenzyTimer <= 0 && matchActive) {
                     this.bossFrenzyUsed = true;
@@ -5300,11 +5355,12 @@
                         this.meditateTimer = 0;
                         // A FULL karma gauge turns the meditation WRONG (owner, Aug 2
                         // 2026): 15/15 and the monk CRACKS instead of going gold.
-                        // ⛔ AND THE CRACK IS PAUSED (owner, Sep 22 2026), so a FULL bar
-                        // falls through to the `else` — which is ENLIGHTENMENT, the branch
-                        // that has always been the other half of this `if`. Before Aug 2
-                        // 2026 a full bar went gold; while the pause is on it does again.
-                        // Nothing to write: the fallback was already sitting here.
+                        // ⛔ AND THE CRACK MUST BE EARNED (owner, Sep 23 2026). Until this
+                        // monk's trial is cleared a FULL bar falls through to the `else` —
+                        // ENLIGHTENMENT, the branch that has always been the other half of
+                        // this `if`. Before Aug 2 2026 a full bar went gold; for a player
+                        // who has not earned the madness yet, it does again. Nothing to
+                        // write: the fallback was already sitting here.
                         if (this.spec.id === 6 && this.karma >= KARMA_MAX && !secondFormBlocked(this)) {
                             this.karma = 0;                 // it spends everything
                             this.enlightenUsed = true;      // once per round, like the calm
@@ -19445,8 +19501,9 @@
         // weeks ("Back+H — WIRE-STEP (teleport)" with no teleport behind it). 'V ' catches
         // CHUDAN and CHAMPION; THE CRACK is on hold Down+C, so it is named. Its two lines
         // were merged into one above so a single test hides the whole move.
-        // When second modes become per-character unlocks this filters per PLAYER, not per
-        // build — the fighter who has earned it should read about it.
+        // PER PLAYER, not per build: the fighter who has EARNED his second mode reads
+        // about it, and the one still on the trial does not. Same predicate the mode key
+        // answers to, so the list can never promise a button that will not fire.
         const SECOND_FORM_LINE = /^V |THE CRACK/;
         let moveListOpen = true;   // training per-fighter move list (L toggles; owner, Jul 29)
         const MOVES_LIST = {
@@ -19464,8 +19521,9 @@
             const col = (p, side) => {
                 if (!p) return;
                 const buttons = { F: 'I', J: 'U', G: 'O', H: 'P', C: 'M', V: 'K', W: 'Up', X: 'N' };
+                const locked = secondFormBlocked(p);   // hoisted: one answer for the whole list
                 const lines = (MOVES_LIST[p.spec.name] || []).filter(line =>
-                    !FIRST_FORM_ONLY || !SECOND_FORM_LINE.test(line)).map(line =>
+                    !locked || !SECOND_FORM_LINE.test(line)).map(line =>
                     side > 0 ? line.replace(/\b(F|J|G|H|C|V|W|X)\b/g, key => buttons[key]) : line);
                 if (!lines.length) return;
                 ctx.save();
@@ -20293,6 +20351,11 @@
                     color = pl.frenzyTimer > 0 ? '#c4b5fd' : '#8b5cf6';
                     label = pl.frenzyTimer > 0 ? 'CHAMPION' : 'CHAIN';
                 }
+                // LOCKED reads as the TRIAL it is. A full bar whose mode key will not fire
+                // otherwise reads as broken input — the same reason enterChampion spends a
+                // dud spark instead of eating the press silently.
+                if (label && SECOND_MODE_READY.has(pl.spec.name) && !save.unlocked[pl.spec.name])
+                    label = n >= 3 ? 'TRIAL ✓' : 'TRIAL';
                 const state = label + n;
                 if (el.dataset.s !== state) {
                     el.dataset.s = state;

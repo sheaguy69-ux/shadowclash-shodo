@@ -44,10 +44,58 @@ for (const f of toolFiles) {
   if (/(?:\bport\s*=\s*|PORT\s*\|\|\s*|localhost:|127\.0\.0\.1:)9100\b/.test(t)) offenders.push(f);
 }
 assert.deepEqual(offenders, [], `these tools still default to :9100 — ${offenders.join(', ')}`);
+// CODE, not prose. Several assertions below pin a shape that the comments around them
+// also spell out on purpose, and this gate has twice failed on its own changelog. Strip
+// whole-line comments once, here, and test against that.
+const code = html.split('\n').filter(l => !/^\s*\/\//.test(l)).join('\n');
+
 assert.match(html, /const FIRST_FORM_ONLY = true;/,
   'first-form-only runtime constant is missing');
 assert.match(html, /function secondFormBlocked\(player\)/,
   'shared second-form activation guard is missing');
+
+// \u2500\u2500 THE EARN LAYER (owner, Sep 23 2026) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+// "earn with every character to even unlock" = unlock once (permanent) AND charge every
+// match. Both halves are pinned, because either one alone is a different game: unlock
+// without charge is a button you press at the bell, charge without unlock is what 877
+// already had.
+assert.match(code, /unlocked: \{\}/, 'the save blob has no permanent unlock store');
+assert.match(code, /charged: \{\}/, 'the save blob does not count trial fills');
+const ready = html.match(/const SECOND_MODE_READY = new Set\(\[([^\]]*)\]\)/);
+assert.ok(ready, 'SECOND_MODE_READY is missing — nothing can come off the pause without it');
+const readyNames = [...ready[1].matchAll(/'([^']+)'/g)].map(m => m[1]);
+// A FIGHTER OFF THE PAUSE MUST HAVE A CHARGE GAUGE, or unlocking him hands out a free
+// mode with no layer 2 at all — the exact failure this design exists to prevent.
+const chargeMax = html.match(/secondChargeMax\(\)\s*\{([^}]*)\}/);
+assert.ok(chargeMax, 'secondChargeMax is missing — the charge layer has no single reader');
+// The roster literal is multi-line: `id: N,` then `name: "X",` on the next line.
+const roster = [...html.matchAll(/^\s*id: (\d+),\s*\n\s*name: "([^"]+)"/gm)]
+  .reduce((m, x) => (m[x[2]] = x[1], m), {});
+assert.ok(Object.keys(roster).length >= 8,
+  `the roster parse found only ${Object.keys(roster).length} fighters — the literal moved`);
+for (const n of readyNames) {
+  assert.ok(roster[n], `SECOND_MODE_READY names "${n}", who is not on the roster`);
+  assert.match(chargeMax[1], new RegExp(`id === ${roster[n]} \\?`),
+    `${n} is off the pause but secondChargeMax gives him no gauge — layer 2 would not exist`);
+}
+// ...and the four with no charge rule yet must NOT be in it (owner has not ruled them).
+for (const n of ['Executioner', 'Mizu', 'Shin', 'Tsubasa'])
+  assert.ok(!readyNames.includes(n), `${n} is off the pause with no charge rule ruled for him`);
+
+// THE TRIAL IS A RISING EDGE. Without the latch the first full gauge unlocks at 60fps and
+// `charged` counts a whole round as sixty trials, which silently defeats SECOND_UNLOCK_FILLS.
+const tick = html.match(/tickSecondUnlock\(\) \{([\s\S]*?)\n            \}/);
+assert.ok(tick, 'tickSecondUnlock is missing — nothing can ever be earned');
+assert.match(tick[1], /secondWasFull/, 'the trial has no rising-edge latch');
+assert.match(tick[1], /attractMode/,
+  'the trial fires in attract mode — the title screen would unlock the roster by itself');
+assert.match(tick[1], /persist\(\)/, 'an earned mode is never written to the save');
+assert.match(stanceSrc(), /tickSecondUnlock\(\)/,
+  'the trial is not hooked into the per-frame update');
+function stanceSrc() {
+  const m = html.match(/updateStance\(\) \{([\s\S]*?)\n            \}/);
+  return m ? m[1] : '';
+}
 // 790 GAVE CHUDAN ITS SHODO ART and let that ONE form out of the gate, so for a while the
 // guard was not modeKey's first statement and this file pinned the NARROWER contract.
 // Owner, Sep 22 2026 — "put everyone second on pause" — puts it back: no bypass at all,
@@ -72,7 +120,7 @@ assert.match(html, /karma >= KARMA_MAX && !secondFormBlocked\(this\)/,
   "THE CRACK's full-karma trigger is not paused");
 for (const [who, hp] of [['6', 'BOSS_ENLIGHT_HP'], ['7', 'BOSS_FRENZY_HP']]) {
   const re = new RegExp(`spec\\.id === ${who} && !this\\.boss\\w+Used && this\\.isCpuDriven\\(\\)\\s*\\n\\s*&& !secondFormBlocked\\(this\\)`);
-  assert.match(html, re, `the CPU second mode gated on ${hp} is not paused`);
+  assert.match(code, re, `the CPU second mode gated on ${hp} is not gated`);
 }
 
 // EVERY MODE FLAG CLEARS, not just the three V stances — a mode set before the switch
@@ -91,7 +139,12 @@ assert.match(stance[1], /secondFormBlocked\(this\)/,
 // nothing is exactly the hole WIRE-STEP sat in for weeks.
 assert.match(html, /const SECOND_FORM_LINE = /,
   'the second-mode move-list filter is missing');
-assert.match(html, /!FIRST_FORM_ONLY \|\| !SECOND_FORM_LINE\.test\(line\)/,
+// PER PLAYER, NOT PER BUILD. A build-wide filter would keep hiding CHAMPION from the
+// player who just earned it — the WIRE-STEP failure inverted: a live move nobody is told
+// about. The predicate has to be the same one the mode key answers to.
+assert.match(code, /const locked = secondFormBlocked\(p\);/,
+  'the move list does not ask the per-player gate');
+assert.match(code, /!locked \|\| !SECOND_FORM_LINE\.test\(line\)/,
   'the move list is not filtered by SECOND_FORM_LINE');
 const movesList = html.match(/const MOVES_LIST = \{([\s\S]*?)\n        \};/);
 assert.ok(movesList, 'MOVES_LIST is missing');
@@ -100,7 +153,8 @@ const filter = eval(lineRe[1]);
 for (const doc of ['V — CHUDAN', 'V (P2: K) — CHAMPION MODE', 'THE CRACK'])
   assert.ok([...movesList[1].matchAll(/"([^"]*)"|'([^']*)'/g)]
       .map(m => m[1] ?? m[2]).filter(l => l.includes(doc)).every(l => filter.test(l)),
-    `a move-list line documenting "${doc}" is not hidden while second modes are paused`);
+    `the move-list line documenting "${doc}" is not matched by SECOND_FORM_LINE, so it `
+    + 'would stay visible to a player who has not earned that mode');
 
 for (const method of ['toggleKageNui', 'toggleSakate', 'toggleHanbo']) {
   const body = html.match(new RegExp(`${method}\\(\\) \\{([\\s\\S]*?)\\n            \\}`));

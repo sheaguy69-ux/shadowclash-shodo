@@ -47,14 +47,11 @@ const reset = () => { p.cracked = false; p.crackTimer = 0; p.crackIntro = 0;
   p.attackAnim = null; p.state = STATE.IDLE; };
 
 // 1. FULL KARMA -> THE CRACK.
-// ⛔ THIS IS NOT THE REAL CHANNEL, WHATEVER THIS COMMENT USED TO CLAIM. It INLINES a
-// copy of the engine's meditation branch and calls startCrack directly, so it has
-// never proven a press reaches the mode — and as of Sep 22 2026 it provably does not:
-// the owner paused every second mode, the engine branch now carries
-// `&& !secondFormBlocked(this)`, and a FULL bar goes to ENLIGHTENMENT instead.
-// What this file still tests is the MODE ITSELF — its art rows, its damage tax, its
-// kneel — which is what a redesign needs to keep working. The pause is pinned in
-// tools/check_first_form_gate.mjs; do not duplicate that assertion here.
+// ⛔ THIS IS NOT THE REAL CHANNEL. It INLINES a copy of the engine's meditation branch
+// and calls startCrack directly, so sections 1-4 prove the MODE — its art rows, its
+// damage tax, its kneel — and never that a press reaches it. That is deliberate and it
+// stays: those are the parts a redesign has to keep working. Section 5 below drives the
+// REAL Down+Guard channel, with real held keys, and is where the earn loop is proven.
 reset(); p.karma = KARMA_MAX;
 for (let i = 0; i < 40; i++) { p.meditateTimer += 0.06;
   if (p.meditateTimer >= 2.0) { p.meditateTimer = 0;
@@ -98,6 +95,52 @@ for (let i = 0; i < 40; i++) { p.meditateTimer += 0.06;
     if (p.spec.id === 6 && p.karma >= KARMA_MAX) { p.karma = 0; p.enlightenUsed = true; p.startCrack(false); }
     else { p.enlightenUsed = true; p.enlightenTimer = 5; } break; } }
 out.calmOnShort = (p.cracked === false && p.enlightenTimer > 0);
+// 5. THE EARN LOOP, THROUGH THE REAL CHANNEL. Owner, Sep 23 2026: earn = unlock once,
+//    then charge every match. Mokurai's charge layer is KARMA, which already existed, so
+//    he comes off the pause with Exile.
+//
+//    ⛔ HELD KEYS MUST GO IN physKeys. The engine scrubs P1's keys every frame unless the
+//    key is physically down (the attract-mode residue guard), so setting keys[] alone
+//    gives a channel that never accumulates — and a probe that reports "nothing happened",
+//    which reads exactly like a successful block. That false green nearly shipped once.
+const channel = () => {
+  reset(); p.enlightenUsed = false; p.enlightenTimer = 0; p.karma = KARMA_MAX;
+  keys['p1_down'] = keys['KeyS'] = keys['KeyC'] = true;
+  physKeys.add('KeyS'); physKeys.add('KeyC');
+  p.meditateTimer = 1.98;
+  p.update(0.05, foe);
+};
+matchActive = true; paused = false; roundIntroTimer = 0; hitstopRemaining = 0;
+
+//  a. THE TRIAL: a full karma bar, carried through live frames, earns the mode. Runs off
+//     updateStance -> tickSecondUnlock, so it also proves the hook reaches the frame.
+save.unlocked = {}; save.charged = {}; p.secondWasFull = false;
+reset(); p.karma = KARMA_MAX;
+out.lockedBefore = save.unlocked['Mokurai'] !== true;
+await frame(); await frame();
+out.unlockedByTrial = save.unlocked['Mokurai'] === true;
+out.trialCounted = save.charged['Mokurai'];
+
+//  b. EARNED: the REAL channel now cracks him.
+channel();
+out.channelCracked = p.cracked === true;
+out.channelSpent = p.karma;
+out.channelWentGold = p.enlightenTimer > 0;
+
+//  c. LOCKED: the same channel goes GOLD instead — the ENLIGHTENMENT branch that was
+//     always the other half of that `if`.
+//     The latch is what holds him locked: tickSecondUnlock only fires on a RISING edge, so
+//     leaving secondWasFull set keeps a full bar from re-earning the mode mid-test. That is
+//     the honest way to observe a locked monk holding a full gauge — at one fill per trial
+//     the two states otherwise never coexist for longer than a frame boundary.
+save.unlocked = {}; save.charged = {}; p.secondWasFull = true;
+channel();
+out.lockedCracked = p.cracked === true;
+out.lockedGoldTimer = p.enlightenTimer;
+
+keys['p1_down'] = keys['KeyS'] = keys['KeyC'] = false;
+physKeys.delete('KeyS'); physKeys.delete('KeyC');
+
 return JSON.stringify(out);
 '''
 

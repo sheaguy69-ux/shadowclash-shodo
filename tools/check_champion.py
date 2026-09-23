@@ -13,10 +13,17 @@ the mode goes silently dead rather than visibly broken:
   * firing does not spend                         -> infinite uptime
   * frenzyTimer is set but the fragility stays on -> the mode does nothing she can feel
 
-⛔ THE KEY PATH IS PAUSED, NOT TESTED-AS-WORKING. Owner, Sep 22 2026: every second mode is
-on hold pending an earn/unlock redesign. So the mode is driven through enterChampion() and
-the V key is asserted to do NOTHING — same assertions, opposite polarity, which flip back
-the day champion is unlocked. The source-level pin lives in tools/check_first_form_gate.mjs.
+⛔ CHAMPION IS THE FIRST MODE OFF THE PAUSE (owner, Sep 23 2026: earn = unlock once, then
+charge every match). So this file now drives the WHOLE EARN LOOP live, in the order a real
+player meets it, because every step is a way the loop dies silently:
+
+  * V fires while still LOCKED              -> the unlock is decoration
+  * a full gauge never completes the trial  -> the mode is unreachable forever
+  * V still dead after the unlock           -> earned and still denied
+  * V fires on an EMPTY gauge once unlocked -> layer 2 is gone, the mode is a free button
+
+The four fighters with no charge rule yet (Executioner, Mizu, Shin, Tsubasa) must stay
+exactly as paused as 877 left them, so the Executioner is re-checked at the end.
 
 ⛔ THE FRAGILITY IS MEASURED AS HP ACTUALLY LOST, not read off the flag. `frenzyTimer > 0`
 proves the timer is running; it proves nothing about whether the damage multiplier ever
@@ -98,30 +105,58 @@ const hpLost = (championOn) => {
 out.hpLostNormal = hpLost(false);
 out.hpLostChampion = hpLost(true);
 
-// 5. THE PAUSE, LIVE. This used to assert the opposite — that a real V keydown reaches
-//    her — and it is kept rather than deleted because the polarity is the only thing
-//    that changed: when second modes become unlocks, it flips back. check_first_form_gate
-//    pins the pause in the SOURCE; this is the behavioural half, with a full gauge and a
-//    live match, which is the only state where a leak could show.
-//    pressCombat drops everything unless the match is actually live (matchActive,
-//    unpaused, intro over, no hitstop), so stand the match up or the press proves nothing.
+// 5. THE EARN LOOP, LIVE — the whole of it, in the order a player meets it. Every step
+//    runs against a REAL keydown as well as the method, because pressCombat has its own
+//    gates (matchActive, unpaused, intro over, no hitstop) and a probe that only calls the
+//    method proves the mode, never the button.
+save.unlocked = {}; save.charged = {};          // deterministic: a previous run must not leak in
 p.frenzyTimer = 0; p.champion = CHAMPION_MAX;
 p.stunTimer = 0; p.state = STATE.IDLE; p.isGrounded = true;
 matchActive = true; paused = false; roundIntroTimer = 0; hitstopRemaining = 0;
-p.modeKey();
-out.methodPaused = p.frenzyTimer <= 0 && p.champion === CHAMPION_MAX;
-window.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyV', bubbles: true }));
-out.keyVPaused = p.frenzyTimer <= 0 && p.champion === CHAMPION_MAX;
 
-// 6. ...AND THE SHARED KEY HANDS NOBODY ELSE A STANCE EITHER. This asserted that the
-//    Executioner still toggles into chudan on the same press — he was the one second
-//    mode carved out of the first-form gate at 790/793, and Sep 22 2026 put him back
-//    behind it. Same press, same fighter, opposite expectation.
+//  a. LOCKED, full gauge: nothing. Asserted before any frame runs, because the very next
+//     frame is the one that completes her trial.
+p.modeKey();
+out.lockedMethodDead = p.frenzyTimer <= 0 && p.champion === CHAMPION_MAX;
+window.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyV', bubbles: true }));
+out.lockedKeyDead = p.frenzyTimer <= 0 && p.champion === CHAMPION_MAX;
+out.lockedInSave = save.unlocked['Exile'] !== true;
+
+//  b. THE TRIAL: a full gauge, carried through live frames, earns the mode. This runs off
+//     updateStance -> tickSecondUnlock, so it also proves the hook is actually wired into
+//     the frame and not merely defined.
+await frame(); await frame();
+out.unlockedBySurviving = save.unlocked['Exile'] === true;
+out.trialCounted = save.charged['Exile'];
+
+//  c. EARNED: the same press that did nothing a frame ago now fires.
+p.stunTimer = 0; p.state = STATE.IDLE; p.isGrounded = true; p.champion = CHAMPION_MAX;
+window.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyV', bubbles: true }));
+out.firesOnceEarned = p.frenzyTimer > 0;
+out.spentOnceEarned = p.champion;
+
+//  d. ...BUT LAYER 2 STILL BITES. Unlocked is not unlimited: an empty gauge is still a
+//     refusal, which is the half that makes the mode a decision instead of a button.
+p.frenzyTimer = 0; p.champion = 0;
+p.stunTimer = 0; p.state = STATE.IDLE; p.isGrounded = true;
+window.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyV', bubbles: true }));
+out.refusedEmptyAfterUnlock = p.frenzyTimer <= 0;
+
+//  e. ...AND THE MOVE LIST FOLLOWS THE PLAYER, not the build. An earned mode is readable.
+out.listShowsEarned = (MOVES_LIST['Exile'] || []).some(l => SECOND_FORM_LINE.test(l))
+                      && !secondFormBlocked(p);
+
+// 6. THE FOUR WITH NO CHARGE RULE ARE UNTOUCHED. The Executioner was the one mode
+//    deliberately carved out of the gate at 790/793 and put back at 877; he has no charge
+//    gauge yet, so he must still be exactly as paused as he was before today.
 p1Pick = 0; p2Pick = 1; startNewGame(); roundIntroTimer = 0;
 await frame(); await frame();
 const x = player1;
 x.stunTimer = 0; x.state = STATE.IDLE; x.isGrounded = true;
 x.modeKey(); out.execChudanPaused = x.chudan === false;
+out.execNeverUnlocks = save.unlocked['Executioner'] !== true;
+out.listHidesLocked = (MOVES_LIST['Executioner'] || []).some(l => SECOND_FORM_LINE.test(l))
+                      && secondFormBlocked(x);
 return JSON.stringify(out);
 '''
 
@@ -169,9 +204,21 @@ def main():
     ratio = r['hpLostNormal'] / r['hpLostChampion'] if r['hpLostChampion'] else 0
     ok(abs(ratio - want) < 0.02,
        f"...and it is exactly {r['fragile']}/{base:.2f} = {want:.3f}x (measured {ratio:.3f}x)")
-    ok(r['methodPaused'], 'PAUSED: modeKey does not give her champion at a full gauge')
-    ok(r['keyVPaused'], 'PAUSED: a real V keydown does not give her champion either')
-    ok(r['execChudanPaused'], 'PAUSED: the same key no longer puts the Executioner in chudan')
+    print('\n  THE EARN LOOP\n')
+    ok(r['lockedInSave'], 'she starts LOCKED — nothing in the save says otherwise')
+    ok(r['lockedMethodDead'], 'LOCKED: a full gauge + modeKey gives her nothing')
+    ok(r['lockedKeyDead'], 'LOCKED: a full gauge + a real V keydown gives her nothing')
+    ok(r['unlockedBySurviving'],
+       'THE TRIAL: carrying a full gauge through live frames EARNS the mode')
+    ok(r['trialCounted'] == 1, f"...and it counted exactly one fill (got {r['trialCounted']})")
+    ok(r['firesOnceEarned'], 'EARNED: the same V keydown now fires champion')
+    ok(r['spentOnceEarned'] == 0, f"...and it still SPENDS the gauge (left {r['spentOnceEarned']})")
+    ok(r['refusedEmptyAfterUnlock'],
+       'LAYER 2 HOLDS: unlocked but empty is still a refusal — earned is not unlimited')
+    ok(r['listShowsEarned'], 'the move list shows CHAMPION to the player who earned it')
+    ok(r['execChudanPaused'], 'STILL PAUSED: the Executioner has no charge rule, so V does nothing')
+    ok(r['execNeverUnlocks'], '...and no trial can unlock a fighter outside SECOND_MODE_READY')
+    ok(r['listHidesLocked'], '...and his CHUDAN line stays hidden while it cannot fire')
 
     if fails:
         print(f'\n{len(fails)} FAILED')
