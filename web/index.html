@@ -1734,6 +1734,21 @@
         const KAGE_COST = 35;             // chakra per cast (owner: the wire shot is limited by chakra)
         const KAGE_ZIP_COST = 12;         // chakra for the reel-in
         const KAGE_CAST_CD = 1.5;         // s cooldown between wire-shuriken casts — no burst spam
+        // ⛔ WIRE-STEP — Back+Special, FORM 1. His move list has promised this
+        // teleport the whole time ("Back+H — WIRE-STEP (teleport)") and nothing has
+        // delivered it since 565: the move was MOVED into the Kage-Nui stance as the
+        // drawn six-beat pass, and FIRST_FORM_ONLY then switched that whole form off.
+        // So the stance branch is unreachable in this edition, Back+Special fell all
+        // the way through to his neutral FLYING KICK, and `vanishTimer` — wired at 28
+        // sites, guarded by 19 of them — was left with no caller anywhere in the file.
+        // Home again, on the input the list advertises, at the numbers 565 measured.
+        // ⛔ AND IT NEEDS NO ART, WHICH IS THE POINT. vanishTimer blanks the sprite
+        // outright (update() forces alpha 0 and early-returns on it) — the exact reason
+        // the DRAWN pass had to use invulnTimer instead, see the ⛔ there. Here there is
+        // nothing to draw: he is not visible for one frame of it. Smoke at both ends is
+        // the entire picture, the same read every other teleport in this file uses.
+        const WIRE_STEP_DIST   = 180;     // px, away from where he is looking — an escape
+        const WIRE_STEP_VANISH = 0.18;    // s gone: invisible, intangible, frozen, no input
         // ⛔ KAGE STEP — the quick-draw pass. Owner, Aug 23, describing his own frames:
         // "it is a (really moving super fast) dash-teleport attack ... he punch him ... then the
         // part where he turned transparent, he phased through his opponent ... the opponent should
@@ -8881,6 +8896,23 @@
                     // WIRE SHURIKEN — slower, wired; on hit it YANKS them TO you.
                     this.projectiles.push({ x: this.x + this.facing * 15, y: this.y + this.height / 2,
                                             vx: this.facing * 300, vy: 0, kind: 'wire' });
+                    return;
+                }
+                // WIRE-STEP — Back+Special. He hooks out of the exchange and is simply
+                // GONE for 0.18s: no hurtbox, no input, no physics, no picture. Pays the
+                // same SPECIAL_COST every special pays (spent at this function's head) and
+                // refuses when broke or winded through executeAttack's gate, so it is not
+                // the one free escape on the roster — the defect 565 fixed on his forward.
+                // No hitbox: it is a reposition, not a cast, the same call KAGE_ZIP_COST
+                // makes. `clampLandX` is how every teleport in this file lands, and on a
+                // holed board it tightens to the floored span so this cannot drop him in.
+                if (specId === 2 && axis === -this.facing && !down && !up && this.isGrounded) {
+                    createSmokePuff(this.x + this.width / 2, this.y + this.height / 2);
+                    this.x = clampLandX(this.x - this.facing * WIRE_STEP_DIST, this.width);
+                    this.vx = this.vy = 0;
+                    this.vanishTimer = WIRE_STEP_VANISH;   // update() takes it from here; finishVanish fades him back in
+                    createSmokePuff(this.x + this.width / 2, this.y + this.height / 2);
+                    sfx('dash');
                     return;
                 }
                 // !down && !up, or SWALLOW'S PASS eats both diagonals: down-forward and
