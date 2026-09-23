@@ -22,8 +22,12 @@ player meets it, because every step is a way the loop dies silently:
   * V still dead after the unlock           -> earned and still denied
   * V fires on an EMPTY gauge once unlocked -> layer 2 is gone, the mode is a free button
 
-The four fighters with no charge rule yet (Executioner, Mizu, Shin, Tsubasa) must stay
-exactly as paused as 877 left them, so the Executioner is re-checked at the end.
+Earning HER mode must open nothing else: the four roster-wide V+direction stances stay
+paused for everyone, so an earned Exile holding a direction is checked too.
+
+The Executioner is OPEN (owner, Sep 23 2026: "let excecu keep his 2nd from open out of
+everyone") — CHUDAN on bare V, no trial, no gauge. Mizu, Shin and Tsubasa have no charge
+rule yet and stay exactly as paused as 877 left them, so Shin is re-checked at the end.
 
 ⛔ THE FRAGILITY IS MEASURED AS HP ACTUALLY LOST, not read off the flag. `frenzyTimer > 0`
 proves the timer is running; it proves nothing about whether the damage multiplier ever
@@ -146,17 +150,42 @@ out.refusedEmptyAfterUnlock = p.frenzyTimer <= 0;
 out.listShowsEarned = (MOVES_LIST['Exile'] || []).some(l => SECOND_FORM_LINE.test(l))
                       && !secondFormBlocked(p);
 
-// 6. THE FOUR WITH NO CHARGE RULE ARE UNTOUCHED. The Executioner was the one mode
-//    deliberately carved out of the gate at 790/793 and put back at 877; he has no charge
-//    gauge yet, so he must still be exactly as paused as he was before today.
-p1Pick = 0; p2Pick = 1; startNewGame(); roundIntroTimer = 0;
-await frame(); await frame();
+//  f. ...AND EARNING HER MODE OPENS NOTHING ELSE. The four roster-wide stances had no
+//     guard of their own, so an earned Exile used to get MUKI on Up+V and SAYA on Down+V.
+//     Held directions go through heldDir's own keys, which the residue guard scrubs unless
+//     they are in physKeys — set both, or the "no stance" answer proves nothing.
+const hold = (key, code, on) => { keys[key] = on; on ? physKeys.add(code) : physKeys.delete(code); };
+const still = () => { p.stunTimer = 0; p.state = STATE.IDLE; p.isGrounded = true; p.vanishTimer = 0;
+  p.frenzyTimer = 0; p.champion = 0; p.muki = 0; p.gyakute = false; };
+still(); hold('p1_up', 'KeyW', true);   out.heldUp = heldDir(p);   p.modeKey(); hold('p1_up', 'KeyW', false);
+out.leakMuki = p.muki > 0;
+still(); hold('p1_down', 'KeyS', true); out.heldDown = heldDir(p); p.modeKey(); hold('p1_down', 'KeyS', false);
+out.leakSaya = !!p.gyakute;
+
+// 6. THE EXECUTIONER IS OPEN — no trial, no gauge, a clean save. Bare V toggles CHUDAN
+//    both ways; a held direction falls through to it instead of reaching a paused stance;
+//    and it survives live frames, because updateStance strand-clears anything BLOCKED and
+//    an open mode must never read as blocked.
+p1Pick = NINJA_ROSTER.findIndex(s => s.name === 'Executioner'); p2Pick = 1;
+startNewGame(); roundIntroTimer = 0; await frame(); await frame();
+save.unlocked = {}; save.charged = {};
 const x = player1;
-x.stunTimer = 0; x.state = STATE.IDLE; x.isGrounded = true;
-x.modeKey(); out.execChudanPaused = x.chudan === false;
-out.execNeverUnlocks = save.unlocked['Executioner'] !== true;
-out.listHidesLocked = (MOVES_LIST['Executioner'] || []).some(l => SECOND_FORM_LINE.test(l))
-                      && secondFormBlocked(x);
+const xs = () => { x.stunTimer = 0; x.state = STATE.IDLE; x.isGrounded = true; x.vanishTimer = 0; };
+xs(); x.chudan = false; x.modeKey(); out.execOn = x.chudan === true;
+xs(); x.modeKey(); out.execOff = x.chudan === false;
+xs(); x.chudan = false; x.muki = 0; hold('p1_up', 'KeyW', true); x.modeKey(); hold('p1_up', 'KeyW', false);
+out.execUpFallsThrough = x.chudan === true && !(x.muki > 0);
+x.chudan = true; await frame(); await frame(); out.execSurvivesFrames = x.chudan === true;
+out.execListShows = (MOVES_LIST['Executioner'] || []).some(l => SECOND_FORM_LINE.test(l))
+                    && !secondFormBlocked(x);
+out.execNeededNoTrial = save.unlocked['Executioner'] !== true;
+
+// 7. ...AND THE ONES WITH NO CHARGE RULE STAY PAUSED. Shin stands for the three.
+p1Pick = NINJA_ROSTER.findIndex(s => s.name === 'Shin'); startNewGame(); roundIntroTimer = 0;
+await frame(); await frame();
+const sh = player1;
+sh.stunTimer = 0; sh.state = STATE.IDLE; sh.isGrounded = true; sh.vanishTimer = 0;
+sh.modeKey(); out.shinPaused = !sh.kageNui && secondFormBlocked(sh);
 return JSON.stringify(out);
 '''
 
@@ -216,9 +245,18 @@ def main():
     ok(r['refusedEmptyAfterUnlock'],
        'LAYER 2 HOLDS: unlocked but empty is still a refusal — earned is not unlimited')
     ok(r['listShowsEarned'], 'the move list shows CHAMPION to the player who earned it')
-    ok(r['execChudanPaused'], 'STILL PAUSED: the Executioner has no charge rule, so V does nothing')
-    ok(r['execNeverUnlocks'], '...and no trial can unlock a fighter outside SECOND_MODE_READY')
-    ok(r['listHidesLocked'], '...and his CHUDAN line stays hidden while it cannot fire')
+    ok(r['heldUp'] == 'up' and r['heldDown'] == 'down',
+       f"the held directions really registered (up={r['heldUp']}, down={r['heldDown']})")
+    ok(not r['leakMuki'], 'EARNING HER MODE OPENS NOTHING ELSE: Up+V does not give her MUKI')
+    ok(not r['leakSaya'], '...and Down+V does not give her SAYA')
+    print('\n  THE EXECUTIONER IS OPEN\n')
+    ok(r['execOn'], 'bare V puts him in CHUDAN — no trial, no gauge, clean save')
+    ok(r['execOff'], '...and V again takes him out')
+    ok(r['execUpFallsThrough'], 'a held direction falls through to CHUDAN, not to a paused stance')
+    ok(r['execSurvivesFrames'], 'CHUDAN survives live frames — the strand guard does not clear an open mode')
+    ok(r['execListShows'], 'his CHUDAN line is in the move list')
+    ok(r['execNeededNoTrial'], '...and none of it needed a trial')
+    ok(r['shinPaused'], 'STILL PAUSED: Shin has no charge rule, so V does nothing')
 
     if fails:
         print(f'\n{len(fails)} FAILED')

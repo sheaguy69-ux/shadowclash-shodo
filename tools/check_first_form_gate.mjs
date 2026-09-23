@@ -78,9 +78,14 @@ for (const n of readyNames) {
   assert.match(chargeMax[1], new RegExp(`id === ${roster[n]} \\?`),
     `${n} is off the pause but secondChargeMax gives him no gauge — layer 2 would not exist`);
 }
-// ...and the four with no charge rule yet must NOT be in it (owner has not ruled them).
-for (const n of ['Executioner', 'Mizu', 'Shin', 'Tsubasa'])
+// ...and the three with no charge rule yet must NOT be in it (owner has not ruled them).
+for (const n of ['Mizu', 'Shin', 'Tsubasa'])
   assert.ok(!readyNames.includes(n), `${n} is off the pause with no charge rule ruled for him`);
+// THE EXECUTIONER IS OPEN (owner, Sep 23 2026): his CHUDAN needs no trial and no gauge.
+const open = html.match(/const SECOND_MODE_OPEN = new Set\(\[([^\]]*)\]\)/);
+assert.ok(open, 'SECOND_MODE_OPEN is missing — the Executioner\'s CHUDAN is paused again');
+assert.deepEqual([...open[1].matchAll(/'([^']+)'/g)].map(m => m[1]), ['Executioner'],
+  'SECOND_MODE_OPEN must hold exactly the Executioner — anyone else in it skips the earn system');
 
 // THE TRIAL IS A RISING EDGE. Without the latch the first full gauge unlocks at 60fps and
 // `charged` counts a whole round as sixty trials, which silently defeats SECOND_UNLOCK_FILLS.
@@ -110,7 +115,12 @@ assert.match(modeKey[1], /^\s*(\/\/[^\n]*\n\s*)*if \(secondFormBlocked\(this\)\)
 // changelog.
 const modeKeyCode = modeKey[1].replace(/^\s*\/\/.*$/gm, '');
 assert.doesNotMatch(modeKeyCode, /chudanPress/,
-  'the chudan bypass is back — every second mode is paused (owner, Sep 22 2026)');
+  'the old chudanPress bypass is back — CHUDAN is opened through SECOND_MODE_OPEN now, not a bypass');
+// THE FOUR ROSTER-WIDE STANCES STAY PAUSED FOR EVERYONE. Their only guard used to be the
+// secondFormBlocked line, so earning one fighter's own mode (4164e0a) handed him all four:
+// measured, an unlocked Exile got MUKI on Up+V and SAYA on Down+V.
+assert.match(modeKeyCode, /if \(!FIRST_FORM_ONLY\) switch \(heldDir\(this\)\)/,
+  'the V+direction stances are not paused on their own — earning or opening a fighter reopens all four');
 
 // THE THREE THAT NEVER CAME THROUGH modeKey. The V-key gate was never the whole story:
 // the Crack is on hold Down+C, and the two boss modes fire off a timer with no input at
