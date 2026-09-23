@@ -596,7 +596,7 @@
                             <li><b class="text-gray-200">Mist Ambush:</b> Mizu's mist hides her completely. A <b>Heavy</b> thrown from inside her own cloud is <i>unblockable</i> and hits harder — but it SPENDS the mist, hit or whiff — the cloud is gone and she fades back into view over about two thirds of a second. Guard won't save you; a Corner Break still will.</li>
                             <li><b class="text-gray-200">Kubikiri (the dark room):</b> The Broken Hall's left wall is a partition. A clean hit hard enough — a throw does it in one — smashes a body through into the <i>Sutra Store</i>, and only that fighter goes in. Inside the dark they vanish; the chaser gets nothing but dust and floorboard creaks, and only while they move. Step in blind and a <b>Heavy</b> from the dark is <i>unblockable</i>, comes out on one frame and hits harder than the mist. So check first: a low sweep or a thrown blade into the dark switches it off, and any hit that finds the hider drags them into the light. Mizu is blind — the dark hides nothing from her.</li>
                             <li><b class="text-gray-200">Blade lock:</b> Two <i>steel edges</i> meeting on the ground don't cancel — they LOCK. Mash Light/Heavy: lead by SIX presses and you break their guard and stand over a free hit — but never in the first 0.3s, however fast you mash. Neither leads, both recoil.</li>
-                            <li><b class="text-gray-200">Shunshin:</b> Double-tap a direction to dash (15 chakra). Release or reverse after the opening burst to micro-dash; hold to travel farther. You can be clipped mid-dash.</li>
+                            <li><b class="text-gray-200">Shunshin:</b> Double-tap a direction to dash (15 chakra). Let go after the opening burst to slide out of it (any button cuts the slide); reverse to turn; hold to travel farther. You can be clipped mid-dash.</li>
                             <li><b class="text-gray-200">Air control:</b> Hold a direction when a launch connects to influence its angle. Heavier fighters travel less. Neutral air Light cancels on landing.</li>
                             <li><b class="text-gray-200">Executioner:</b> Forward+Light — Shadow Slice. Forward+Special — Smoke-Bomb Shadow Strike. On a clean hit, cancel into jump, dash, or Special during their brief windows.</li>
                             <li><b class="text-gray-200">Winded:</b> Hit 0 chakra and you pant for 1.5s — half speed, no jutsu. Budget your bar!</li>
@@ -1969,6 +1969,11 @@
         const HIT_SQUASH_T = 0.09;     // s — the whole squash-and-return, ~5.4 frames
         const HIT_SQUASH_Y = 0.8;      // deepest vertical scale at the instant of contact
         const LAND_T = 0.15;           // touchdown: land1 squash -> land2 overshoot -> land3 settle
+        // SLIPPERY MICRO-DASH (owner 9/23: "slippery micro-dash slides, yes, we need that"):
+        // a shunshin RELEASED to neutral skids out instead of stopping dead. Its own knob —
+        // NOT FOOTSIES friction, which drives knockback and wall wear. Speed kept per 60Hz step.
+        const DASH_SLIDE = 0.85;
+        const SLIDE_STOP = 60;         // px/s: below this the slide snaps to a stand
         const SKID_T = 0.10;           // run released at speed: skid1 brake -> skid2 recover, facing the run
         const TURN_T = 0.07;           // a grounded about-face holds turn1 (the front-view beat) for 4 ticks
         const JUMP_CUT = 0.5;          // release jump while rising -> ascent multiplier
@@ -3785,6 +3790,7 @@
                 this.windedTimer = 0;        // >0 = exhausted: half speed, no jutsu
                 this.windedLatch = false;    // hysteresis so winded fires once per depletion
                 this.clingTime = 0;          // continuous wall-cling seconds (drain after 1s)
+                this.slideV = 0;             // released-dash slide speed; lives only by being re-slid each tick
                 this.dashTimer = 0;          // >0 = shunshin in flight (clippable, no i-frames)
                 this.dashDir = 0;
                 this.walkT = this.walkTime;   // lean-out clock; a push walks before it runs
@@ -4324,6 +4330,7 @@
                 this.clearMoveArt(); this.releaseAnchor(); this.dropTether();
                 this.hitboxes.length = this.fxSched.length = 0;
                 this.pendingSlash = this.bufferedAttack = this.groundJumpStart = null;
+                this.slideV = 0;
                 this.fxQueue = this.phantomQ = this.rapidFire = this.chain = null;
                 this.wireBindFoe = this.wireConv = this.kageStepFoe = null;
                 this.wireBind = this.kageStepT = this.kageZip = this.kageCastT = 0; this.kageStepArmed = false;
@@ -5496,12 +5503,13 @@
                     && this.dashTimer <= DASH_TIME - FOOTSIES.dashMinTime + 1e-9
                     && axis !== this.dashDir) {
                     this.dashTimer = 0;
-                    this.vx = 0;
+                    this.slideV = this.vx;   // the stop branch below turns it into the slide
                     // ...and THIS is the exit most dashes actually take — a tap-dash brakes
                     // here at dashMinTime, never reaching the expiry below — so it owes the
                     // same skid. Measured before: dash ended at frame 3, xidle1 on frame 4.
                     this.skidT = SKID_T; this.skidDir = this.dashDir;
                 }
+                const slide = this.slideV; this.slideV = 0;   // ponytail: any branch but the stop drops the slide — no cancel list
                 // Instant zero-friction movement (Hollow Knight movement snap).
                 // ponytail: during the wall-jump lock we preserve the kick's momentum and
                 // ignore into-wall input — otherwise the instant vx-override cancels the jump.
@@ -5685,7 +5693,14 @@
                     // (The skid above is deliberately left on RUN only — a walk that stops
                     // has no momentum to brake and should not slide.)
                     this.walkT = this.walkTime;
-                    this.vx = 0; // Instant ground stop
+                    // Instant ground stop — except a released shunshin, which slides out in its
+                    // brake pose. Art or nothing, like walk1: no skid1 on the sheet, dead stop.
+                    // A run release has slide 0, so it still stops on a dime.
+                    const sv = this.isGrounded && SPRITES[this.spec.name.toLowerCase()]?.frames?.skid1 !== undefined
+                        ? slide * Math.pow(DASH_SLIDE, dt * 60) : 0;
+                    this.vx = Math.abs(sv) < SLIDE_STOP ? 0 : sv;
+                    if (this.vx) { this.slideV = this.vx; this.skidT = SKID_T; }
+                    // ponytail: discrete pow drifts ~7% between 60 and 144Hz (59->63px); the exact ease-out is the upgrade if spacing needs it
                     // A guard that leaves the ground (shoved off a ledge, platform gone)
                     // is no guard: BLOCKING is grounded-only, and takeDamage reads the
                     // state, so an airborne BLOCKING body would block in the air.
@@ -11517,7 +11532,7 @@
                 this.stunTimer = 0.35 + (dmg * 0.01); // scaling stun duration
                 // Getting hit INTERRUPTS a dash/roll — otherwise the frozen timer
                 // resurrects an 800px/s lurch after hitstun clears (audit BUG 1).
-                this.dashTimer = 0; this.rollTimer = 0; this.tauntT = 0; this.rushT = 0;
+                this.dashTimer = 0; this.slideV = 0; this.rollTimer = 0; this.tauntT = 0; this.rushT = 0;
                 // ...and an interrupted VAULT cancels instead of leaving its lease behind.
                 // Mizu's Up+Special books recoveryTimer = 2.0 as an "airborne lease" that
                 // only the landing hook collapses to the real 0.5 — and that hook requires
@@ -20021,7 +20036,7 @@
                 p.dropTether();
                 p.clearMoveArt(); p.releaseAnchor(); p.clashRecoil = 0;
                 // Reset transient actions on the same fighter: round-use caps, gauges and modes survive.
-                p.dashTimer = p.rollTimer = p.rollRecover = p.wallJumpLock = p.clingTime = p.tauntT = p.rushT = 0;
+                p.dashTimer = p.slideV = p.rollTimer = p.rollRecover = p.wallJumpLock = p.clingTime = p.tauntT = p.rushT = 0;
                 p.dashDir = p.inputAxis = p.wallDir = 0; p.wallRunning = false;
                 p.ceilLatch = p.grappleT = p.jumpBufferTimer = p.flipTimer = 0;
                 p.latchPlat = p.jumpDir = null; p.headHopSpent = false;

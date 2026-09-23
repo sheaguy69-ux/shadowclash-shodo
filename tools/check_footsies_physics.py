@@ -77,7 +77,11 @@ async def main():
                     releaseAllKeys();p.handleMovement(1/60);check(p.vx===0,'instant stop '+id);
                     p.executeShunshin(1);for(let i=0;i<3;i++)p.handleMovement(1/60);
                     check(p.dashTimer>0,'microdash stopped before minimum '+id);p.handleMovement(1/60);
-                    check(p.dashTimer===0&&p.vx===0,'microdash failed brake '+id);
+                    // a released shunshin SLIDES out (DASH_SLIDE) when the sheet has skid1; art or nothing
+                    const sk=SPRITES[p.spec.name.toLowerCase()]?.frames?.skid1!==undefined;
+                    check(p.dashTimer===0&&(sk?p.vx>0:p.vx===0),'microdash failed brake '+id);
+                    {let d=0,n=0;while(p.vx&&n<30){d+=p.vx/60;p.handleMovement(1/60);n++;}
+                     check(p.vx===0&&(!sk||(d>40&&d<110)),'microdash slide did not settle '+id+' ('+Math.round(d)+'px/'+n+')');}
                     p.recoveryTimer=0;p.state=STATE.IDLE;p.y=GROUND_Y-p.height-1;p.isGrounded=false;p.vy=900;p.applyPhysics(1/60);
                     check(p.isGrounded&&p.recoveryTimer===0,'landing control tax '+id);
                     const launches=[];
