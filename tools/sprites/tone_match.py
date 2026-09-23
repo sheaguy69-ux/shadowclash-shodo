@@ -88,6 +88,56 @@ if __name__ == '__main__':
 # into the cell cache -- so it costs one multiply per cell for the whole match,
 # and the atlas PNG is never rewritten. Delete the key to undo.
 # ---------------------------------------------------------------------------
+def new_art_chroma(pack_dir, alpha=200):
+    """Value-preserving chroma offsets sampled from the approved new boards.
+
+    ⛔ WHY A VALUE->CHROMA CURVE AND NOT A PER-MATERIAL RECOLOUR: the live sheet is
+    ACHROMATIC. Clustered, every one of its levels sits at saturation 0.00-0.07 and
+    R-B +0.2..+1.6 -- his scarf is drawn GREY. There is no colour signal in the source
+    to segment scarf from steel, so a per-material map has nothing to key off. What the
+    new art does give is a strong, measurable relationship between VALUE and chroma:
+    neutral below lum 85, a warm hump of R-B +14..+23 across 85-139 (the khaki rag), and
+    falling again above 175. Transferring that curve puts the khaki on the scarf band.
+
+    # ponytail: 1-D on luminance. Ceiling: steel highlights that share the rag's value
+    # get warmed too (per-band R-B sd is 11-19, so the band is not pure). Upgrade path is
+    # a real scarf mask, which only exists once the new art replaces the cells outright.
+
+    Offsets are value-neutral by construction (the grey of the mean is subtracted), so
+    they add hue without moving the tone the per-cell gain just set.
+    """
+    import json, os
+    from PIL import Image
+    Image.MAX_IMAGE_PIXELS = None
+    man = json.load(open(os.path.join(pack_dir, 'MANIFEST.json')))
+    px = []
+    for s in man['sheets']:
+        a = np.asarray(Image.open(os.path.join(pack_dir, s['file'])).convert('RGBA'))
+        al = a[:, :, 3] >= alpha
+        if al.sum():
+            px.append(a[:, :, :3][al])
+    x = np.vstack(px).astype(float)
+    rng = np.random.default_rng(0)
+    if len(x) > 4_000_000:
+        x = x[rng.choice(len(x), 4_000_000, replace=False)]
+    lum = 0.2126 * x[:, 0] + 0.7152 * x[:, 1] + 0.0722 * x[:, 2]
+    b = np.clip(lum, 0, 255).astype(int)
+    sums = np.zeros((256, 3)); cnt = np.zeros(256)
+    np.add.at(sums, b, x); np.add.at(cnt, b, 1)
+    ok = cnt >= 200
+    idx = np.where(ok)[0]
+    mean = np.zeros((256, 3))
+    for ch in range(3):
+        mean[:, ch] = np.interp(np.arange(256), idx, (sums[idx, ch] / cnt[idx]))
+    k = np.ones(9) / 9
+    for ch in range(3):
+        mean[:, ch] = np.convolve(np.pad(mean[:, ch], (4, 4), mode='edge'), k, mode='valid')
+    mlum = 0.2126 * mean[:, 0] + 0.7152 * mean[:, 1] + 0.0722 * mean[:, 2]
+    off = mean - mlum[:, None]
+    off[:4] = 0                      # the black contour stays black
+    return [[round(float(v), 3) for v in row] for row in off]
+
+
 def _main():
     import json, os, sys
     from PIL import Image
@@ -120,6 +170,10 @@ def _main():
         _, g, got = to_tone(k, target)
         table[str(i)] = [round(g, 4), round(b, 2)]
     man['bodyTone'] = table
+    pack = os.environ.get('NEW_ART_PACK')
+    if pack:
+        man['bodyChroma'] = new_art_chroma(pack)
+        print(f'  chroma LUT sampled from {pack}')
     json.dump(man, open(mp, 'w'), separators=(',', ':'))
     print(f'{name}: {len(table)} cells tone-matched to {target}, {skipped} already at or below it')
 
