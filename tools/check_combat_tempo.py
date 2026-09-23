@@ -37,13 +37,23 @@ async def main():
                     for(const p of [player1,player2]){p.y=GROUND_Y-p.height;p.isGrounded=true;}
                     return player1;
                 };
-                for(let id=0;id<9;id++){
+                // ⛔ NINJA_ROSTER.length, NOT 9. Oni's retirement took the roster to 8, so id 8
+                // picked nobody: p1Pick=8 left player1.spec undefined and the whole gate died on
+                // "Cannot read properties of undefined (reading 'name')" — a crash that reads as
+                // an engine fault and is the check counting fighters that no longer exist. Same rot
+                // 866 fixed in check_footsies_physics.py; this gate was missed in that pass.
+                for(let id=0;id<NINJA_ROSTER.length;id++){
                     let p=reset(id);const name=p.spec.name,x=p.x,a=animClock,t=roundTimer,phase=p.animPhase;
                     key('KeyD',true);for(let i=0;i<30;i++)updateGame(dt);key('KeyD',false);
                     const distance=p.x-x,sim=animClock-a,clock=t-roundTimer;
                     near(sim,0.6,0.0001,name+' simulation seconds');
                     near(clock,0.5,0.0001,name+' round seconds');
-                    near(distance,350*(p.curSpeed/6)*0.6,0.1,name+' travel');
+                    // ⛔ BOUND_RUN TOO. The engine's own walkTop is
+                    // 350*(curSpeed/6)*(BOUND_RUN[id] ?? 1) — Ember's bound run (846) moves his
+                    // RUN alone, without touching curSpeed, so a formula that reads only curSpeed
+                    // under-predicts him by 5% and calls the engine wrong. Read the same two terms
+                    // the engine reads, or the check is measuring a different move.
+                    near(distance,350*(p.curSpeed/6)*(BOUND_RUN[p.spec.id] ?? 1)*0.6,0.1,name+' travel');
                     const cycles=(p.animPhase-phase)/runCells(SPRITES[name.toLowerCase()].frames).length;
                     if(cycles<.6||cycles>1.8*(p.spec.runAnimScale||1)+.01)failures.push(name+' excessive/missing stride cadence: '+cycles);
                     rows.push({name,kind:'run',distance,sim,clock,cycles});
@@ -75,10 +85,11 @@ async def main():
     for row in result['rows']:
         if row['kind'] == 'run':
             print(f"{row['name']}: {row['distance']:.1f}px / {row['clock']:.3f}s on round clock; {row['sim']:.3f}s action")
+    NAMES = sorted({r['name'] for r in result['rows']})
     for failure in result['failures']:
         print('FAIL:', failure)
     assert not result['failures'], f"{len(result['failures'])} tempo failures"
-    print('PASS: nine movement/clock cases, 36 attack recoveries, long-frame cap')
+    print(f"PASS: {len(NAMES)} movement/clock cases, {len(NAMES)*4} attack recoveries, long-frame cap")
 
 
 if __name__ == '__main__':
