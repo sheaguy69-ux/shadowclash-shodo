@@ -18381,9 +18381,9 @@
 
         // Fresh round: respawn fighters, clear the arena, rewind the clock
         function resetRound() {
-            // A broken board is a ROUND's worth of damage, not a match's: round 2
-            // starts back on the board that was picked, with the surfaces whole.
-            if (stageBase) setStage(stageBase);
+            // A BROKEN BOARD CARRIES OVER (owner 9/23): round 2 starts in the room round 1
+            // ended in, with a smashed partition still smashed. A new MATCH is fresh —
+            // startNewGame sets the picked board before it calls this.
             // spawn feet AT the ground line (was fixed 48 — the abyss has no
             // floor snap to correct a spawn sunk below it)
             player1 = new Player(1, 150, GROUND_Y - 48 * (NINJA_ROSTER[p1Pick].sizeScale || 1), NINJA_ROSTER[p1Pick], true);
@@ -18431,7 +18431,12 @@
                 if (teamP1[1]) teamP1[1].opponent = player2;
                 if (teamP2[1]) teamP2[1].opponent = player1;
             }
+            const roomWasOpen = !!breach && breach.open;
             seedAbyss();
+            if (roomWasOpen && breach) {   // nobody is inside at the respawn, so nobody owns it
+                currentStage.walls = currentStage.walls.filter(w => !w.breach);
+                breach.open = true;
+            }
             particles.length = 0;
             smokeFields.length = 0;
             logs.length = 0;
@@ -21022,7 +21027,7 @@
                 through: 'temple',
                 // THE SUTRA STORE — a dark room behind the LEFT wall. The RIGHT wall stays
                 // the door to the temple. See THE DARK ROOM beside BREAK_AT.
-                dark: -1,
+                dark: -1, room: 'The Sutra Store',
             },
             {
                 id: 'drowned', name: 'Drowned Shrine',
@@ -21038,6 +21043,8 @@
                 parallax: 0.13, dim: 0.15, anchor: 0.87, mist: '220,208,196', mistAmt: 0.9,
                 floor: 'rgb(26,22,18)', line: 'rgba(193,77,22,0.85)',
                 plat: 'rgba(36,30,24,0.95)', platEdge: 'rgba(193,77,22,0.5)',
+                through: 'warrant',
+                dark: -1, room: 'The Burned House',
             },
             {
                 id: 'warrant', name: 'Warrant Yard',
@@ -21081,6 +21088,7 @@
                 plat: 'rgba(36,28,22,0.95)', platEdge: 'rgba(193,77,22,0.55)',
                 ledge: 62,
                 below: 'volcano',
+                through: 'lantern',
             },
             {
                 id: 'tollgate', name: 'The First Door',
@@ -21096,6 +21104,7 @@
                 floor: 'rgb(26,22,16)', line: 'rgba(146,105,33,0.85)',
                 plat: 'rgba(36,30,22,0.95)', platEdge: 'rgba(146,105,33,0.5)',
                 through: 'tollgate',
+                dark: -1, room: 'The Stone Chamber',
             },
             {
                 id: 'volcano', name: 'The Last Door',
@@ -21469,6 +21478,7 @@
         // attacker that does not exist), stagger 0.25s, dodgeable.
         let currentStage = STAGES[0];
         let stageToastT = 0;   // seconds left on the "stage name" toast
+        let toastRoom = '';    // a smashed partition toasts the ROOM's name instead (owner 9/23)
 
         // --- STAGE BREAK (owner, Aug 3 2026) ---------------------------------
         // The arena is a ROOM, not a box. A board that names a neighbour takes
@@ -21482,7 +21492,7 @@
         // to read; add one only if a board ever wants both halves on screen.
         const BREAK_AT = 1500;      // summed impact speed a surface survives
         let stageWear = { floor: 0, wall: 0, breach: 0 };
-        let stageBase = null;       // board the ROUND started on — resetRound restores it
+        let stageBase = null;       // board the MATCH was picked on (rounds carry the damage over)
         let pendingBreak = null;    // {kind,x,y,who} — armed mid-physics, resolved by the loop
         // ---- THE DARK ROOM (owner, Sep 23 2026) ------------------------------------------
         // "Wall-break + dark room ambush. Big knockback smashes the wall; the target lands
@@ -21519,6 +21529,7 @@
         function setStage(st) {
             if (!fallOuts && st.ledge) { st = { ...st }; delete st.ledge; }
             currentStage = st;
+            toastRoom = '';
             stageWear = { floor: 0, wall: 0, breach: 0 };
             pendingBreak = null;   // a break queued against the OLD board dies with it
             seedAbyss();
@@ -21585,7 +21596,8 @@
                     p.stunTimer = Math.max(p.stunTimer, 0.35);
                 }
             }
-            if (kind !== 'breach') stageToastT = 2.0;
+            stageToastT = 2.0;
+            toastRoom = kind === 'breach' ? (currentStage.room || '') : '';
         }
 
         // --- STAGE SELECT STRIP (owner, Jul 28) ------------------------------
@@ -22578,7 +22590,7 @@
                 ctx.font = 'bold 13px monospace';
                 ctx.textAlign = 'center';
                 ctx.fillStyle = `rgba(226,232,240,${Math.min(1, stageToastT)})`;
-                ctx.fillText(`${currentStage.name.toUpperCase()}  (F7)`, canvas.width / 2, 82);
+                ctx.fillText(toastRoom ? toastRoom.toUpperCase() : `${currentStage.name.toUpperCase()}  (F7)`, canvas.width / 2, 82);
             }
             if (impactInvertTimer > 0) {
                 ctx.globalCompositeOperation = 'difference';

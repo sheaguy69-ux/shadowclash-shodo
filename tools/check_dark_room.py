@@ -121,7 +121,7 @@ out.thrown = {
   victimIn: inBreach(V), victimDark: V.inDark, victimAlpha: V.alpha,
   throwerOut: !inBreach(T), throwerDark: T.inDark, throwerAlpha: T.alpha,
   owner: !!breach && breach.owner === V, stillHall: currentStage.id === 'hall',
-  noNewToast: stageToastT <= toastBefore,
+  roomToast: stageToastT > 0 && toastRoom === 'The Sutra Store',
 };
 
 out.section = 'D';
@@ -211,9 +211,32 @@ openWith(player2); settle(player2); await frames(5);
 out.kael = { hiderDark: player2.inDark, hiderAlpha: player2.alpha };
 
 out.section = 'I';
-// ---- I. a round reset reseals the room --------------------------------------------------
+// ---- I. the break CARRIES into the next round; a new match reseals (owner 9/23) ---------
+await start('Kael', 'Executioner');
+openWith(player2);
 resetRound(); await frames(2);
+out.carried = !!breach && breach.open && !(currentStage.walls || []).some(w => w.breach)
+  && breach.owner === null && currentStage.id === 'hall';
+await start('Kael', 'Executioner');
 out.resealed = !!breach && !breach.open && (currentStage.walls || []).some(w => w.breach);
+
+out.section = 'N';
+// ---- N. the domains: three dark rooms, the new doors, a swapped board carries over ----
+const S = id => STAGES.find(s => s.id === id);
+out.rooms = ['hall', 'village', 'temple'].map(id => [id, S(id).dark, S(id).room]);
+out.links = { keep: S('keep').through, village: S('village').through };
+out.otherRooms = {};
+for (const id of ['village', 'temple']) {
+  await start('Kael', 'Executioner'); setStage(S(id)); await frames(1);
+  const sealed = !!breach && !breach.open && currentStage.walls.some(w => w.breach);
+  breakStage('breach', breach.x1, 300, player2);
+  out.otherRooms[id] = { sealed, opened: breach.open, toast: toastRoom };
+}
+await start('Kael', 'Executioner'); setStage(S('village')); stageBase = S('village');
+breakStage('wall', canvas.width - 12, 300);
+const swappedTo = currentStage.id;
+resetRound(); await frames(2);
+out.swapCarry = { swappedTo, nextRound: currentStage.id };
 
 out.section = 'J';
 // ---- J. the back wall bills nothing; the right wall is still the temple door ------------
@@ -333,7 +356,7 @@ def main():
     ok(t['throwerOut'] and not t['throwerDark'] and t['throwerAlpha'] > 0.9,
        f"the THROWER stays outside and visible (alpha {t['throwerAlpha']:.2f})")
     ok(t['owner'], 'the room belongs to the one who went through')
-    ok(t['stillHall'] and t['noNewToast'], 'no board swap and no toast — a wall fell, the fight did not move')
+    ok(t['stillHall'] and t['roomToast'], 'no board swap — a wall fell, and the toast names THE SUTRA STORE')
 
     b, c, o = r['blind'], r['checked'], r['outside']
     print(f"\n  Kubikiri, guard held: blind {b['lost']} hp, checked {c['lost']} hp, outside {o['lost']} hp\n")
@@ -359,7 +382,16 @@ def main():
        f"MIZU IS IMMUNE: the dark hides nothing from her (hider alpha {r['mizu']['hiderAlpha']:.2f})")
     ok(r['kael']['hiderDark'] and r['kael']['hiderAlpha'] == 0, '...while the same room hides from anyone else')
 
-    ok(r['resealed'], 'a round reset reseals the room')
+    ok(r['carried'], 'a smashed partition stays smashed into the next round, owned by nobody')
+    ok(r['resealed'], 'a NEW MATCH reseals the room')
+    ok(r['rooms'] == [['hall', -1, 'The Sutra Store'], ['village', -1, 'The Burned House'], ['temple', -1, 'The Stone Chamber']],
+       f"three dark rooms: {r['rooms']}")
+    ok(r['links'] == {'keep': 'lantern', 'village': 'warrant'}, f"new doors keep->lantern, village->warrant: {r['links']}")
+    for k, v in r['otherRooms'].items():
+        ok(v['sealed'] and v['opened'] and v['toast'] == dict(village='The Burned House', temple='The Stone Chamber')[k],
+           f"{k}: sealed partition, breaks open, toasts its room {v}")
+    ok(r['swapCarry'] == {'swappedTo': 'warrant', 'nextRound': 'warrant'},
+       f"a board swap carries into the next round {r['swapCarry']}")
     ok(r['backWallWear'] == 0, "the room's back wall bills nothing to the door")
     ok(r['doorQueued'] and r['movedToTemple'], 'the RIGHT wall is still the door to the temple')
 
