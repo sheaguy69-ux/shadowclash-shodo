@@ -1742,7 +1742,12 @@
         // glass — no new stat, one multiplier suspended, and it is the only mode effect
         // on the roster that removes a weakness instead of adding a strength.
         const CHAMPION_MAX = 100, CHAMPION_GAIN_TAKEN = 1.6, CHAMPION_GAIN_DEALT = 1.1;
-        const CHAMPION_DUR = 5;
+        // ⚖ BALANCE — owner, Sep 23 2026: "increase duration to 20s". Was 5. This is the
+        // player's mode only; the CPU boss runs on BOSS_FRENZY_DUR (4s) and is untouched.
+        // For the record, because the number is large: 20s of x1.2 speed, x1.5 recovery and
+        // NO 1.25x fragility is roughly a third of a 60s round spent as the roster's fastest
+        // body with its fragility switched off. His call, made knowingly.
+        const CHAMPION_DUR = 20;
         const GHOST_LIFE = 0.26;   // after-image lifetime (s)
         // Executioner's tsuki slide: how long he travels and how fast. 0.13s is the
         // window from chamber to full extension at his 240ms special, so the slide
@@ -19643,7 +19648,7 @@
             'Ember':       ["F / J / G / H — light · medium · heavy · armored claw dash", "Fwd+H — SHRED CHARGE (armored, 2 hits)", "Down+H — GROUND RIP (low, trips)", "Up+H — CEILING HOOK (leaves the floor)", "Fwd+G — CLAW REND (2 tears) · Down+G — LOW CLAW RAKE", "Back+G — CLAW RETREAT SWIPE", "Up+G — rising double-claw launcher", "Back+H — BLADE-TRAP PARRY (catch -> X-shred)", "H on wall — pounce dive", "Down/Fwd/Back+F — kicks", "air Down+G — Meteor Break", "F+G — claw-slice throw"],
             'Kael':        ["F / J / G / H — light · medium · heavy · double slash", "Fwd+H — TRAVELLING CROSS SLASH", "Up+H — SKYWARD FANG (planted anti-air)", "Fwd+G — TWIN CYCLONE (2 rings) · Down+G — LOW-HIGH SCISSOR", "Up+G — HIGH PARRY · Back+G — LOW PARRY", "Down+H — rising launcher (invuln start)", "Back+H — NITEN PARRY (wakizashi -> katana)", "Down/Fwd/Back+F — kicks", "air Down+G — Meteor Break", "F+G — throw"],
             'Mokurai':      ["F / J / G / H — light · medium · overhead slam · palm special", "Back+G — SAGE'S PALM (slow blast; hold Up/Down to aim)", "Up+G — BELL RINGER (planted anti-air, launches)", "Fwd+H — PRAYER ORBIT (armored spinning advance, 3 hits)", "Back+H — ZEN REFLECT (catch a hit, automatic palm counter)", "Up+H — neutral special on ground · in air — SKY CATCH (hand catch, spikes)", "KARMA — hits, blocks and counters store up to 15 power for your next damaging Special", "Down+H — temple bell (hits both sides) · in air — BELL TOLL (dive, rings on landing)", "Down/Fwd/Back+F — sweep · front · high kicks", "hold Down+C 2s on a SHORT karma bar — ENLIGHTENMENT (once/round)", "hold Down+C 2s on a FULL karma bar — THE CRACK: 6s of feint-rhythm madness, spends all 15 karma, +20% damage taken, ends in a punishable kneel","F+G — throw"],
-            'Exile':       ["F / J / G / H — light · medium · heavy · heli spin", "V (P2: K) — CHAMPION MODE at a full CHAIN bar (5s: faster, quicker recovery, and she stops taking 1.25x)", "Fwd+H — chain-grapple to the wall", "Up+H — chain to the wall (anchor + kunai)", "Back+H — IAIJUTSU CROSS (blink corridor)", "Down+H — SERPENT'S TONGUE (floor chain, trips)", "Fwd+G — Side Reach · Back+G — Counter-Weight", "Up+G — Up Reach (anti-air) · Down+G — low slash", "Up+F — up-flick (fast anti-air poke)", "Down/Fwd/Back+F — sweep · push · heel kicks", "wall cling — F throws KUNAI (x3)", "air Down+G — Sky Down-Smash", "F+G — throw"],
+            'Exile':       ["F / J / G / H — light · medium · heavy · heli spin", "V (P2: K) — CHAMPION MODE at a full CHAIN bar (20s: faster, quicker recovery, and she stops taking 1.25x)", "Fwd+H — chain-grapple to the wall", "Up+H — chain to the wall (anchor + kunai)", "Back+H — IAIJUTSU CROSS (blink corridor)", "Down+H — SERPENT'S TONGUE (floor chain, trips)", "Fwd+G — Side Reach · Back+G — Counter-Weight", "Up+G — Up Reach (anti-air) · Down+G — low slash", "Up+F — up-flick (fast anti-air poke)", "Down/Fwd/Back+F — sweep · push · heel kicks", "wall cling — F throws KUNAI (x3)", "air Down+G — Sky Down-Smash", "F+G — throw"],
         };
         function drawMoveList(ctx) {
             const col = (p, side) => {
