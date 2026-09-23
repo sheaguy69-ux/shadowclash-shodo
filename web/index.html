@@ -594,6 +594,7 @@
                             <li><b class="text-gray-200">Ember Up Attack:</b> Hold <kbd>Up</kbd> + Heavy on the ground — rising double-claw launcher. Sends them HIGH for a juggle.</li>
                             <li><b class="text-gray-200">Weapon clash:</b> Two active weapon swings meeting at once cancel with sparks, recoil and a metal ring.</li>
                             <li><b class="text-gray-200">Mist Ambush:</b> Mizu's mist hides her completely. A <b>Heavy</b> thrown from inside her own cloud is <i>unblockable</i> and hits harder — but it SPENDS the mist, hit or whiff — the cloud is gone and she fades back into view over about two thirds of a second. Guard won't save you; a Corner Break still will.</li>
+                            <li><b class="text-gray-200">Kubikiri (the dark room):</b> The Broken Hall's left wall is a partition. A clean hit hard enough — a throw does it in one — smashes a body through into the <i>Sutra Store</i>, and only that fighter goes in. Inside the dark they vanish; the chaser gets nothing but dust and floorboard creaks, and only while they move. Step in blind and a <b>Heavy</b> from the dark is <i>unblockable</i>, comes out on one frame and hits harder than the mist. So check first: a low sweep or a thrown blade into the dark switches it off, and any hit that finds the hider drags them into the light. Mizu is blind — the dark hides nothing from her.</li>
                             <li><b class="text-gray-200">Blade lock:</b> Two <i>steel edges</i> meeting on the ground don't cancel — they LOCK. Mash Light/Heavy: lead by SIX presses and you break their guard and stand over a free hit — but never in the first 0.3s, however fast you mash. Neither leads, both recoil.</li>
                             <li><b class="text-gray-200">Shunshin:</b> Double-tap a direction to dash (15 chakra). Release or reverse after the opening burst to micro-dash; hold to travel farther. You can be clipped mid-dash.</li>
                             <li><b class="text-gray-200">Air control:</b> Hold a direction when a launch connects to influence its angle. Heavier fighters travel less. Neutral air Light cancels on landing.</li>
@@ -1872,6 +1873,17 @@
         // THE MIST AMBUSH. A heavy thrown from inside your own mist is unblockable and
         // hits harder — and it SPENDS the cloud. See spawnHitbox, filed with the stances.
         const AMBUSH_DMG    = 1.35;   // the payoff for giving up the cover
+        // KUBIKIRI (首斬り) — THE DARK ROOM'S AMBUSH. Owner, Sep 23 2026, quoting the Gemini
+        // spec back: "Kubikiri is an unblockable ambush ... need in the game." It belongs
+        // to WHOEVER is hidden in a dark room — never held for Oni (that was a misreading).
+        // A HEAVY from the dark at a chaser who stepped in blind comes out on ONE frame,
+        // unblockable, on its OWN multiplier (owner: harder than the mist's). The room
+        // itself lives with the stage code — see THE DARK ROOM beside BREAK_AT.
+        const KUBIKIRI_DMG  = 1.35;
+        const KUBI_WIN      = 0.5;    // s: a chaser is blind for this long after stepping in
+        const CHECK_T       = 0.6;    // s: a low or a thrown blade into the dark buys this much sight
+        const LIT_T         = 0.8;    // s: striking from the dark lights you up
+        const FOUND_T       = 0.6;    // s: a hit that finds the hider drags them into the light
         const MUKI_TAKEN    = 1.5;    // damage TAKEN while formless. This is the risk.
 
         // ---- item 8: SAYA-KAMAE (鞘構え) — the grip switch -----------------------
@@ -3807,6 +3819,14 @@
                 this.landSquash = 0;         // 1->0 landing-impact squash (weight)
                 this.hitSquashT = 0;         // 1->0 IMPACT squash on taking damage (see drawSprite)
                 this.ambushT = 0;            // >0 = MIST AMBUSH just fired (label only)
+                this.ambushName = '';        // which ambush fired — 'MIST AMBUSH' / 'KUBIKIRI' (label only)
+                this.inDark = false;         // THE DARK ROOM: hidden behind the broken partition
+                this.roomT = 0;              // s inside an open dark room — a chaser is blind for KUBI_WIN
+                this.revealT = 0;            // >0 = lit: struck from the dark, or found by a check
+                this.checkT = 0;             // >0 = checked the dark (low / thrown blade) — no Kubikiri vs me
+                this.creakT = 0;             // floorboard cadence while moving in the dark
+                this.heardX = undefined;     // where the last creak came from (the CPU listens)
+                this.seenX = undefined;      // last centre anyone could SEE (parallax + CPU while hidden)
                 this.jumpSquatT = 0; this.skidT = 0; this.turnT = 0; this.skidDir = 1;   // transition beats
                 this.parryFlashTimer = 0;
                 this.crouchAt = -9;            // animClock the crouch was entered (sink beats)
@@ -4915,11 +4935,46 @@
                     }
                 }
 
+                // ---- THE DARK ROOM: the second definition of "gone" ----------------------
+                // A SEPARATE flag, never hiddenInSmoke: the mist ambush's gate promises that
+                // flag is only ever set by a mist field, and it stays true. Mist wins a tie.
+                this.inDark = false;
+                const inRoom = inBreach(this);
+                this.roomT = inRoom ? this.roomT + dt : 0;
+                if (this.revealT > 0) this.revealT -= dt;
+                if (this.checkT > 0) this.checkT -= dt;
+                if (breach && breach.open) {
+                    // the room belongs to the one who went through; once they leave it, the
+                    // first fighter alone inside takes it — a room can change hands
+                    if (breach.owner && !inBreach(breach.owner)) breach.owner = null;
+                    if (!breach.owner && inRoom && !inBreach(opponent)) breach.owner = this;
+                }
+                // MIZU IS IMMUNE (owner, Sep 23): she is blind in the story bible, so the dark
+                // conceals nothing from her — no hiding from her, so no Kubikiri on her either.
+                if (inRoom && breach.owner === this && !this.hiddenInSmoke && !(this.revealT > 0)
+                    && !(opponent && opponent.spec.name === 'Mizu')) {
+                    this.inDark = true;
+                    this.alpha = 0;
+                    // THE ONLY TELLS: dust at the feet and a floorboard creak, and only while
+                    // MOVING on the ground. Standing still in the dark is silent.
+                    if (this.isGrounded && Math.abs(this.vx) > 60) {
+                        if ((this.creakT -= dt) <= 0) {
+                            this.creakT = 0.3;
+                            this.heardX = cx;
+                            sfx('creak');
+                            spawnFx('M05', cx, this.y + this.height, { mirror: Math.sign(this.vx) || 1 });
+                        }
+                    } else this.creakT = 0;
+                }
+                if (!isHidden(this)) this.seenX = cx;
+
                 // Update Projectiles
                 for (let i = this.projectiles.length - 1; i >= 0; i--) {
                     const proj = this.projectiles[i];
                     proj.x += proj.vx * dt;
                     proj.y += proj.vy * dt;
+                    // THE BLIND CHECK, thrown: a blade into the dark tells you what is in there.
+                    if (breach && breach.open && proj.x > breach.x0 && proj.x < breach.x1) this.checkT = CHECK_T;
                     // palm blast sheds fire on the way through
                     if (proj.kind === 'palm' && Math.random() < 0.5 * dt * 60)
                         particles.push({ type: 'streak', x: proj.x - proj.vx * 0.04, y: proj.y + (Math.random() - 0.5) * 18,
@@ -5760,17 +5815,29 @@
                 // a vertical band — cling and wall-jump work on their faces exactly
                 // like the arena edges, and the gap below the band is the root arch
                 // runners pass through. atWall: +1 = wall on my right, -1 = on my left.
+                let hitWall = null;
                 for (const wl of currentStage.walls || []) {
                     if (this.y + this.height <= wl.y0 || this.y >= wl.y1) continue;
                     const L = wl.x, R = wl.x + wl.w, cx = this.x + this.width / 2;
-                    if (this.x + this.width > L && cx < L) { this.x = L - this.width; atWall = 1; }
-                    else if (this.x < R && cx > R) { this.x = R; atWall = -1; }
+                    if (this.x + this.width > L && cx < L) { this.x = L - this.width; atWall = 1; hitWall = wl; }
+                    else if (this.x < R && cx > R) { this.x = R; atWall = -1; hitWall = wl; }
                 }
 
                 // STAGE BREAK — the side wall is a surface, not a boundary. One-shot
                 // per contact (the clamp above leaves vx pointing into the wall, so an
                 // unlatched test would bill every frame of a slide as a fresh slam).
                 if (atWall === 0) this.wallStress = false;
+                else if (hitWall && hitWall.breach) {
+                    // THE PARTITION breaks only to a CLEAN hit. Blockstun rides stunTimer too,
+                    // so `stunTimer > 0` would let a GUARDED shove smash a wall the defender
+                    // never lost — STUNNED is the state a real hit, and a throw, sets.
+                    if (!this.wallStress && this.state === STATE.STUNNED
+                        && Math.sign(this.vx) === atWall && Math.abs(this.vx) > 240) {
+                        this.wallStress = true;
+                        stageStress('breach', Math.abs(this.vx), hitWall.x + (atWall === 1 ? 0 : hitWall.w),
+                                    this.y + this.height / 2, this);
+                    }
+                }
                 else if (!this.wallStress && this.stunTimer > 0
                          && Math.sign(this.vx) === atWall && Math.abs(this.vx) > 240) {
                     this.wallStress = true;
@@ -8670,12 +8737,32 @@
                     createSmokePuff(this.x + this.width / 2, this.y + this.height / 2, 22, 1.4);
                     sfx('whoosh_heavy');
                     this.ambushT = 0.5;   // drives the world-space label only
+                    this.ambushName = 'MIST AMBUSH';
                     // ⛔ SPENDING THE CLOUD DOES NOT REVEAL HER AT ONCE, and that is the
                     // engine's existing behaviour, not a choice made here: alpha climbs
                     // back at `dt * 1.5` from the smoke/vanish recovery ramp, so she
                     // MEASURES 0 -> 1.0 over 40 frames / ~667ms. She materialises out of
                     // the dispersing smoke rather than popping into view. Do not 'fix'
                     // this into a snap — the ramp is shared with the vanish transition.
+                }
+                // ---- KUBIKIRI — the dark room's ambush ------------------------------------
+                // A HEAVY from the dark at a chaser who came in BLIND — inside less than
+                // KUBI_WIN, without checking first — comes out on ONE frame, unblockable, on
+                // its own multiplier. The hider is at alpha 0, so no drawn wind-up exists for
+                // the early box to contradict. It lights the hider up for LIT_T.
+                // A heavy at a chaser still OUTSIDE is an ordinary heavy: waiting at the
+                // threshold, or checking, is the counterplay — the ambush is never free.
+                // Echoes are excluded: KAGE's tape replays through here.
+                else if (this.inDark && !opts.echo && (opts.tier || this.state) === STATE.ATTACK_HEAVY) {
+                    const foes = gameMode === 'brawl' ? brawlFoes(this) : [this.opponent];
+                    if (foes.some(f => f && inBreach(f) && f.roomT < KUBI_WIN && !(f.checkT > 0))) {
+                        dmg *= KUBIKIRI_DMG;
+                        opts = { ...opts, unblockable: true, delay: Math.min(opts.delay ?? 0, 1 / 60) };
+                        this.revealT = LIT_T;
+                        this.ambushT = 0.5;
+                        this.ambushName = 'KUBIKIRI';
+                        sfx('whoosh_heavy');
+                    }
                 }
                 // SAYA-KAMAE, gyaku-te: a reverse blade is SHORTER and QUICKER. The
                 // trade is the whole stance — you give up the tip to gain the frames.
@@ -8698,6 +8785,12 @@
                 let sh = isDownwardPogo ? 30 : h;
                 if (opts.behind) ox = this.facing === 1 ? -sw : this.width;   // heel turn hits your back arc
                 if (opts.low) { oy = this.height - sh - 2; }                  // sweep skims the floor
+                // THE BLIND CHECK, swung: a low into the dark tells you what is in there, and
+                // switches KUBIKIRI off against you for CHECK_T.
+                if (opts.low && breach && breach.open) {
+                    const bx0 = this.x + ox;
+                    if (bx0 + sw > breach.x0 && bx0 < breach.x1) this.checkT = CHECK_T;
+                }
                 // METEOR PLUNGE: the box rides under the feet. It CENTRES the caller's
                 // width rather than replacing it — `sh = h` already honoured the caller's
                 // height on this same line, while `sw = this.width` silently threw the
@@ -10562,7 +10655,9 @@
                 }
                 const t = this.opponent;
                 let vx = this.facing * STAR_SPEED, vy = 0;
-                if (t) {
+                // A hidden target is not aimed at — you cannot aim at what you cannot see.
+                // The throw goes straight out: that IS the blind kunai.
+                if (t && !isHidden(t)) {
                     const dx = (t.x + t.width / 2) - ox, dy = (t.y + t.height * 0.45) - oy;
                     const d = Math.hypot(dx, dy) || 1;
                     vx = (dx / d) * STAR_SPEED; vy = (dy / d) * STAR_SPEED;
@@ -11417,6 +11512,8 @@
                 }
                 const push = sourceHitbox ? sourceHitbox.pushback : 80;
                 this.vx = impactFacing * (100 + push); // Knockback momentum
+                // FOUND: a blade that finds the hider in the dark drags them into the light.
+                if (this.inDark) this.revealT = FOUND_T;
 
                 // Command-move riders (kicks / second specials):
                 if (sourceHitbox && sourceHitbox.trip && this.isGrounded) {
@@ -11731,6 +11828,10 @@
                 // Draw Projectiles: shuriken spin; the wire trails a line back to
                 // Shin's hand; the gravewave is a burning crack crawling the floor
                 this.projectiles.forEach(proj => {
+                    // A blade thrown OUT of the dark is not dark: past the room it draws at full
+                    // strength. The throw gives the hider away — that is the trade.
+                    ctx.globalAlpha = this.inDark && !(breach && proj.x > breach.x0 && proj.x < breach.x1)
+                        ? 1 : this.alpha;
                     if (proj.kind === 'wave') {
                         ctx.save();
                         const flick = 1 + Math.sin(animClock * 40) * 0.25;   // animClock, not wall clock: the flicker freezes under hitstop
@@ -15185,11 +15286,16 @@
 
             // AFTER-IMAGE TRAIL (fist-mode): draw the stored ghost snapshots first,
             // fading out behind the live body — the "chaotic misdirection" smear.
+            // ⛔ THE TRAIL INHERITS THE BODY'S ALPHA, AND HANDS IT BACK. This used to draw the
+            // ghosts at a fixed 0.4 and then set globalAlpha = 1 for the body — so any fighter
+            // with after-images drew FULLY VISIBLE while vanished, hidden in mist or in the
+            // dark, and the ghosts themselves were a tell. Scale by the caller, restore it.
             if (p.ghosts.length) {
+                const a0 = ctx.globalAlpha;
                 for (const g of p.ghosts) {
                     const ghostScale = scaleFor(g.idx);
                     ctx.save();
-                    ctx.globalAlpha = Math.max(0, g.life / GHOST_LIFE) * 0.4;
+                    ctx.globalAlpha = a0 * Math.max(0, g.life / GHOST_LIFE) * 0.4;
                     ctx.translate(g.x + p.width / 2, g.y + p.height);
                     ctx.scale(-g.facing, 1);
                     if (man.mirror && man.mirror[g.idx]) ctx.scale(-1, 1);   // mirror-listed cell must face right in its trail too
@@ -15197,7 +15303,7 @@
                                    -fw * ghostScale / 2, -anchorFor(g.idx), fw * ghostScale, fh * ghostScale);
                     ctx.restore();
                 }
-                ctx.globalAlpha = 1;
+                ctx.globalAlpha = a0;
             }
 
             // ⛔ KAGE-KAMI IS NO LONGER A SHADOW. Owner, Sep 11 2026: "delete delete
@@ -16975,6 +17081,28 @@
                 },
             },
             {
+                // ⛔ EVERY NEW MECHANIC SHIPS WITH A DRILL (owner, Aug 10 2026). KUBIKIRI needs a
+                // dark room with YOU in it, so the drill moves the fight to the Broken Hall,
+                // opens the Sutra Store and seats you inside. The dummy then walks in BLIND,
+                // never checking. Wait for it — HEAVY the moment it steps in. Wait too long and
+                // the same heavy is an ordinary, blockable one: the window is the lesson.
+                name: 'KUBIKIRI — wait in the dark room, HEAVY as it walks in blind',
+                run: (me, B) => {
+                    const target = me.opponent;
+                    if (!target || target.hp <= 0 || me.stunTimer > 0) return;
+                    if (!currentStage.dark) { const d = STAGES.find(st => st.dark); if (d) setStage(d); return; }
+                    if (breach && !breach.open) {
+                        currentStage.walls = (currentStage.walls || []).filter(w => !w.breach);
+                        breach.open = true; breach.owner = target;
+                        target.x = (breach.x0 + breach.x1) / 2 - target.width / 2; target.vx = 0;
+                        return;
+                    }
+                    const dir = Math.sign(target.x - me.x) || me.facing;
+                    me.facing = dir;
+                    keys[dir > 0 ? B.keyR : B.keyL] = true;   // walks straight in, never checking
+                },
+            },
+            {
                 name: 'CORNER BREAK — back to a wall, HOLD GUARD (C)',
                 run: (me, B) => {
                     const target = me.opponent;
@@ -17393,15 +17521,20 @@
             // actually has. It decays over ~1.2s so he does not stand there forever, and
             // every downstream decision (approach, spacing, punish windows) is derived from
             // dx/dist, so blinding them here blinds all of it at once.
-            if (foe.hiddenInSmoke) {
+            // THE DARK ROOM blinds it the same way, with two differences: no 1.2s decay (the
+            // brain would regain perfect sight and walk straight into Kubikiri), and it HEARS
+            // — every creak is a fresh fix on where the hider is.
+            if (isHidden(foe)) {
                 if (me.lostFoeT === undefined || me.lastSawFoe === undefined) me.lostFoeT = 0;
                 me.lostFoeT = Math.min(1.2, (me.lostFoeT || 0) + dt);
                 if (me.lastSawFoe === undefined) me.lastSawFoe = foe.x + foe.width / 2;
+                if (foe.inDark && foe.heardX !== undefined && foe.heardX !== me.lastHeardX)
+                    me.lastSawFoe = me.lastHeardX = foe.heardX;
             } else {
                 me.lastSawFoe = foe.x + foe.width / 2;
                 me.lostFoeT = 0;
             }
-            const foeCx = foe.hiddenInSmoke && me.lostFoeT < 1.2
+            const foeCx = foe.inDark || (foe.hiddenInSmoke && me.lostFoeT < 1.2)
                 ? me.lastSawFoe : foe.x + foe.width / 2;
             const dx = foeCx - (me.x + me.width/2); // center to center (last-known while blinded)
             const dist = Math.abs(dx);
@@ -17445,6 +17578,25 @@
             // something of theirs is in the air and travelling at me
             const incoming = foe.projectiles.some(pr => Math.sign(pr.vx) === -Math.sign(dx));
             const hasChakra = me.stamina > 40 && me.windedTimer <= 0;
+
+            // THE DARK ROOM, from inside it. Moving CREAKS and gives the room away, so while the
+            // opponent is still outside the brain holds dead still and waits. The moment they
+            // step in blind, KUBIKIRI. If they come in having checked, it is an ordinary fight
+            // and the rest of the brain takes over.
+            if (me.inDark) {
+                if (canAct && inBreach(foe) && foe.roomT < KUBI_WIN && !(foe.checkT > 0)) {
+                    me.facing = dx >= 0 ? 1 : -1;
+                    me.executeAttack(STATE.ATTACK_HEAVY);
+                    B.action = 'attack';
+                    keys[B.keyBlock] = false;   // the bottom re-assert is skipped by this return
+                    return;
+                }
+                if (!inBreach(foe)) {
+                    B.action = 'idle';
+                    keys[B.keyBlock] = false;
+                    return;
+                }
+            }
 
             // --- STRATEGY LAYER. The ladder below reads the OPPONENT; this reads
             // the MATCH. One pass per frame that modulates the existing branches
@@ -17742,8 +17894,8 @@
                     me.facing = dx >= 0 ? 1 : -1;
                     if (SD.low && hasChakra && dist > 95)
                         hold(B.keyDown, () => me.executeAttack(STATE.ATTACK_SPECIAL));   // long low poke beats a sweep's reach
-                    else if (foe.state === STATE.CROUCH || foeGuard || Math.random() < 0.45)
-                        hold(B.keyDown, () => me.executeAttack(STATE.ATTACK_LIGHT));     // sweep: low, trips
+                    else if (foe.state === STATE.CROUCH || foeGuard || foe.inDark || Math.random() < 0.45)
+                        hold(B.keyDown, () => me.executeAttack(STATE.ATTACK_LIGHT));     // sweep: low, trips (and checks the dark)
                     else if (dist > 85)
                         hold(toFoe, () => me.executeAttack(STATE.ATTACK_LIGHT));         // push: closes + wall-splats
                     else
@@ -18565,6 +18717,12 @@
             whoosh:    (d = 0) => AudioSys.noise(0.13, { vol: 0.65, freq: 3200, slide: -2500, attack: 0.018, q: 0.55, delay: d }),
             // Big steel displaces MORE air, SLOWER — longer, lower, louder than a jab,
             // with a low sine push under it. Heavies, specials, launcher swings.
+            // THE DARK ROOM's only sound: a floorboard giving under weight — a short low
+            // groan with a dry wooden tick on top. The chaser hears where you are.
+            creak: (d = 0) => {
+                AudioSys.tone(118, 0.16, { type: 'triangle', vol: 0.16, slide: -34, delay: d });
+                AudioSys.noise(0.05, { vol: 0.22, freq: 1400, slide: -600, attack: 0.004, q: 3.0, delay: d });
+            },
             whoosh_heavy: (d = 0) => {
                 AudioSys.noise(0.2, { vol: 0.8, freq: 1900, slide: -1550, attack: 0.025, q: 0.55, delay: d });
                 AudioSys.tone(230, 0.15, { type: 'sine', vol: 0.2, slide: -110, delay: d });
@@ -19495,7 +19653,7 @@
             // code, and that code goes on to snap the lander onto GROUND_Y — so a
             // break applied in place put the man who caused it straight onto the
             // new floor instead of dropping him through the old one (measured).
-            if (pendingBreak) { const b = pendingBreak; pendingBreak = null; breakStage(b.kind, b.x, b.y); }
+            if (pendingBreak) { const b = pendingBreak; pendingBreak = null; breakStage(b.kind, b.x, b.y, b.who); }
             updateAbyss(dt);
             updateStageWires(dt);
             // THE LIGHT: on The Last Door, holding the pool slowly refills you
@@ -19869,7 +20027,8 @@
                 p.cornerRecoilT = p.cornerRecoilV = 0; p.wallSplatUsed = false;
                 p.hitboxes.length = 0; p.state = STATE.IDLE;
                 p.slamPhase = 0; p.slamRecover = 0; p.airFloatT = 0; p.airFloats = 0; p.groundBounce = false;
-                p.hitSquashT = 0; p.landSquash = 0; p.ambushT = 0;
+                p.hitSquashT = 0; p.landSquash = 0; p.ambushT = 0; p.ambushName = '';
+                p.inDark = false; p.roomT = p.revealT = p.checkT = p.creakT = 0; p.heardX = p.seenX = undefined;
             }
             player1.facing = 1; player2.facing = -1;
             trainingStats.last = 0; trainingStats.combo = 0; trainingStats.total = 0;
@@ -20825,6 +20984,9 @@
                 floor: 'rgb(26,20,18)', line: 'rgba(175,41,30,0.85)',
                 plat: 'rgba(36,28,24,0.95)', platEdge: 'rgba(175,41,30,0.5)',
                 through: 'temple',
+                // THE SUTRA STORE — a dark room behind the LEFT wall. The RIGHT wall stays
+                // the door to the temple. See THE DARK ROOM beside BREAK_AT.
+                dark: -1,
             },
             {
                 id: 'drowned', name: 'Drowned Shrine',
@@ -21003,7 +21165,14 @@
         function clampLandX(x, w) {
             const m = (currentStage && !currentStage.abyss && currentStage.ledge)
                 ? currentStage.ledge + 4 : 10;
-            return Math.max(m, Math.min(canvas.width - m - w, x));
+            let lo = m, hi = canvas.width - m - w;
+            // A SEALED dark room is not floor anyone can land on: a floor break or a blink
+            // must never deposit a fighter behind the partition.
+            if (breach && !breach.open) {
+                if (breach.side < 0) lo = Math.max(lo, breach.x1 + PARTITION_W);
+                else hi = Math.min(hi, breach.x0 - PARTITION_W - w);
+            }
+            return Math.max(lo, Math.min(hi, x));
         }
         function hasFloorAt(cx) {
             if (currentStage.abyss) return false;
@@ -21040,6 +21209,20 @@
             GROUND_Y = groveOn ? (currentStage.tagGround || BASE_GROUND_Y) : Math.round(BASE_GROUND_Y / GAME_ZOOM);
             if (canvas.width !== wantW) canvas.width = wantW;
             if (canvas.height !== wantH) canvas.height = wantH;
+            // THE DARK ROOM's partition. HERE because every board change, round reset,
+            // training reset and F7 already routes through seedAbyss, so one site reseals the
+            // room everywhere. On a COPY: STAGES entries are shared, and a partition written
+            // into one would outlive the match.
+            breach = null;
+            if (currentStage.dark) {
+                if (STAGES.includes(currentStage)) currentStage = { ...currentStage };
+                const d = currentStage.dark;
+                const px = d < 0 ? 10 + ROOM_W : canvas.width - 10 - ROOM_W - PARTITION_W;
+                currentStage.walls = [...(currentStage.walls || []).filter(w => !w.breach),
+                    { x: px, w: PARTITION_W, top: 0, up0: 0, breach: true }];
+                breach = { side: d, x0: d < 0 ? 10 : px + PARTITION_W, x1: d < 0 ? px : canvas.width - 10,
+                           open: false, owner: null };
+            }
             // resolve every board's ground-relative geometry against THIS floor
             for (const wl of currentStage.walls || []) {
                 wl.y0 = Math.round((wl.top ?? 0.15) * wantH);
@@ -21262,22 +21445,60 @@
         // backdrop+palette swap plus a drop. No scrolling camera needed for it
         // to read; add one only if a board ever wants both halves on screen.
         const BREAK_AT = 1500;      // summed impact speed a surface survives
-        let stageWear = { floor: 0, wall: 0 };
+        let stageWear = { floor: 0, wall: 0, breach: 0 };
         let stageBase = null;       // board the ROUND started on — resetRound restores it
-        let pendingBreak = null;    // {kind,x,y} — armed mid-physics, resolved by the loop
+        let pendingBreak = null;    // {kind,x,y,who} — armed mid-physics, resolved by the loop
+        // ---- THE DARK ROOM (owner, Sep 23 2026) ------------------------------------------
+        // "Wall-break + dark room ambush. Big knockback smashes the wall; the target lands
+        // in a dark room, the chaser sees only shadows; Kubikiri is an unblockable ambush;
+        // the chaser checks with blind kunai or sweeps — need in the game."
+        //
+        // The fixed camera frames BOTH fighters, so the chaser cannot be left outside by a
+        // camera — he is left outside by a WALL. A board with `dark: ±1` carries a
+        // full-height PARTITION ROOM_W in from that side. A CLEAN hit that drives a body into
+        // it breaks it, and only THAT body goes through. The board, camera, GROUND_Y and
+        // music never change: a board swap moves both fighters, which is the one thing the
+        // ambush cannot survive.
+        //
+        // Owner rulings the same day: the chaser sees DUST AND CREAKS ONLY (no figure — the
+        // Sep 11 no-shadows ruling stands); a real partition, not a dark corner; KUBIKIRI on
+        // its own multiplier; and MIZU IS IMMUNE — the story bible makes her blind, so the
+        // dark hides nothing from her.
+        const ROOM_W = 120;         // px of dark room behind the partition
+        const PARTITION_W = 14;     // px, the partition's thickness
+        const BIG_KNOCK = 380;      // px/s: ONE clean hit this hard smashes it (throws, air hits, palm)
+        let breach = null;          // {side, x0, x1, open, owner} on a dark board, null elsewhere
+        function inBreach(p) {
+            if (!breach || !breach.open || !p) return false;
+            const c = p.x + p.width / 2;
+            return c > breach.x0 && c < breach.x1;
+        }
+        // ONE definition of "cannot be seen" for every system that must not look: the
+        // parallax camera, the corner label, the wall-throw's aim and the CPU. Mizu's mist
+        // leaked through all three before this — the room just made it impossible to miss.
+        function isHidden(p) { return !!p && (p.hiddenInSmoke || p.inDark); }
         // ONE place that swaps boards, because three of them drifted apart before:
         // the ring-outs-off copy has to ride along or a pit closed in the menu
         // reopens the moment the stage changes under the fighters.
         function setStage(st) {
             if (!fallOuts && st.ledge) { st = { ...st }; delete st.ledge; }
             currentStage = st;
-            stageWear = { floor: 0, wall: 0 };
+            stageWear = { floor: 0, wall: 0, breach: 0 };
             pendingBreak = null;   // a break queued against the OLD board dies with it
             seedAbyss();
         }
-        function stageStress(kind, force, x, y) {
-            if (!(kind === 'floor' ? currentStage.below : currentStage.through)) return;
-            stageWear[kind] += force;
+        function stageStress(kind, force, x, y, who) {
+            if (kind === 'breach') {
+                if (!breach || breach.open) return;
+                // one hit hard enough smashes it outright; lesser slams wear it like any wall
+                stageWear.breach += force >= BIG_KNOCK ? BREAK_AT : force;
+            } else {
+                if (!(kind === 'floor' ? currentStage.below : currentStage.through)) return;
+                // THE ROOM'S BACK WALL IS NOT THE DOOR. On a dark board the side behind the
+                // room is the room's own wall — a slam there must not bill the far door.
+                if (kind === 'wall' && currentStage.dark && Math.sign(x - canvas.width / 2) === currentStage.dark) return;
+                stageWear[kind] += force;
+            }
             // the tell: splinters fly off the surface that is losing, so the break
             // is something the player watched coming rather than a cut.
             const n = 2 + Math.round(4 * stageWear[kind] / BREAK_AT);
@@ -21285,12 +21506,23 @@
                 x: x + (Math.random() - 0.5) * 60, y: y + (Math.random() - 0.5) * 20,
                 vx: (Math.random() - 0.5) * 260, vy: -60 - Math.random() * 220,
                 len: 11, color: currentStage.line || '#d8cdbb', life: 0.34, maxLife: 0.34 });
-            if (stageWear[kind] >= BREAK_AT && !pendingBreak) pendingBreak = { kind, x, y };
+            if (stageWear[kind] >= BREAK_AT && !pendingBreak) pendingBreak = { kind, x, y, who };
         }
-        function breakStage(kind, x, y) {
-            const next = STAGES.find(st => st.id === (kind === 'floor' ? currentStage.below : currentStage.through));
-            if (!next) return;
-            setStage(next);
+        function breakStage(kind, x, y, who) {
+            if (kind === 'breach') {
+                // THE PARTITION GIVES. No board swap, no toast, no music: the fight did not
+                // move, a wall fell — and only the body that went through is in the room. It
+                // keeps its knockback (the wall clamp left vx pointing in), so it tumbles in
+                // on its own physics.
+                if (!breach || breach.open) return;
+                currentStage.walls = (currentStage.walls || []).filter(w => !w.breach);
+                breach.open = true;
+                breach.owner = who || null;
+            } else {
+                const next = STAGES.find(st => st.id === (kind === 'floor' ? currentStage.below : currentStage.through));
+                if (!next) return;
+                setStage(next);
+            }
             hitstopRemaining = Math.max(hitstopRemaining, 240);
             screenShakeAmount = Math.max(screenShakeAmount, 26);
             flashAmount = Math.max(flashAmount, 0.3);
@@ -21317,7 +21549,7 @@
                     p.stunTimer = Math.max(p.stunTimer, 0.35);
                 }
             }
-            stageToastT = 2.0;
+            if (kind !== 'breach') stageToastT = 2.0;
         }
 
         // --- STAGE SELECT STRIP (owner, Jul 28) ------------------------------
@@ -21330,6 +21562,7 @@
             const t = [];
             if (st.below) t.push('floor breaks');
             if (st.through) t.push('wall breaks');
+            if (st.dark) t.push('dark room');
             if (st.ledge) t.push('ledges');
             if (st.wind) t.push('wind');
             if (st.debris) t.push('rockfall');
@@ -21368,8 +21601,11 @@
             const s = currentStage, img = s && stageImgs[s.id];
             if (!img || !img.complete || !img.naturalWidth) return false;
             // virtual camera = midpoint between the fighters; the backdrop lags it
+            // A HIDDEN fighter steers the camera from where they were last SEEN: a backdrop
+            // that drifts with an invisible walker paints their position on the wall.
+            const camX = p => isHidden(p) && p.seenX !== undefined ? p.seenX : p.x + p.width / 2;
             const mid = (player1 && player2)
-                ? ((player1.x + player1.width / 2) + (player2.x + player2.width / 2)) / 2
+                ? (camX(player1) + camX(player2)) / 2
                 : canvas.width / 2;
             const drift = (mid - canvas.width / 2) * s.parallax;
             // cover-fit with overscan so the drift can never expose an edge
@@ -21755,6 +21991,35 @@
                 ctx.lineTo(floorR, GROUND_Y);
                 ctx.stroke();
             }
+            // THE DARK ROOM — over the backdrop and the floor, UNDER the fighters: a chaser
+            // who walks in is still drawn, a hider at alpha 0 is not. The plate is the stage
+            // scrim's own colour and the timber is the board's own plat/line — no new palette.
+            if (breach) {
+                const plat = currentStage.plat || 'rgba(36,28,24,0.95)';
+                const line = currentStage.line || 'rgba(175,41,30,0.85)';
+                ctx.fillStyle = 'rgba(10,7,14,0.92)';
+                ctx.fillRect(breach.x0, 0, breach.x1 - breach.x0, canvas.height);
+                const px = breach.side < 0 ? breach.x1 : breach.x0 - PARTITION_W;
+                ctx.fillStyle = plat;
+                ctx.strokeStyle = line;
+                ctx.lineWidth = 2;
+                if (!breach.open) {
+                    // the partition: a plaster face between timber posts, one rail at dado height
+                    ctx.fillRect(px, 0, PARTITION_W, GROUND_Y);
+                    ctx.strokeRect(px + 1, 0, PARTITION_W - 2, GROUND_Y);
+                    ctx.beginPath(); ctx.moveTo(px, GROUND_Y * 0.62); ctx.lineTo(px + PARTITION_W, GROUND_Y * 0.62); ctx.stroke();
+                } else {
+                    // the torn jamb: a stub hanging from the lintel and a stump on the floor
+                    for (const [y0, h] of [[0, GROUND_Y * 0.14], [GROUND_Y * 0.9, GROUND_Y * 0.1]]) {
+                        ctx.fillRect(px, y0, PARTITION_W, h);
+                        ctx.beginPath();
+                        const edge = y0 === 0 ? h : y0;
+                        ctx.moveTo(px, edge);
+                        for (let k = 1; k <= 4; k++) ctx.lineTo(px + PARTITION_W * k / 4, edge + (k % 2 ? 7 : -3) * (y0 === 0 ? 1 : -1));
+                        ctx.stroke();
+                    }
+                }
+            }
             // THE LIGHT pool on The Last Door — warm lantern gold, breathing
             // slowly. Drawn over the floor, under the fighters. NO NEON: soft
             // radial falloff plus a faint beam from above.
@@ -21870,7 +22135,7 @@
             }
             // World-space defense cue uses existing type and poses; no new character art.
             for (const p of (gameMode === 'brawl' ? brawlAll : [player1, player2])) {
-                if (!p || p.hp <= 0 || (p.cornerPressure < 2 && p.cornerGrace <= 0)) continue;
+                if (!p || p.hp <= 0 || isHidden(p) || (p.cornerPressure < 2 && p.cornerGrace <= 0)) continue;
                 ctx.save();
                 ctx.font = 'bold 12px monospace'; ctx.textAlign = 'center';
                 const label = p.cornerGrace > 0 ? 'CORNER BREAK'
@@ -21894,7 +22159,7 @@
                 ctx.save();
                 ctx.font = 'bold 12px monospace'; ctx.textAlign = 'center';
                 ctx.globalAlpha = Math.min(1, p.ambushT / 0.2);
-                const label = 'MIST AMBUSH — UNBLOCKABLE';
+                const label = `${p.ambushName || 'MIST AMBUSH'} — UNBLOCKABLE`;
                 const w = ctx.measureText(label).width + 14;
                 const x = Math.max(w / 2 + 4, Math.min(canvas.width - w / 2 - 4, p.x + p.width / 2));
                 const y = Math.max(132, p.y - 20);
