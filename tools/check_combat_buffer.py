@@ -46,7 +46,7 @@ async def main():
                     boxes:p.hitboxes.map(h=>[h.ox,h.oy,h.w,h.h,!!h.low,!!h.launch,!!h.spike]),
                     tsuki:!!p.tsukiAnim,up:!!p.upAtkAnim,airUp:!!p.airUpAnim});
                 const directions=[[],['KeyA'],['KeyD'],['KeyS'],['KeyW'],['KeyA','KeyS'],['KeyD','KeyS'],['KeyA','KeyW'],['KeyD','KeyW']];
-                for(let id=0;id<9;id++){
+                for(let id=0;id<NINJA_ROSTER.length;id++){
                     const name=NINJA_ROSTER[id].name;
                     let p=reset(id);fire('KeyG');const first=p.attackAnim;fire('KeyJ');
                     for(let n=0;n<100;n++)tick(p,.01);

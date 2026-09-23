@@ -20,7 +20,7 @@ async def main():
                 result=await c.js(r'''
                 dismissTitle(); const failures=[],samples=[];
                 const check=(ok,msg)=>{if(!ok)failures.push(msg);};
-                for(let id=0;id<9;id++)for(const facing of [-1,1]){
+                for(let id=0;id<NINJA_ROSTER.length;id++)for(const facing of [-1,1]){
                     gameMode='2p';cpuMode=false;spectate=false;stagePick='bamboo';p1Pick=id;p2Pick=0;
                     startNewGame();paused=true;roundIntroTimer=0;releaseAllKeys();
                     const p=player1;
@@ -47,7 +47,7 @@ async def main():
                     }
                 }
                 let fitted=0;
-                for(let id=1;id<9;id++)for(const facing of [-1,1])for(const [kind,direction] of [[STATE.ATTACK_LIGHT,'neutral'],[STATE.ATTACK_LIGHT,'forward'],[STATE.ATTACK_HEAVY,'forward'],[STATE.ATTACK_SPECIAL,'forward']]){
+                for(let id=1;id<NINJA_ROSTER.length;id++)for(const facing of [-1,1])for(const [kind,direction] of [[STATE.ATTACK_LIGHT,'neutral'],[STATE.ATTACK_LIGHT,'forward'],[STATE.ATTACK_HEAVY,'forward'],[STATE.ATTACK_SPECIAL,'forward']]){
                     p1Pick=id;p2Pick=0;startNewGame();paused=true;roundIntroTimer=0;releaseAllKeys();
                     const p=player1;Object.assign(p,{x:450,y:GROUND_Y-p.height,isGrounded:true,vx:0,vy:0,state:STATE.IDLE,facing,animPhase:0});
                     if(direction==='forward')keys[facing>0?'KeyD':'KeyA']=true;

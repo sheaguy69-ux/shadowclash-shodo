@@ -76,7 +76,7 @@ async def main():
                 }
                 check(JSON.stringify(idle)===JSON.stringify([346,347,348,349,348,347,346,347,348,349,348,347]),'Shin idle loop changed');
                 // Landing must not flatten any authored crouch. Mizu's idle fallback is a separate art choice.
-                for(let id=0;id<9;id++){
+                for(let id=0;id<NINJA_ROSTER.length;id++){
                     const p=setup(id);if(SPRITES[p.spec.name.toLowerCase()].frames.crouch_1===undefined)continue;
                     key('KeyS',true);for(let n=0;n<12;n++)updateGame(1/60);
                     sample(p,'roster '+id);p.landSquash=1;sample(p,'roster landing '+id);

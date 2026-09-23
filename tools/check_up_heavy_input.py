@@ -36,7 +36,7 @@ const snap=p=>({state:p.state,ground:p.isGrounded,air:p.attackAir,dir:p.attackDi
     boxes:p.hitboxes.map(h=>({w:h.w,h:h.h,ox:h.ox,oy:h.oy,damage:h.damage,delay:h.delay,
       duration:h.duration,push:h.pushback,launch:h.launch,launchVy:h.launchVy}))});
 const record=(id,seat,facing,mode,p,extra={})=>rows.push({id,seat,facing,mode,...extra,value:snap(p)});
-for(let id=0;id<9;id++)for(const seat of [0,1])for(const facing of [1,-1]){
+for(let id=0;id<NINJA_ROSTER.length;id++)for(const seat of [0,1])for(const facing of [1,-1]){
     const up=seat?'ArrowUp':'KeyW',heavy=seat?'KeyO':'KeyG';
     // Reference ground command: Up held through the existing listeners after an
     // ordinary landing. Heavy must equal this already-implemented move.
@@ -71,7 +71,11 @@ for(const [id,stance] of [[1,'hanbo'],[2,'kageNui'],[3,'sakate']])for(const seat
         record(id,seat,facing,'stance-'+stance+'-'+mode,p);
     }
 }
-for(const id of [1,2,3,8])for(const seat of [0,1]){
+// ⛔ THE LAST ONE BY INDEX, NOT BY NUMBER. This sampled ids 1,2,3 and 8 — and 8 was
+// Oni, so the whole touch-pad pass died on `undefined.name` the day he retired. It is
+// a SAMPLE of fighters, not a claim about any of them, so it takes whoever is last on
+// the roster and cannot rot again.
+for(const id of [1,2,3,NINJA_ROSTER.length-1])for(const seat of [0,1]){
     const up=seat?'ArrowUp':'KeyW',heavy=seat?'KeyO':'KeyG';
     // A touch pad uses virtual held keys and the same combat funnel.
     let p=reset(id,seat),pad=document.getElementById(seat?'pad-p2':'pad-p1');

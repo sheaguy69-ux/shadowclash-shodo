@@ -19,7 +19,7 @@ async def main():
      await asyncio.sleep(.1)
     r=await c.js("""
     dismissTitle();gameMode='2p';const board=document.createElement('canvas');board.width=1350;board.height=520;const g=board.getContext('2d');g.fillStyle='#87959d';g.fillRect(0,0,1350,520);const rows=[];
-    for(let id=0;id<9;id++){p1Pick=id;p2Pick=id===0?1:0;startNewGame();paused=true;roundIntroTimer=0;const p=player1;
+    for(let id=0;id<NINJA_ROSTER.length;id++){p1Pick=id;p2Pick=id===0?1:0;startNewGame();paused=true;roundIntroTimer=0;const p=player1;
     for(const side of [-1,1]){Object.assign(p,{x:60,y:180-p.height,vx:0,vy:0,facing:-side,wallDir:side,state:STATE.WALL_CLING,isGrounded:false,attackAnim:null,lean:0,landSquash:0});
     const m=SPRITES[p.spec.name.toLowerCase()], S=m.scale*SHODO_DISPLAY_SCALE*(p.spec.renderScale||1)*(m.frameScale?.[spriteFrameIndex(p,m.frames)]??1);
     const wall=p.x+(side>0?p.width:0);g.save();g.translate(id*150+(side<0?10:140)-wall,(side<0?30:285));drawSprite(g,p);g.fillStyle='#ddc391';g.fillRect(wall,0,side*2,240);g.restore();g.fillStyle='#111';g.font='12px sans-serif';g.fillText(p.spec.name+' '+p.drawCell,id*150+5,side<0?15:275);const tile=document.createElement('canvas');tile.width=300;tile.height=300;const t=tile.getContext('2d',{willReadFrequently:true});drawSprite(t,p);
@@ -34,7 +34,7 @@ async def main():
     out=Path(os.environ.get('OUT','media/wall-roster-contact'));out.mkdir(exist_ok=True,parents=True);(out/'current.png').write_bytes(base64.b64decode(r['png']));print(r['rows']);assert all(x['cell']==x['expected'] and x['wall']==x['side'] and max(x['gaps'])<=4 for x in r['rows']),r['rows']
     live=await c.js("""
     const rows=[],strip=document.createElement('canvas');strip.width=960;strip.height=9*180;const g=strip.getContext('2d');
-    for(let id=0;id<9;id++)for(const side of [-1,1]){
+    for(let id=0;id<NINJA_ROSTER.length;id++)for(const side of [-1,1]){
       p1Pick=id;p2Pick=id===0?1:0;startNewGame();paused=true;roundIntroTimer=0;hitstopRemaining=0;cutscene=null;
       for(const k in keys)keys[k]=false;physKeys.clear();const code=side<0?'KeyA':'KeyD';keys[code]=true;physKeys.add(code);
       const p=player1;Object.assign(p,{x:side<0?11:canvas.width-11-p.width,y:GROUND_Y-p.height-180,vx:side*100,vy:0,isGrounded:false,state:STATE.JUMP,stamina:100});
@@ -77,7 +77,7 @@ async def main():
         inkX:visible?[x0,x1]:null,viewportWidth:canvas.width,handError,
         actual,geometry:pose?{cell:pose.idx,originX:pose.originX,originY:pose.originY,sign:pose.sign,scale:pose.S,shiftX:pose.shiftX}:null,error});
     };
-    try{for(let id=0;id<9;id++)for(const side of [-1,1])for(const action of ['jump','heavy','release','idle']){
+    try{for(let id=0;id<NINJA_ROSTER.length;id++)for(const side of [-1,1])for(const action of ['jump','heavy','release','idle']){
       dismissTitle();gameMode='2p';cpuMode=false;spectate=false;stagePick='bamboo';p1Pick=id;p2Pick=id===0?1:0;startNewGame();
       paused=false;roundIntroTimer=0;hitstopRemaining=0;cutscene=null;releaseAllKeys();
       const p=player1;man=SPRITES[p.spec.name.toLowerCase()];

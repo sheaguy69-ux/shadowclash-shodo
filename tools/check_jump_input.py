@@ -36,7 +36,7 @@ async def main():
                     Object.assign(p,{x:60,y:GROUND_Y-p.height,vx:0,vy:0,state:STATE.IDLE,isGrounded:true,jumpsLeft:2});
                     foe.x=canvas.width-50-foe.width;return p;
                 };
-                for(let id=0;id<9;id++){
+                for(let id=0;id<NINJA_ROSTER.length;id++){
                     for(const seat of [0,1]){
                         let p=reset(id,seat);const code=seat?'ArrowUp':'KeyW',lift=(570*JUMP_GRAVITY_SCALE+JUMP_GRAVITY_BIAS)*(p.spec.jumpScale||1);
                         key(code,true);check(p.state===STATE.JUMP&&Math.abs(p.vy+lift)<.01,id+' immediate takeoff '+seat);
@@ -126,7 +126,7 @@ async def main():
                     const vy=p.vy;key('KeyW',false);key('KeyW',true);check(p.jumpsLeft===0&&p.vy===vy*.5,label+' third jump allowed');
                     key('KeyW',false);resets.push(label);
                 };
-                for(let id=0;id<9;id++)for(const action of ['dash','roll','wall','attack']){
+                for(let id=0;id<NINJA_ROSTER.length;id++)for(const action of ['dash','roll','wall','attack']){
                     const p=reset(id);gameMode='training';drillIdx=0;
                     if(action==='dash'||action==='roll'){
                         if(action==='roll')key('KeyS',true);
