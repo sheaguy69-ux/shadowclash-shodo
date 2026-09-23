@@ -46,7 +46,15 @@ const reset = () => { p.cracked = false; p.crackTimer = 0; p.crackIntro = 0;
   p.meditateTimer = 0; p.stunTimer = 0; p.recoveryTimer = 0; p.isGrounded = true;
   p.attackAnim = null; p.state = STATE.IDLE; };
 
-// 1. FULL KARMA -> THE CRACK. Drive the real channel, do not call startCrack directly.
+// 1. FULL KARMA -> THE CRACK.
+// ⛔ THIS IS NOT THE REAL CHANNEL, WHATEVER THIS COMMENT USED TO CLAIM. It INLINES a
+// copy of the engine's meditation branch and calls startCrack directly, so it has
+// never proven a press reaches the mode — and as of Sep 22 2026 it provably does not:
+// the owner paused every second mode, the engine branch now carries
+// `&& !secondFormBlocked(this)`, and a FULL bar goes to ENLIGHTENMENT instead.
+// What this file still tests is the MODE ITSELF — its art rows, its damage tax, its
+// kneel — which is what a redesign needs to keep working. The pause is pinned in
+// tools/check_first_form_gate.mjs; do not duplicate that assertion here.
 reset(); p.karma = KARMA_MAX;
 for (let i = 0; i < 40; i++) { p.meditateTimer += 0.06;
   if (p.meditateTimer >= 2.0) { p.meditateTimer = 0;

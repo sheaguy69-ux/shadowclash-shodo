@@ -1635,8 +1635,28 @@
         const TERMINAL_VELOCITY = 1000;
         // Owner's faster ninja feel (Sep 5): one clock keeps motion, art and hits aligned.
         const COMBAT_TEMPO = 1.2;
-        // Shodō production conversion ships first-form art only. Keep one shared gate so
-        // input, direct helpers, and frame routers cannot activate or draw f2_* art.
+        // ⛔ EVERY SECOND MODE IS PAUSED. Owner, Sep 22 2026: "put everyone second on
+        // pause, I want to fully flesh out everybody second mode mechanics, and plus I
+        // plan on making that something that players must earn with every character to
+        // even unlock the second mode."
+        //
+        // This was already the shared gate for the three V-toggle stances, and it already
+        // said "input, direct helpers and frame routers" — but THREE second modes were
+        // reaching the engine around it, and that is the whole repair:
+        //   · CHUDAN had an explicit BYPASS in modeKey (790/793 let it out once it had its
+        //     shodo art). Removed. It is the one live mode the owner deliberately switched
+        //     ON, so it is the one to switch back first if this pause was meant to spare it.
+        //   · THE CRACK is not on V at all — it is hold Down+C on a FULL karma bar — so it
+        //     never passed this way. Blocked at its own trigger, where it now falls through
+        //     to the ENLIGHTENMENT branch that was always the other half of that `if`.
+        //   · The two BOSS auto-modes (CPU Mokurai cracks under 40% HP, CPU Exile's chain
+        //     frenzy) fire off a timer with no input to gate. Blocked at their triggers too:
+        //     they run the identical mode code that is being redesigned. Delete those two
+        //     guards and the bosses have theirs back, nothing else changes.
+        //
+        // ONE SWITCH, and it is this one. When second modes become per-character unlocks,
+        // this becomes a per-player test instead of a global one; every call site already
+        // passes the player, so the shape does not have to change.
         const FIRST_FORM_ONLY = true;
         function secondFormBlocked(player) {
             if (!FIRST_FORM_ONLY) return false;
@@ -1644,6 +1664,13 @@
                 player.kageNui = false;
                 player.sakate = false;
                 player.hanbo = false;
+                // ⛔ AND THE REST OF THE LIST, or a mode set before the flag flipped rides
+                // on forever — updateStance() calls this every frame precisely so none of
+                // them can strand. crackTimer/crackIntro go with `cracked`: clearing the
+                // flag alone leaves the 6s timer running to a kneel nobody entered.
+                player.chudan = false;
+                player.cracked = false; player.crackTimer = 0; player.crackIntro = 0;
+                player.frenzyTimer = 0;
             }
             return true;
         }
@@ -4153,24 +4180,14 @@
             // it. One entry point, dispatched by fighter, rather than a second free key
             // the help screen would then have to teach twice.
             modeKey() {
-                // ⛔ CHUDAN LEAVES THE FIRST-FORM GATE. NOTHING ELSE DOES. That gate states
-                // its own reason where it is defined: the Shodo conversion ships FIRST-FORM
-                // ART ONLY. As of 790 the Executioner's chudan HAS its shodo art — 43 cells
-                // across 8 rows, drawn to the brief and owner-approved — so the reason it
-                // was blocked no longer describes it. Every other second form stays blocked
-                // (Shin's kage-nui, Tsubasa's sakate, Mizu's hanbo, muki, saya, Exile's
-                // champion), because none of them has shodo art and the gate is still doing
-                // real work for them.
-                //
-                // THE TEST IS THE ART, not the fighter: `idle_chudan` on the sheet is what
-                // opens it, so a form leaves this gate the day its cells land and not an
-                // hour before. Bare V only — a held direction is one of the four roster
-                // stances below and is still gated, and this is one line to put back.
-                const mDir = heldDir(this);
-                const chudanPress = this.spec.id === 0
-                    && !['up', 'down', 'back', 'fwd'].includes(mDir)
-                    && SPRITES[this.spec.name.toLowerCase()]?.frames?.idle_chudan !== undefined;
-                if (!chudanPress && secondFormBlocked(this)) return;
+                // ⛔ NOTHING LEAVES THE FIRST-FORM GATE. Owner, Sep 22 2026: "put everyone
+                // second on pause." 790/793 had carved CHUDAN out of this guard once his
+                // shodo art landed — 43 cells, 8 rows, owner-approved — and it was the only
+                // second mode a press could still reach. The carve-out is DELETED, not
+                // disabled: `mDir`/`chudanPress` went with it, so there is no half-wired
+                // bypass sitting here waiting to be re-connected by accident.
+                // The guard is this method's first statement again, as it read before 790.
+                if (secondFormBlocked(this)) return;
                 // Setting a guard / calling the chain is a deliberate act — not something
                 // you do mid-swing or mid-air. Checked ONCE, ahead of the split, because
                 // every second form shares the condition.
@@ -4245,6 +4262,9 @@
                 const man = SPRITES[this.spec.name.toLowerCase()];
                 if (this.chudan && (!man || !man.ready || man.frames.idle_chudan === undefined))
                     this.chudan = false;
+                // ...and nothing SECOND stays set while the pause is on. Same reason, one
+                // rung wider: a flag set before the switch flipped has no other way out.
+                secondFormBlocked(this);
             }
 
             // Central State Machine Updates
@@ -4403,6 +4423,7 @@
                 // cracks — the golden phase is REPLACED by the madness at the
                 // Second Door (owner, Aug 2 2026). Calm was the lie.
                 if (this.spec.id === 6 && !this.bossEnlightUsed && this.isCpuDriven()
+                    && !secondFormBlocked(this)        // paused with every other second mode
                     && this.hp > 0 && this.hp <= this.maxHp * BOSS_ENLIGHT_HP
                     && this.crackTimer <= 0 && matchActive) {
                     this.bossEnlightUsed = true;
@@ -4454,6 +4475,7 @@
                 // the chain wakes — faster step (curSpeed), 1.5x recovery (below),
                 // violet wisps. The FIRST boss teaches the rule: they all change.
                 if (this.spec.id === 7 && !this.bossFrenzyUsed && this.isCpuDriven()
+                    && !secondFormBlocked(this)        // paused with every other second mode
                     && this.hp > 0 && this.hp <= this.maxHp * BOSS_FRENZY_HP
                     && this.frenzyTimer <= 0 && matchActive) {
                     this.bossFrenzyUsed = true;
@@ -5215,7 +5237,12 @@
                         this.meditateTimer = 0;
                         // A FULL karma gauge turns the meditation WRONG (owner, Aug 2
                         // 2026): 15/15 and the monk CRACKS instead of going gold.
-                        if (this.spec.id === 6 && this.karma >= KARMA_MAX) {
+                        // ⛔ AND THE CRACK IS PAUSED (owner, Sep 22 2026), so a FULL bar
+                        // falls through to the `else` — which is ENLIGHTENMENT, the branch
+                        // that has always been the other half of this `if`. Before Aug 2
+                        // 2026 a full bar went gold; while the pause is on it does again.
+                        // Nothing to write: the fallback was already sitting here.
+                        if (this.spec.id === 6 && this.karma >= KARMA_MAX && !secondFormBlocked(this)) {
                             this.karma = 0;                 // it spends everything
                             this.enlightenUsed = true;      // once per round, like the calm
                             this.startCrack(false);
@@ -19348,6 +19375,14 @@
         }
 
         // --- TRAINING MODE state + helpers -----------------------------------
+        // ⛔ EVERY LINE THAT DOCUMENTS A SECOND MODE, hidden while they are paused — a list
+        // that advertises a button doing nothing is the exact failure WIRE-STEP shipped for
+        // weeks ("Back+H — WIRE-STEP (teleport)" with no teleport behind it). 'V ' catches
+        // CHUDAN and CHAMPION; THE CRACK is on hold Down+C, so it is named. Its two lines
+        // were merged into one above so a single test hides the whole move.
+        // When second modes become per-character unlocks this filters per PLAYER, not per
+        // build — the fighter who has earned it should read about it.
+        const SECOND_FORM_LINE = /^V |THE CRACK/;
         let moveListOpen = true;   // training per-fighter move list (L toggles; owner, Jul 29)
         const MOVES_LIST = {
             // Current Shodo inputs; historical art titles do not add commands.
@@ -19357,7 +19392,7 @@
             'Tsubasa':     ["F / J / G / H — light · medium · heavy · parry stance", "Fwd+G — REVERSE-GRIP RUSH (2 stabs) · Down+G — low tanto", "Up+G — RISING TWIN SLASH · Back+G — EVASIVE FLICK", "Down+H — AERIAL DIVE CUT · Up+H — AIR-THROW SETUP", "Fwd+H — pass-through slash", "Back+H — TANTO REVERSE FLURRY (4 rakes)", "Down/Fwd/Back+F — kicks", "air Down+G — Meteor Break", "F+G — throw", "X — TAUNT: he juggles both tanto. No hitbox; any input cancels it"],
             'Ember':       ["F / J / G / H — light · medium · heavy · armored claw dash", "Fwd+H — SHRED CHARGE (armored, 2 hits)", "Down+H — GROUND RIP (low, trips)", "Up+H — CEILING HOOK (leaves the floor)", "Fwd+G — CLAW REND (2 tears) · Down+G — LOW CLAW RAKE", "Back+G — CLAW RETREAT SWIPE", "Up+G — rising double-claw launcher", "Back+H — BLADE-TRAP PARRY (catch -> X-shred)", "H on wall — pounce dive", "Down/Fwd/Back+F — kicks", "air Down+G — Meteor Break", "F+G — claw-slice throw"],
             'Kael':        ["F / J / G / H — light · medium · heavy · double slash", "Fwd+H — TRAVELLING CROSS SLASH", "Up+H — SKYWARD FANG (planted anti-air)", "Fwd+G — TWIN CYCLONE (2 rings) · Down+G — LOW-HIGH SCISSOR", "Up+G — HIGH PARRY · Back+G — LOW PARRY", "Down+H — rising launcher (invuln start)", "Back+H — NITEN PARRY (wakizashi -> katana)", "Down/Fwd/Back+F — kicks", "air Down+G — Meteor Break", "F+G — throw"],
-            'Mokurai':      ["F / J / G / H — light · medium · overhead slam · palm special", "Back+G — SAGE'S PALM (slow blast; hold Up/Down to aim)", "Up+G — BELL RINGER (planted anti-air, launches)", "Fwd+H — PRAYER ORBIT (armored spinning advance, 3 hits)", "Back+H — ZEN REFLECT (catch a hit, automatic palm counter)", "Up+H — neutral special on ground · in air — SKY CATCH (hand catch, spikes)", "KARMA — hits, blocks and counters store up to 15 power for your next damaging Special", "Down+H — temple bell (hits both sides) · in air — BELL TOLL (dive, rings on landing)", "Down/Fwd/Back+F — sweep · front · high kicks", "hold Down+C 2s on a SHORT karma bar — ENLIGHTENMENT (once/round)", "hold Down+C 2s on a FULL karma bar — THE CRACK: 6s of feint-rhythm madness", "   ...spends all 15 karma, +20% damage taken, ends in a punishable kneel","F+G — throw"],
+            'Mokurai':      ["F / J / G / H — light · medium · overhead slam · palm special", "Back+G — SAGE'S PALM (slow blast; hold Up/Down to aim)", "Up+G — BELL RINGER (planted anti-air, launches)", "Fwd+H — PRAYER ORBIT (armored spinning advance, 3 hits)", "Back+H — ZEN REFLECT (catch a hit, automatic palm counter)", "Up+H — neutral special on ground · in air — SKY CATCH (hand catch, spikes)", "KARMA — hits, blocks and counters store up to 15 power for your next damaging Special", "Down+H — temple bell (hits both sides) · in air — BELL TOLL (dive, rings on landing)", "Down/Fwd/Back+F — sweep · front · high kicks", "hold Down+C 2s on a SHORT karma bar — ENLIGHTENMENT (once/round)", "hold Down+C 2s on a FULL karma bar — THE CRACK: 6s of feint-rhythm madness, spends all 15 karma, +20% damage taken, ends in a punishable kneel","F+G — throw"],
             'Exile':       ["F / J / G / H — light · medium · heavy · heli spin", "V (P2: K) — CHAMPION MODE at a full CHAIN bar (5s: faster, quicker recovery, and she stops taking 1.25x)", "Fwd+H — chain-grapple to the wall", "Up+H — chain to the wall (anchor + kunai)", "Back+H — IAIJUTSU CROSS (blink corridor)", "Down+H — SERPENT'S TONGUE (floor chain, trips)", "Fwd+G — Side Reach · Back+G — Counter-Weight", "Up+G — Up Reach (anti-air) · Down+G — low slash", "Up+F — up-flick (fast anti-air poke)", "Down/Fwd/Back+F — sweep · push · heel kicks", "wall cling — F throws KUNAI (x3)", "air Down+G — Sky Down-Smash", "F+G — throw"],
         };
         function drawMoveList(ctx) {
@@ -19365,7 +19400,7 @@
                 if (!p) return;
                 const buttons = { F: 'I', J: 'U', G: 'O', H: 'P', C: 'M', V: 'K', W: 'Up', X: 'N' };
                 const lines = (MOVES_LIST[p.spec.name] || []).filter(line =>
-                    !FIRST_FORM_ONLY || !line.startsWith('V ')).map(line =>
+                    !FIRST_FORM_ONLY || !SECOND_FORM_LINE.test(line)).map(line =>
                     side > 0 ? line.replace(/\b(F|J|G|H|C|V|W|X)\b/g, key => buttons[key]) : line);
                 if (!lines.length) return;
                 ctx.save();
