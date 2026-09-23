@@ -2,7 +2,7 @@
   "name": "executioner",
   "frameW": 644,
   "frameH": 496,
-  "cols": 601,
+  "cols": 609,
   "footY": 488,
   "scale": 0.2665441176470588,
   "frames": {
@@ -290,7 +290,15 @@
     "land2": 523,
     "land3": 455,
     "skid1": 213,
-    "skid2": 214
+    "skid2": 214,
+    "xbump1": 601,
+    "xbump2": 602,
+    "xbump3": 603,
+    "xbump4": 604,
+    "xbump5": 605,
+    "xbump6": 606,
+    "xbump7": 607,
+    "xbump8": 608
   },
   "weapon_type": "Nodachi / Single Katana",
   "martial_art_discipline": "Iaijutsu & Batt\u014djutsu",
