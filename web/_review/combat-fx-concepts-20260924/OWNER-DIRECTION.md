@@ -1,0 +1,5 @@
+# Owner direction — 2026-09-24
+
+Anthony reviewed the combat FX gallery and said the white look is much cleaner. Treat the clean solid ivory-white effect as the preferred visual direction for the next review, with restrained yellow accents only where useful. The yellow concept remains a comparison image, not the selected overall look. This is a visual preference, not authorization to install any FX or recolor packed animation frames.
+
+Anthony also identified Executioner and Kael sword swings as stiff, short-reaching and lacking the speed, flexibility and complete swing of a shinobi. The next frame-by-frame sword proposals must show a complete physical cut with the blade traveling through a clear arc, body weight and torso rotation driving the stroke, full reach at contact, and follow-through before recovery. A large white motion tail follows the measured blade path; it cannot compensate for a short or incomplete drawing. See `../sword-swing-motion-20260924/` for live-cell review and the target motion brief.
