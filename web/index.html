@@ -18786,11 +18786,15 @@
             roundResetTimer = setTimeout(resetRound, 1600);
         }
 
-        // --- 4c. AUDIO — synthesized WebAudio SFX, zero assets, zero deps ---
-        // ponytail: no audio files; every effect is an oscillator/noise recipe.
+        // --- 4c. AUDIO — short recorded attack transients + synthesized fallbacks ---
+        const ATTACK_SAMPLES = {
+            hit_light: ['body-light-1', 'body-light-2', 'body-light-3'],
+            hit_heavy: ['body-heavy-1', 'body-heavy-2', 'body-heavy-3', 'body-heavy-4'],
+            whoosh: ['attack-air-1', 'attack-air-2', 'attack-air-3'],
+        };
         // Ctx is created lazily on the first user gesture (also the iOS unlock).
         const AudioSys = {
-            ctx: null, master: null, muted: false,
+            ctx: null, master: null, muted: false, samples: {}, samplesStarted: false,
             unlock() {
                 const AC = window.AudioContext || window.webkitAudioContext;
                 if (!AC) return;
@@ -18806,6 +18810,31 @@
                     this.master.connect(lim); lim.connect(this.ctx.destination);
                 }
                 if (this.ctx.state === 'suspended') this.ctx.resume();
+                this.loadSamples();
+            },
+            loadSamples() {
+                if (this.samplesStarted || !this.ctx) return;
+                this.samplesStarted = true;
+                for (const [key, stems] of Object.entries(ATTACK_SAMPLES)) {
+                    Promise.all(stems.map(async stem => {
+                        const response = await fetch(`assets/sfx/${stem}.wav`);
+                        if (!response.ok) throw new Error(`SFX ${stem}: ${response.status}`);
+                        return this.ctx.decodeAudioData(await response.arrayBuffer());
+                    })).then(buffers => { this.samples[key] = buffers; })
+                      .catch(() => {});   // a missing asset keeps the original synth voice
+                }
+            },
+            sample(key, vol = 1, delay = 0) {
+                const variants = this.samples[key];
+                if (!this.ctx || this.muted || !variants?.length) return false;
+                const source = this.ctx.createBufferSource(), gain = this.ctx.createGain();
+                source.buffer = variants[Math.floor(Math.random() * variants.length)];
+                source.playbackRate.value = 0.96 + Math.random() * 0.08;
+                gain.gain.value = vol;
+                source.connect(gain); gain.connect(this.master);
+                source.onended = () => { source.disconnect(); gain.disconnect(); };
+                source.start(this.ctx.currentTime + delay);
+                return true;
             },
             tone(freq, dur, { type = 'square', vol = 1, slide = 0, delay = 0 } = {}) {
                 if (!this.ctx || this.muted) return;
@@ -18868,11 +18897,18 @@
         const SFX = {
             // hit_light sits at ~half of heavy now — the old 0.8 noise left no gap for
             // a heavy to feel heavier (loudness hierarchy audit, Aug 2).
-            hit_light: () => { AudioSys.noise(0.065, { vol: 0.65, freq: 1400, q: 0.65 }); AudioSys.tone(185, 0.10, { type: 'sine', vol: 0.5, slide: -100 }); },
+            hit_light: () => {
+                if (AudioSys.sample('hit_light', 0.68)) return;
+                AudioSys.noise(0.065, { vol: 0.65, freq: 1400, q: 0.65 });
+                AudioSys.tone(185, 0.10, { type: 'sine', vol: 0.5, slide: -100 });
+            },
             // A swing is a SWEEP: the band falls as the blade decelerates through the
             // arc. The old static 2400Hz burst was a hiss, not a cut. `d` lets the
             // caller line the air noise up with the frame the blade actually moves.
-            whoosh:    (d = 0) => AudioSys.noise(0.13, { vol: 0.65, freq: 3200, slide: -2500, attack: 0.018, q: 0.55, delay: d }),
+            whoosh:    (d = 0) => {
+                const sampled = AudioSys.sample('whoosh', 0.5, d);
+                AudioSys.noise(0.13, { vol: sampled ? 0.2 : 0.65, freq: 3200, slide: -2500, attack: 0.018, q: 0.55, delay: d });
+            },
             // Big steel displaces MORE air, SLOWER — longer, lower, louder than a jab,
             // with a low sine push under it. Heavies, specials, launcher swings.
             // THE DARK ROOM's only sound: a floorboard giving under weight — a short low
@@ -18892,7 +18928,13 @@
             slash:     () => { AudioSys.noise(0.045, { vol: 0.45, freq: 3000, slide: -2100 }); AudioSys.tone(1500, 0.05, { type: 'triangle', vol: 0.18, slide: -900 }); },
             // 55Hz sub thump under the mid slap — the chest-hit weight the old recipe
             // promised but never delivered below 300Hz.
-            hit_heavy: () => { AudioSys.noise(0.035, { vol: 0.7, freq: 2100, q: 0.6 }); AudioSys.noise(0.14, { vol: 1, freq: 500 }); AudioSys.tone(130, 0.16, { type: 'sine', vol: 0.85, slide: -85 }); AudioSys.tone(55, 0.12, { type: 'sine', vol: 0.5 }); },
+            hit_heavy: () => {
+                if (AudioSys.sample('hit_heavy', 0.94)) return;
+                AudioSys.noise(0.035, { vol: 0.7, freq: 2100, q: 0.6 });
+                AudioSys.noise(0.14, { vol: 1, freq: 500 });
+                AudioSys.tone(130, 0.16, { type: 'sine', vol: 0.85, slide: -85 });
+                AudioSys.tone(55, 0.12, { type: 'sine', vol: 0.5 });
+            },
             // A bare/dull guard ABSORBS — dry mid knock + short body, no ring. The old
             // 1200Hz square beep read as a menu sound, not an arm taking a hit.
             block:     () => { AudioSys.noise(0.06, { vol: 0.5, freq: 550 }); AudioSys.tone(340, 0.09, { type: 'triangle', vol: 0.38, slide: -120 }); },
