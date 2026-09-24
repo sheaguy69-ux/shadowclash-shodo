@@ -5225,6 +5225,7 @@
                     if (this.stunTimer > (this.stunPeak || 0)) this.stunPeak = this.stunTimer;
                     this.stunTimer -= dt;
                     if (this.flooredT > 0) this.flooredT -= dt;
+                    if (this.hurtRollT > 0) this.hurtRollT -= dt;
                     // knockback bleeds off instead of ice-skating at constant speed (audit)
                     if (this.cornerRecoilT > 0) this.vx = this.cornerRecoilV;
                     else if (this.isGrounded) this.vx *= Math.pow(FOOTSIES_DATA.engine_settings.friction, dt * 60);
@@ -5896,6 +5897,7 @@
                         if (this.hp <= 0) { hitstopRemaining = Math.max(hitstopRemaining, 300); koTimer = 0.95; koFocusX = this.x + this.width / 2; koFocusY = GROUND_Y - 20; }
                     } else {
                     this.y = GROUND_Y - this.height;
+                    this.noteHurtLanding();
                     this.vy = 0;
                     this.isGrounded = true;
                     this.hurtVy0 = undefined;
@@ -5982,6 +5984,7 @@
                                     break;
                                 }
                                 this.y = plat.y - this.height;
+                                this.noteHurtLanding();
                                 this.vy = 0;
                                 this.isGrounded = true;
                                 this.hurtVy0 = undefined;
@@ -11118,6 +11121,20 @@
                 return out;
             }
 
+            // MIZU ROLLS OUT OF AN UPSIDE-DOWN LANDING (owner, Sep 23: approved on the
+            // side-by-side). Her air-hurt row ends inverted (6 fold, 7 falling, 8 hard fall)
+            // and the ground stun drew her kneeling or standing on the very next frame. Her
+            // dodge roll already holds the step between: roll_5 head-down at the floor, roll_6
+            // rolling out onto a knee. Four frames (0.08s = 4 x 0.020 dt at 60 fps x
+            // COMBAT_TEMPO), inside the stun she already has: stun, hurtbox and recovery are
+            // unchanged. Both landings call this BEFORE zeroing vy, because t needs the impact.
+            // ponytail: a grounded, non-launching re-hit inside those 80ms keeps the roll up for
+            // the rest of them; clear hurtRollT in takeDamage if that ever reads wrong.
+            noteHurtLanding() {
+                if (this.hurtVy0 < 0 && this.state === STATE.STUNNED
+                    && (this.vy - this.hurtVy0) / (-2 * this.hurtVy0) >= 0.78) this.hurtRollT = 0.08;
+            }
+
             takeDamage(dmg, attacker, sourceHitbox = null, isProjectile = false) {
                 if (this.isCornerProtected()) {
                     if (attacker) attacker.hitConfirmed = false;
@@ -13455,6 +13472,12 @@
                 const beat = p.vy < -80 ? 1 : p.vy > 100 ? 3 : 2;
                 return F['airhurt' + beat] ?? F.airhurt1;
             }
+            // Mizu's roll-out, set by noteHurtLanding: roll_5 then roll_6, two frames each.
+            // The split sits at 0.05, not 0.04 — 0.08 - 2 x 0.020 lands a hair ABOVE 0.04 in
+            // floats and played 3 + 1 in the live capture.
+            if (p.isGrounded && p.hurtRollT > 0 && p.state === STATE.STUNNED
+                && p.spec.id === 1 && F.roll_6 !== undefined)
+                return p.hurtRollT > 0.05 ? F.roll_5 : F.roll_6;
             const sf2 = shinF2Frame(p, F);
             if (sf2 !== undefined && sf2 !== null) return sf2;
             const tf2 = tsubasaF2Frame(p, F);

@@ -132,6 +132,16 @@ async def main():
                         }requestAnimationFrame(tick);});paused=true;
                         if(!trace.some(t=>!t.ground&&t.state===STATE.STUNNED))failures.push('no live airborne hit captured');
                         if(landed<0)failures.push('reaction never landed');
+                        // Mizu rolls out of an upside-down landing (roll_5 -> roll_6, 0.08s) and
+                        // ONLY then: an upright landing keeps the plain ground stun.
+                        if(id===1&&landed>=0){
+                            const lastAir=trace.slice(0,landed).filter(t=>air.includes(t.cell)).at(-1);
+                            const inverted=!!lastAir&&air.indexOf(lastAir.cell)>=5,roll=[F.roll_5,F.roll_6];
+                            const g=trace.slice(landed).filter(t=>t.state===STATE.STUNNED);
+                            if(inverted&&(!g.length||g[0].cell!==F.roll_5))failures.push('Mizu upside-down landing did not roll out: first ground cell '+(g[0]?.cell));
+                            if(!inverted&&g.some(t=>roll.includes(t.cell)))failures.push('Mizu rolled out of an upright landing');
+                            if(trace.slice(landed+6).some(t=>roll.includes(t.cell)))failures.push('Mizu roll-out outstayed its four frames');
+                        }
                         if(landingCell!==undefined&&!trace.some(t=>t.ground&&t.cell===landingCell))failures.push('grounded transition fixture not reached');
                         if(trace.some(t=>t.ground&&air.includes(t.cell)))failures.push('air reaction persisted after landing');
                         const live=document.createElement('canvas');live.width=8*210;live.height=Math.ceil(snaps.length/8)*414;
