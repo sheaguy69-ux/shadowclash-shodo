@@ -5898,6 +5898,7 @@
                     this.y = GROUND_Y - this.height;
                     this.vy = 0;
                     this.isGrounded = true;
+                    this.hurtVy0 = undefined;
                     this.riding = null;
                     // THROW LANDING (owner 9/23: "throws need my impacts, shaking of a
                     // screen"): the release had all the juice and the body hit the floor
@@ -5983,6 +5984,7 @@
                                 this.y = plat.y - this.height;
                                 this.vy = 0;
                                 this.isGrounded = true;
+                                this.hurtVy0 = undefined;
                                 this.riding = plat.slab ? plat : null;
                                 break;
                             }
@@ -11618,6 +11620,7 @@
                     // launch reaches is unchanged, only the hang shortens. Measured -430: 81px before,
                     // 81px after.
                     this.vy = (sourceHitbox.launchVy ?? -430) * JUMP_GRAVITY_SCALE; this.isGrounded = false;
+                    this.hurtVy0 = this.vy;   // Mizu's air-hurt row measures its arc from here
                     this.stunTimer = Math.max(this.stunTimer, 0.5);
                 }
                 if (sourceHitbox && sourceHitbox.wallsplat && !this.wallSplatUsed
@@ -11639,6 +11642,7 @@
                 // grounded fighter to -140 isn't clobbered into a -250 juggle.
                 if (airborneHit) {
                     this.vy = Math.min(this.vy, -250);   // min: a dedicated launcher's stronger pop survives
+                    this.hurtVy0 = this.vy;
                     this.stunTimer *= 1.25;
                 }
 
@@ -13427,8 +13431,22 @@
             if (!p.isGrounded && !p.grabbedBy && F.airhurt1 !== undefined
                 && (p.state === STATE.STUNNED || p.state === STATE.THROWN)) {
                 if (F.airhurt8 !== undefined) {
-                    // Any sheet with the eight-beat row (Mizu, Shin). Boundaries follow the
-                    // measured 60 Hz Mizu hit arc (-240 to +532 px/s).
+                    // MIZU PICKS THE DRAWING BY WHERE SHE IS IN HER OWN ARC (owner, Sep 23:
+                    // approved on the side-by-side). Fixed speed cutoffs were tuned on the
+                    // weakest hit in the game, a -250 air juggle; a ground launcher starts at
+                    // -441..-686, so she sat on the pop for up to 21 frames while the apex,
+                    // turnover, fold and early fall flashed one frame each, and the hardest
+                    // launcher never reached beat 4. t = 0 at the launch, 0.5 at the apex, 1 back
+                    // at launch height; the apex drawing owns the real apex whatever launched her.
+                    // Drawing choice only: no stun, hitbox or combat timing reads this.
+                    if (p.spec.id === 1) {
+                        const vy0 = p.hurtVy0 < 0 ? p.hurtVy0 : -250;
+                        const t = (p.vy - vy0) / (-2 * vy0);
+                        const beat = t < 0.10 ? 1 : t < 0.24 ? 2 : t < 0.38 ? 3 : t < 0.60 ? 4
+                            : t < 0.78 ? 5 : t < 0.95 ? 6 : t < 1.15 ? 7 : 8;
+                        return F['airhurt' + beat] ?? F.airhurt1;
+                    }
+                    // Shin's eight-beat row: fixed cutoffs from the measured 60 Hz -250 juggle.
                     const beat = p.vy < -150 ? 1 : p.vy < 0 ? 2 : p.vy < 80 ? 3
                         : p.vy < 140 ? 4 : p.vy < 195 ? 5 : p.vy < 250 ? 6
                         : p.vy < 305 ? 7 : 8;

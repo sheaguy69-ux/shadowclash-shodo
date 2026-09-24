@@ -118,7 +118,9 @@ generate the missing per-fighter prompt files in the same shape.
 - **walk `walk1..8`** — packs and the WALK tier switches on by itself (`3242e26`).
 - **launched-hurt** — Mizu now has owner-approved `airhurt1..8` source art in
   `art/shodo-source/mizu/mizu-airhurt-fluidity-v1/`, packed into cells 256–263;
-  her selector reads eight measured velocity bands. Other fighters still use
+  her selector picks the beat by where she is in her OWN arc (launch 0, apex 0.5, back at
+  launch height 1), so the apex drawing holds at the real apex whatever launched her
+  (owner-approved Sep 23). Other fighters still use
   `airhurt1..3` borrowed from their throw-hold drawings. This row plays on every air hit.
 - **second jump `njump1..8`** — curl into a ball; band on `flipTimer`, never `vy`; owner wants it
   from Blender + his motion lane, not stills. Gate in `spinFlip` (`:15558`) with a `drawnFlip`

@@ -97,8 +97,11 @@ every beat is equally strong, because `animPhase` never resets and all eight are
 ### R-AIRHURT · `airhurt1..8` · 8 drawings
 Briefed in `PROMPTS.md` §3 and `prompts/<fighter>.md` Row B. **Two pilots are finished:**
 Mizu (871, cells 256–263) and Shin (872, cells 447–454). Their folders are the template, above.
-The engine is done: any sheet carrying `airhurt8` gets the eight-band velocity selector.
-Beat 1 holds for most of the rise, so the early beats carry the move.
+The engine is done: any sheet carrying `airhurt8` gets the eight-beat selector. Mizu's reads
+her own arc (launch 0, apex 0.5, back at launch height 1): the apex drawing holds 6–9 frames at
+the real apex and every beat plays on a juggle, so draw all eight as equals. Shin still runs the
+fixed −150/0/80… px/s bands, where beat 1 hogs the rise and beats 4–7 flash one frame each; moving
+him to the arc is his own owner call.
 
 ### R-NJUMP · `njump1..8` · 8 drawings, and the engine gate is still owed
 Briefed in `PROMPTS.md` §4 with a per-fighter subsection (§4.1–§4.8). One full revolution over

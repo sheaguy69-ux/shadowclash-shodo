@@ -41,8 +41,12 @@ async def main():
                         for(const k in keys)keys[k]=false;physKeys.clear();
                         const p=player1,m=SPRITES[p.spec.name.toLowerCase()],F=m.frames,failures=[],matrix=[],held=[],ground=[];
                         const eight=F.airhurt8!==undefined,air=Array.from({length:eight?8:3},(_,i)=>F['airhurt'+(i+1)]);
-                        const airExpected=vy=>air[eight
-                            ? vy< -150?0:vy<0?1:vy<80?2:vy<140?3:vy<195?4:vy<250?5:vy<305?6:7
+                        // Mizu reads her own arc (t 0 launch, .5 apex, 1 back at launch height);
+                        // Shin keeps the fixed cutoffs; three-beat sheets the old split.
+                        const arc=(vy,vy0)=>{const v0=vy0<0?vy0:-250,t=(vy-v0)/(-2*v0);
+                            return t<.10?0:t<.24?1:t<.38?2:t<.60?3:t<.78?4:t<.95?5:t<1.15?6:7;};
+                        const airExpected=(vy,vy0)=>air[eight
+                            ? (id===1?arc(vy,vy0):vy< -150?0:vy<0?1:vy<80?2:vy<140?3:vy<195?4:vy<250?5:vy<305?6:7)
                             : vy< -80?0:vy>100?2:1];
                         // Authored directions were independently reviewed from full-size
                         // source art, including the rotation across Mokurai's tumble.
@@ -54,7 +58,7 @@ async def main():
                         const reset=()=>Object.assign(p,{x:canvas.width/2-p.width/2,y:GROUND_Y-p.height-70,isGrounded:false,
                             vx:0,vy:0,facing:1,state:STATE.STUNNED,stunTimer:.5,stunPeak:.5,grabbedBy:null,
                             attackAnim:null,wallDir:0,wallJumpLock:0,landSquash:0,hitSquashT:0,hitFlashT:0,
-                            flooredT:0,tumbleT:0,slamPhase:0,slamRecover:0,moveArt:null,moveTrack:null,
+                            flooredT:0,tumbleT:0,slamPhase:0,hurtVy0:undefined,slamRecover:0,moveArt:null,moveTrack:null,
                             rollTimer:0,dashTimer:0,f2Air:false,f2Low:false,clone:null,ghosts:[]});
                         const board=document.createElement('canvas');board.width=6*210;board.height=4*270;
                         const b=board.getContext('2d');b.fillStyle='#829da6';b.fillRect(0,0,board.width,board.height);
@@ -71,7 +75,7 @@ async def main():
                         for(const alt of [false,true])for(const state of [STATE.STUNNED,STATE.THROWN])for(const facing of [-1,1])for(const [beat,vy] of [-250,0,220].entries()){
                             reset();mode(alt);Object.assign(p,{state,facing,vy,flooredT:.5,tumbleT:.3,tumbleT0:.6,
                                 slamRecover:.1,moveArt:'gsfwd',f2Air:true,f2Low:true});
-                            const cell=spriteFrameIndex(p,F),expected=airExpected(vy);
+                            const cell=spriteFrameIndex(p,F),expected=airExpected(vy,p.hurtVy0);
                             if(cell!==expected)failures.push('air reaction lost to stale floor/move/stance: '+[alt,state,facing,vy,cell]);
                             const fixture={alt,state,facing,vy,cell,expected};matrix.push(fixture);
                             // Stale floor flags are routing fixtures; render the actual reaction
@@ -80,10 +84,13 @@ async def main():
                             Object.assign(fixture,drawCell(b,(facing<0?0:3)*210+beat*210,(Number(alt)*2+Number(state===STATE.THROWN))*270,
                                 (alt?'alt ':'base ')+state+' '+facing+' vy'+vy+' #'+cell));
                         }
-                        if(id===1)for(let beat=1;beat<=8;beat++){
-                            reset();mode(false);p.vy=[-240,-75,57,110,163,215,268,321][beat-1];
+                        // Every beat at the centre of its band, for the -250 fallback AND a real
+                        // launcher's arc: the row must scale with the launch, not sit on the pop.
+                        if(id===1)for(const v0 of [undefined,-527])for(let beat=1;beat<=8;beat++){
+                            reset();mode(false);p.hurtVy0=v0;const b0=v0??-250;
+                            p.vy=b0+[.05,.17,.31,.49,.69,.865,1.05,1.3][beat-1]*(-2*b0);
                             const cell=spriteFrameIndex(p,F),expected=air[beat-1];
-                            if(cell!==expected)failures.push('Mizu eight-beat velocity selector missed '+beat);
+                            if(cell!==expected)failures.push('Mizu arc selector missed beat '+beat+' at vy0 '+b0);
                         }
                         for(const alt of [false,true])for(const facing of [-1,1]){
                             reset();mode(alt);Object.assign(p,{state:STATE.THROWN,facing,grabbedBy:player2,vy:0});
@@ -105,7 +112,7 @@ async def main():
                         await new Promise(resolve=>{function tick(){
                             const cell=spriteFrameIndex(p,F),row={frame,cell,state:p.state,ground:p.isGrounded,vy:p.vy,x:p.x,y:p.y,stun:p.stunTimer};
                             if(!p.isGrounded&&!p.grabbedBy&&(p.state===STATE.STUNNED||p.state===STATE.THROWN)){
-                                const expected=airExpected(p.vy);if(cell!==expected)failures.push('live hit draws ground/move art');
+                                const expected=airExpected(p.vy,p.hurtVy0);if(cell!==expected)failures.push('live hit draws ground/move art');
                             }
                             if(p.isGrounded&&landed<0)landed=frame;
                             const s=document.createElement('canvas');s.width=210;s.height=390;const g=s.getContext('2d');
