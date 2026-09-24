@@ -40,8 +40,8 @@ async def main():
                         startNewGame();roundIntroTimer=0;paused=true;cutscene=null;hitstopRemaining=0;
                         for(const k in keys)keys[k]=false;physKeys.clear();
                         const p=player1,m=SPRITES[p.spec.name.toLowerCase()],F=m.frames,failures=[],matrix=[],held=[],ground=[];
-                        const air=Array.from({length:id===1?8:3},(_,i)=>F['airhurt'+(i+1)]);
-                        const airExpected=vy=>air[id===1
+                        const eight=F.airhurt8!==undefined,air=Array.from({length:eight?8:3},(_,i)=>F['airhurt'+(i+1)]);
+                        const airExpected=vy=>air[eight
                             ? vy< -150?0:vy<0?1:vy<80?2:vy<140?3:vy<195?4:vy<250?5:vy<305?6:7
                             : vy< -80?0:vy>100?2:1];
                         // Authored directions were independently reviewed from full-size
