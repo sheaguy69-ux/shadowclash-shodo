@@ -2,6 +2,13 @@
 
 Anthony says their sword swings look cheap, stiff, short-reaching and lack a shinobi's dynamic speed and flexibility. He wants a complete swing when new frame-by-frame sword art is made. The clean solid white FX look is the preferred effect direction, but FX alone cannot repair the pose sequence. No animation, hitbox, timing or runtime change is approved by this brief.
 
+## Owner corrections on the strips
+
+- **Executioner long katana:** every new sword pose must use the exact long katana shape shown in `executioner-approved-sword-angles.png`, not a short or generic straight sword. `executioner-approved-pose.png` is the already-approved body/weapon pose reference. The new `executioner-armor-katana-candidate.png` is an unapproved design study of his requested armor: exactly **one** ninja shoulder pad and **both** waist armor pads. It uses the built-in image editor; its model identity was not verified. It is not a replacement sprite or approval of any new frame.
+- **Kael grounded light:** use his **short blade** for the cut. The long sword should remain stowed/secondary during that light action unless the choreography explicitly switches blades.
+- **Kael cross slash:** both arms and both swords must visibly travel through the cross. An X-shaped mark over a mostly fixed upper body does not meet the direction.
+- **Kael heavy:** Anthony says the heavy attacks should use his long katana(s). The standing character design has one long and one short sword, so the exact heavy-weapon interpretation is being clarified before new Kael heavy art is drawn.
+
 ## What is live now
 
 These strips are extracted from the current packed runtime cells, with the same crop across each row. `source-mapping.json` records the exact key/index mapping. They are static cell inspections, not normal-speed gameplay captures.
@@ -22,4 +29,4 @@ For **each distinct cut**, stage and review this complete motion at the game's a
 5. **Follow-through:** the blade continues past contact on the same path; torso, hips, arms and scarf follow the momentum. The white motion tail occupies the path behind the blade tip and remains visibly substantial.
 6. **Recovery and settle:** mass decelerates into a distinct end pose, then returns smoothly to the approved idle/guard. Do not snap the sword back across the body or reuse a contact drawing as recovery.
 
-Preserve Executioner's approved masked purple/orange identity and sword dimensions. Preserve Kael's approved compact black/gold model, one long and one short sword, and each weapon's hand. Show left and mirrored-right playback, center and wall cases, and consecutive normal-speed frames before any sprite packing. The review should include separate rendered blade-tip paths for each weapon and an explicit before/after look at perceived reach. Keep combat timings and hitboxes unchanged during the visual proposal; any later gameplay reach change needs its own review.
+Preserve Executioner's approved masked purple/orange identity and exact long-katana dimensions. Preserve Kael's approved compact black/gold model and each weapon's hand while his heavy-weapon clarification is pending. Show left and mirrored-right playback, center and wall cases, and consecutive normal-speed frames before any sprite packing. The review should include separate rendered blade-tip paths for each weapon and an explicit before/after look at perceived reach. Keep combat timings and hitboxes unchanged during the visual proposal; any later gameplay reach change needs its own review.
