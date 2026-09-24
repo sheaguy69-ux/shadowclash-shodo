@@ -1,7 +1,7 @@
 # Handoff — frame-by-frame animation fluidity (Codex lane)
 
 **Status:** owner-requested 2026-09-23. Tree `SHODO-EDITION`, branch `shodo-edition`, HEAD `30077de`,
-`SHEET_V 869`, served on `:9101` (`curl -s localhost:9101/whoami` before you trust anything).
+`SHEET_V 869` (line anchors below are from that HEAD and drift; grep the symbol), served on `:9101` (`curl -s localhost:9101/whoami` before you trust anything).
 **Rulebook:** `AGENTS.md` (106 lines). Read it first. §0 applies to every step below: show, get
 the yes, do it, show what happened. Not a plan for ten — the next one.
 **Your skill:** `~/.codex/skills/2d-anatomy-and-frame-staging-expert/SKILL.md` is the owner's own
@@ -75,18 +75,19 @@ time. Hitstop crawls the sim to 6 % and eases back over `HITSTOP_EASE_T 0.06`. G
 | walk | `WALK_CYCLES 1` (`:3329`), art-gated on `walk1` | one full loop then the run; length = cycles / min(3,|vx|/150) | 8-beat true loop, every beat equally strong (animPhase never resets) |
 | jump squat | `JUMP_SQUAT 0.05` | `jsquat1` then `jsquat2` in the last half | 2 drawings: half-bend arms back → full compress heels lifting |
 | landing | `LAND_T 0.15`, only after a real fall (`landHard`) | `land1..3` one-shot | 3 drawings: impact squash → overshoot taller than idle → idle settle |
-| run-stop | `SKID_T 0.10`, facing the run (`skidDir`) | `skid1` first half, `skid2` second | 2 drawings: lean back, front foot planted, dust → upright recover |
-| turn | `TURN_T 0.07` on a grounded visual-facing flip | `turn1` held | 1–2 drawings: weight shift head leading → square-on front view |
+| run-stop | `SKID_T 0.10`, facing the run (`skidDir`) | `skid1` first half, `skid2` second | 2 drawings: lean back, front foot planted → upright recover (no dust in the cell; FX are engine draws) |
+| turn | `TURN_T 0.07` on a grounded visual-facing flip | `turn1` held | 1 drawing (the picker reads `turn1` only): head leading, square-on front view |
 | light / medium / heavy / special | `attackAnim.dur` 160–560 ms; paced off the LIVE hitbox window by `rosterAttackFrame` (`:12486`) when the move has `strikeWindows`, else `ATTACK_EXPOSURES_{5,6,8}` or a per-row `track` | 8 cells | anticipation on twos/threes, the cut on ones or ONE smear, contact and follow-through held, settle to `F.idle` |
 
 Two facts that change how you draw:
 - **Attacks with hitboxes are paced by the hitbox, not by a table.** The levers are
   `ROSTER_CONTACT_POSES` (`:12461` — which cells ARE the contact, per fighter id) and the
   hitbox duration. A drawn smear must sit at the cell index the window reaches on the cut.
-- **`track` arrays are supported and none exist.** `attackCellIndex` (`:12434`) takes a
-  per-row `[start fractions]`; today zero rows in `DIR_MOVES`/`DIR_SPECIALS` carry one, so
-  every window-less 8-cell row runs the one global `ATTACK_EXPOSURES_8`. Authoring a track
-  per touched row is the cheapest fluidity win on the list and needs no art.
+- **Tracks exist for five fighters, none for Shin, Mokurai or Exile.** `ANIM_TRACKS` (`:12403`)
+  holds per-move tracks for Tsubasa, Kael, Executioner, Mizu and Ember; `attackCellIndex`
+  (`:12500`) applies one ONLY when its length equals the row's cell count, else the row runs the
+  global `ATTACK_EXPOSURES_8`. Check the length before trusting one. Authoring a track per touched
+  row is the cheapest fluidity win on the list and needs no art.
 
 ---
 
@@ -127,14 +128,13 @@ generate the missing per-fighter prompt files in the same shape.
 Most-seen first: **land** (every jump) → **turn** (every crossup) → **skid** (every run
 release) → **jump squat**. Per fighter, work Mizu, Shin, Mokurai, and Exile before
 Tsubasa, Ember, Executioner, and Kael. Mokurai and Exile have NO transition keys yet; wire
-them when their turn arrives. Oni is parked; do nothing on him. Reference for each: that fighter's approved idle board plus the
+them when their turn arrives. Reference for each: that fighter's approved idle board plus the
 board that already holds the limb direction (jump-land board for squat/land, run board for
 skid). Cell budgets are in §2. Repoint the existing keys; strip the alias only after the new
 cell is live (old art leaves in two steps).
 
 ### 3.3 Kill the repeats and aliases in the air
-From `ROW-INVENTORY.md`: `ajump`=`jflight` (Mizu, Tsubasa, Kael) is a 6-slot flight on 5
-drawings; `dive` is 6 slots on 3–4 drawings on all eight; `jflight` 6/4–5; `lock` 6/3–4;
+From `ROW-INVENTORY.md` (per-slot detail in `DRAW-LIST.md`): `dive` is 6 slots on 3–4 drawings on all eight; `jflight` 6/4–5; `lock` 6/3–4;
 `wallthrow` 6/3. Each is a slot that shows nothing. Draw the missing beats (apex hang, the
 tuck opening, the plunge stretch) or author the hold in the row's exposure and delete the
 duplicate slot — never leave a silent repeat.
@@ -213,5 +213,7 @@ to know what the game does today, never quote it back at him as a reason not to 
 
 - `README.md` — this contract.
 - `inventory.py` — re-run after every pack; it prints the row table.
-- `ROW-INVENTORY.md` — generated at `SHEET_V 869`: per fighter, missing transition keys, rows
-  with repeated cells, rows that alias another row, and every row's cell count.
+- `ROW-INVENTORY.md` — generated at `SHEET_V 872`: per fighter, missing transition keys, rows
+  with repeated cells, rows that alias another row, orphan-cell count, every row's cell count.
+- `DRAW-LIST.md` — every drawing owed, per fighter, per row, with IDs, the cells each key borrows
+  today, beat-by-beat pose specs and the queue. The checklist to work from.
