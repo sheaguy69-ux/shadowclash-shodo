@@ -30,15 +30,20 @@ replacement row: **Kael's run cycle** (`prompts/kael.md`, Row D), added Sep 15.
   rotation is where stills drift, and the packer applies one scale to the whole board, so
   drift ships as a fighter who changes size mid-tumble.
 
-## Where I'd start
+## Where to start
 
-**Tsubasa, Row B.** One board. It proves the whole pipeline end to end, and it fixes the
-ugliest thing in the game: right now every fighter's air-hit art **is their throw-grab pose**,
-and Tsubasa has two distinct drawings covering his entire airborne arc while launchers pop him
-92–192px. See `refs/PROOF-airhurt-is-the-grab-pose.png`.
+**Mizu, Row B (`airhurt`).** One board to prove the whole pipeline end to end.
+Her current air-hurt still borrows the throw-grab drawings. Bring this row through
+generation, review, keying, packing, live capture and approval before repeating the
+process. The current selector only reads three cells; integration must first make the
+authored row reachable.
 
-Then the rest of Row B, then Row C (Mokurai and the Executioner first — they have the fewest
-distinct flight poses today), then Row A.
+**Owner order, Sep 23:** Mizu, Shin, Mokurai and Exile first. Tsubasa,
+Ember, Executioner and Kael are last. Anthony may redesign Tsubasa, Ember and
+Executioner; Kael has a planned parry-focused move set. Recheck approved references
+and move definitions when each of those four comes up. Within each fighter,
+prioritize launched hurt, then the other briefed rows; the animation-fluidity
+handoff gives the complete row and validation order.
 
 ## What I have already done so the art lands clean
 

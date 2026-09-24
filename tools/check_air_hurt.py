@@ -9,7 +9,7 @@ async def main():
     browser.assert_serving_this_tree(url)
     out=Path(os.environ.get('OUT','media/air-hurt-20260906/final'))
     out.mkdir(parents=True,exist_ok=True)
-    ids=[int(x) for x in os.environ.get('FIGHTERS','0,1,2,3,4,5,6,7,8').split(',')]
+    ids=[int(x) for x in os.environ.get('FIGHTERS','0,1,2,3,4,5,6,7').split(',')]
     results=[]
     with tempfile.TemporaryDirectory(prefix='air-hurt-check-') as profile:
         proc,addr=browser.launch(url,profile)
@@ -21,10 +21,10 @@ async def main():
                     await asyncio.sleep(.1)
                 else:raise AssertionError('Sprite sheets did not load')
                 cache=await c.js(r'''
-                    const names=['oni','exile','mokurai'],cold={},warm=[],failures=[];
+                    const names=['mizu','exile','mokurai'],cold={},warm=[],failures=[];
                     const bounds=n=>{const b=cellInk(SPRITES[n],180);return{x0:b.x0,y0:b.y0,x1:b.x1,y1:b.y1,reach:Array.from(b.reach||[])};};
                     for(const n of names){inkBoxCache.clear();cold[n]=bounds(n);}
-                    for(const order of [names,[...names].reverse(),['exile','oni','mokurai']]){
+                    for(const order of [names,[...names].reverse(),['exile','mizu','mokurai']]){
                         inkBoxCache.clear();const rows={};
                         for(const n of order){rows[n]=bounds(n);if(JSON.stringify(rows[n])!==JSON.stringify(cold[n]))failures.push(n+' bounds reused from another nameless sheet');}
                         warm.push({order,rows});
@@ -40,7 +40,10 @@ async def main():
                         startNewGame();roundIntroTimer=0;paused=true;cutscene=null;hitstopRemaining=0;
                         for(const k in keys)keys[k]=false;physKeys.clear();
                         const p=player1,m=SPRITES[p.spec.name.toLowerCase()],F=m.frames,failures=[],matrix=[],held=[],ground=[];
-                        const air=[F.airhurt1,F.airhurt2,F.airhurt3];
+                        const air=Array.from({length:id===1?8:3},(_,i)=>F['airhurt'+(i+1)]);
+                        const airExpected=vy=>air[id===1
+                            ? vy< -150?0:vy<0?1:vy<80?2:vy<140?3:vy<195?4:vy<250?5:vy<305?6:7
+                            : vy< -80?0:vy>100?2:1];
                         // Authored directions were independently reviewed from full-size
                         // source art, including the rotation across Mokurai's tumble.
                         const rightAuthored=new Set(({kael:[18,161,162],mokurai:[180,181,183],exile:[183,345],oni:[649,650,651]})[p.spec.name.toLowerCase()]||[]);
@@ -68,7 +71,7 @@ async def main():
                         for(const alt of [false,true])for(const state of [STATE.STUNNED,STATE.THROWN])for(const facing of [-1,1])for(const [beat,vy] of [-250,0,220].entries()){
                             reset();mode(alt);Object.assign(p,{state,facing,vy,flooredT:.5,tumbleT:.3,tumbleT0:.6,
                                 slamRecover:.1,moveArt:'gsfwd',f2Air:true,f2Low:true});
-                            const cell=spriteFrameIndex(p,F),expected=air[beat];
+                            const cell=spriteFrameIndex(p,F),expected=airExpected(vy);
                             if(cell!==expected)failures.push('air reaction lost to stale floor/move/stance: '+[alt,state,facing,vy,cell]);
                             const fixture={alt,state,facing,vy,cell,expected};matrix.push(fixture);
                             // Stale floor flags are routing fixtures; render the actual reaction
@@ -76,6 +79,11 @@ async def main():
                             Object.assign(p,{flooredT:0,tumbleT:0,slamRecover:0,moveArt:null,f2Air:false,f2Low:false});
                             Object.assign(fixture,drawCell(b,(facing<0?0:3)*210+beat*210,(Number(alt)*2+Number(state===STATE.THROWN))*270,
                                 (alt?'alt ':'base ')+state+' '+facing+' vy'+vy+' #'+cell));
+                        }
+                        if(id===1)for(let beat=1;beat<=8;beat++){
+                            reset();mode(false);p.vy=[-240,-75,57,110,163,215,268,321][beat-1];
+                            const cell=spriteFrameIndex(p,F),expected=air[beat-1];
+                            if(cell!==expected)failures.push('Mizu eight-beat velocity selector missed '+beat);
                         }
                         for(const alt of [false,true])for(const facing of [-1,1]){
                             reset();mode(alt);Object.assign(p,{state:STATE.THROWN,facing,grabbedBy:player2,vy:0});
@@ -92,12 +100,12 @@ async def main():
                         p.state=STATE.JUMP;p.stunTimer=0;p.stunPeak=0;p.hp=p.maxHp;
                         const hp=p.hp;p.takeDamage(18,player2,{pushback:80,tier:STATE.ATTACK_HEAVY});
                         const hit={hpBefore:hp,hpAfter:p.hp,state:p.state,vy:p.vy,stun:p.stunTimer};
-                        if(p.hp>=hp||p.state!==STATE.STUNNED||p.vy> -250)failures.push('takeDamage did not create an airborne reaction');
+                        if(p.hp>=hp||p.state!==STATE.STUNNED||p.vy>=0)failures.push('takeDamage did not create an airborne reaction');
                         const trace=[],snaps=[];let frame=0,landed=-1;paused=false;
                         await new Promise(resolve=>{function tick(){
                             const cell=spriteFrameIndex(p,F),row={frame,cell,state:p.state,ground:p.isGrounded,vy:p.vy,x:p.x,y:p.y,stun:p.stunTimer};
                             if(!p.isGrounded&&!p.grabbedBy&&(p.state===STATE.STUNNED||p.state===STATE.THROWN)){
-                                const expected=air[p.vy< -80?0:p.vy>100?2:1];if(cell!==expected)failures.push('live hit draws ground/move art');
+                                const expected=airExpected(p.vy);if(cell!==expected)failures.push('live hit draws ground/move art');
                             }
                             if(p.isGrounded&&landed<0)landed=frame;
                             const s=document.createElement('canvas');s.width=210;s.height=390;const g=s.getContext('2d');

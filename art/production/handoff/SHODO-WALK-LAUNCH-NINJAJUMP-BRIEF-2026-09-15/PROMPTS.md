@@ -366,9 +366,12 @@ need to. **No paid generation is proposed by this document and none was performe
 
 ## §6 — Order
 
-1. **Pilot: Tsubasa `airhurt1..8`** — one board, proves generate → key → pack → one-line
-   engine change → driven live.
-2. The rest of `airhurt` — highest payoff per board.
-3. `njump` — start with **Mokurai** (3 distinct flight poses today) and the **Executioner**
-   (4), who have the most to gain.
-4. `walk` — hold until the `WALK_TIME` ruling so the art is drawn to the right window.
+**Owner order, Sep 23 2026:** Mizu, Shin, Mokurai and Exile first;
+Tsubasa, Ember, Executioner and Kael last. The first three may be redesigned;
+Kael has a planned parry-focused move set.
+
+1. Pilot Mizu `airhurt` through the full art, selector, packing and live-review path.
+2. Complete the briefed rows for the first four fighters, one approved row at a time.
+3. Recheck the approved designs, then work Tsubasa, Ember, Executioner and Kael last.
+4. Follow the animation-fluidity handoff for transitions, airborne repeats,
+   attack spacing, exposure and validation after the three briefed row types.
