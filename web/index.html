@@ -18791,6 +18791,7 @@
             hit_light: ['body-light-1', 'body-light-2', 'body-light-3'],
             hit_heavy: ['body-heavy-1', 'body-heavy-2', 'body-heavy-3', 'body-heavy-4'],
             whoosh: ['attack-air-1', 'attack-air-2', 'attack-air-3'],
+            clash: ['blade-clash-1', 'blade-clash-2', 'blade-clash-3', 'blade-clash-4'],
         };
         // Ctx is created lazily on the first user gesture (also the iOS unlock).
         const AudioSys = {
@@ -18939,11 +18940,10 @@
             // 1200Hz square beep read as a menu sound, not an arm taking a hit.
             block:     () => { AudioSys.noise(0.06, { vol: 0.5, freq: 550 }); AudioSys.tone(340, 0.09, { type: 'triangle', vol: 0.38, slide: -120 }); },
             parry:     () => { AudioSys.tone(1500, 0.09, { type: 'triangle', vol: 0.6 }); AudioSys.tone(2250, 0.12, { type: 'triangle', vol: 0.4, delay: 0.05 }); },
-            // BLADE ON BLADE — the only one that gets the full metal treatment: a bright
-            // transient (the instant of contact), two inharmonic rings a little detuned
-            // from each other (two separate pieces of steel, never in tune), a falling
-            // "shing" of edge scrape, and a long tail that hangs after the hitstop.
+            // BLADE ON BLADE — recorded impact and natural steel ring. The inharmonic
+            // synthesis below keeps the original sound available until the clip loads.
             clash:     () => {
+                if (AudioSys.sample('clash', 0.9)) return;
                 AudioSys.noise(0.018, { vol: 0.85, freq: 6200, q: 0.6 });
                 AudioSys.noise(0.10, { vol: 0.38, freq: 3900, slide: -2300, q: 0.7 });
                 AudioSys.ring(890, 0.48, { vol: 0.48, partials: [1, 1.47, 2.09, 3.56] });
