@@ -1,0 +1,42 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Executioner heavy · six-pose anatomy review</title>
+<style>
+body{font:16px system-ui,sans-serif;max-width:1260px;margin:0 auto;padding:20px;background:#191c1a;color:#f5f0e8}h1{margin:8px 0}p{line-height:1.5;max-width:1000px}a{color:#ffbd72}
+.note{padding:12px 16px;border-left:4px solid #ec9e4c;background:#29271f}.stage{position:relative}
+canvas{width:100%;height:auto;background:#f2e9d3;border:1px solid #9e8a6d;border-radius:8px}
+.controls{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin:13px 0}button,select,input{font:inherit}button,select{padding:8px 12px;background:#322f29;color:white;border:1px solid #9e8a6d;border-radius:7px;cursor:pointer}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}.card{border:1px solid #51554d;border-radius:8px;background:#242924;padding:8px;cursor:pointer}
+.card img{display:block;width:100%;background:#f2e9d3}.card b{display:block;margin:5px 0}.candidate{color:#ffbc72}.approved{color:#a9d1a1}
+</style>
+<h1>Executioner heavy · six-pose anatomy review</h1>
+<p class="note">The corrected ready pose, windup, release, and settle are <strong>exact approved images</strong>. Full reach and recovery are new review candidates. The rejected ready drawing with the impossible arm and blade path is excluded. Playback aligns the pelvis and floor for inspection only; these changes are not in the playable game.</p>
+<p><a href="heavy-motion.html">Previously approved three-pose playback</a> · <a href="index.html">Full Executioner frame inventory</a></p>
+<canvas id="stage" width="1200" height="600"></canvas>
+<div class="controls"><button id="play">Play</button><button id="mirror">Mirror facing</button><label>Speed <select id="speed"><option value="55">330 ms action</option><option value="120">Slow review</option></select></label><input id="scrub" type="range" min="0" max="5" value="0"><strong id="label"></strong></div>
+<div id="cards" class="cards"></div>
+<p>Continuity check: the katana must trace one connected swing, the armored shoulder remains on the same side, both waist pads stay attached, and the feet and pelvis should not pop. A display offset cannot repair a drawing that breaks these paths.</p>
+<script>
+const data=[
+ ['Ready · corrected anatomy','candidates/heavy-ready-approved.png','approved',1000,785,1008],
+ ['Windup','candidates/heavy-windup.png','approved',760,780,1007],
+ ['Release','candidates/heavy-release.png','approved',1110,750,941],
+ ['Full reach','candidates/heavy-reach-review.png','candidate',1110,725,941],
+ ['Settle','candidates/heavy-settle.png','approved',940,755,1024],
+ ['Recovery','candidates/heavy-recovery-review.png','candidate',930,785,1010]
+];
+const stage=document.getElementById('stage'),ctx=stage.getContext('2d'),scrub=document.getElementById('scrub');
+let images=[],index=Number(new URLSearchParams(location.search).get('frame')||0),mirrored=false,timer=null;
+index=Math.max(0,Math.min(5,index));
+function load(src){return new Promise((resolve,reject)=>{const im=new Image();im.onload=()=>resolve(im);im.onerror=reject;im.src=src})}
+function draw(){
+ ctx.fillStyle='#f2e9d3';ctx.fillRect(0,0,1200,600);const d=data[index],im=images[index],scale=.48;
+ if(im){ctx.save();if(mirrored){ctx.translate(1200,0);ctx.scale(-1,1)}ctx.drawImage(im,d[4]-d[3]*scale,550-d[5]*scale,im.width*scale,im.height*scale);ctx.restore()}
+ document.getElementById('label').textContent=`${index+1}/6 · ${d[0]} · ${d[2]}`;scrub.value=index;
+ for(const [i,el] of [...document.querySelectorAll('.card')].entries())el.style.borderColor=i===index?'#ffbd72':'#51554d';
+}
+document.getElementById('play').onclick=e=>{if(timer){clearInterval(timer);timer=null;e.target.textContent='Play'}else{timer=setInterval(()=>{index=(index+1)%6;draw()},Number(document.getElementById('speed').value));e.target.textContent='Pause'}};
+document.getElementById('speed').onchange=()=>{if(timer){clearInterval(timer);timer=setInterval(()=>{index=(index+1)%6;draw()},Number(document.getElementById('speed').value))}};
+document.getElementById('mirror').onclick=()=>{mirrored=!mirrored;draw()};scrub.oninput=()=>{index=Number(scrub.value);draw()};
+const cards=document.getElementById('cards');data.forEach((d,i)=>{const el=document.createElement('article');el.className='card';el.innerHTML=`<img src="${d[1]}" alt=""><b>${i+1}. ${d[0]}</b><span class="${d[2]}">${d[2]}</span>`;el.onclick=()=>{index=i;draw()};cards.append(el)});
+Promise.all(data.map(d=>load(d[1]))).then(result=>{images=result;draw()}).catch(()=>{document.getElementById('label').textContent='Image failed to load'});
+</script></html>

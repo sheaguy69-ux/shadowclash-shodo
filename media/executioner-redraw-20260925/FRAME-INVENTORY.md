@@ -9,6 +9,7 @@ Existing owner approvals found before drawing:
 - New appearance: `web/_review/sword-swing-motion-20260924/APPROVED-EXECUTIONER-LOOK.md`.
 - Original three heavy-swing keys and three shoulder-bump keys: `media/attack-redraws-20260924/APPROVAL.md`.
 - Three further heavy-swing pose images approved this session: `art/shodo-source/executioner/executioner-heavy-redraw-20260925/APPROVAL.md`.
+- Anthony later approved the playback of those three images in their displayed order and approved one corrected low-ready image after rejecting the first anatomically impossible ready draft. The exact approved ready file and rejected draft identities are in the same `APPROVAL.md`. The six-pose preview at `web/_review/executioner-redraw-20260925/heavy-six-review.html` adds full-reach and recovery **candidates**; the complete sequence is not approved or installed.
 - A new lower, longer shoulder-bump contact drawing is shown in the review page as a **candidate only**. It is not part of the approved three-key shoulder-bump strip or a finished eight-frame cycle.
 - Many older move-specific approval folders remain under `art/shodo-source/executioner/`; these establish move choreography and source continuity but do not silently approve the newer mask/armor redraw of every cell.
 
