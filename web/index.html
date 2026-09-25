@@ -503,6 +503,44 @@
             font-family: 'Zen Kaku Gothic New', sans-serif !important; font-weight: 700;
         }
         #pause-manual details { border-color: rgba(21,19,15,.22) !important; }
+
+        /* MOVE LAB — a strip of paper along the foot of the arena, training only */
+        #move-lab {
+            position: relative; margin: 8px 12px 12px; z-index: 15;
+            color: var(--k-sumi); padding: 10px 14px 12px; isolation: isolate;
+        }
+        #move-lab::before {
+            content: ''; position: absolute; inset: 0; z-index: -1; background: var(--k-kinari);
+            background-image: var(--k-fibre); background-blend-mode: multiply;
+            filter: url(#k-deckle) drop-shadow(0 8px 18px rgba(0,0,0,.55)); opacity: .96;
+        }
+        #move-lab .lab-head { display: flex; align-items: center; gap: 12px; }
+        #move-lab .lab-title { font: 800 14px 'Shippori Mincho B1', serif; letter-spacing: .3em; }
+        #move-lab .lab-sub { font: 11px 'Zen Kaku Gothic New', sans-serif; letter-spacing: .08em; color: var(--k-sumi-2); flex: 1; }
+        #move-lab .lab-sub b { color: var(--k-shu); letter-spacing: .15em; }
+        #move-lab button {
+            position: relative; isolation: isolate; background: none; border: 0; color: var(--k-sumi);
+            font: 700 11px 'Shippori Mincho B1', serif; letter-spacing: .12em; padding: 5px 10px; cursor: pointer;
+        }
+        #move-lab button::before {
+            content: ''; position: absolute; inset: 1px -1px; z-index: -1;
+            border: 1.5px solid var(--k-sumi); border-radius: 2px; filter: url(#k-brush); opacity: .7;
+        }
+        #move-lab button:hover::before { background: rgba(21,19,15,.08); }
+        #move-lab button.on { color: var(--k-kinari); }
+        #move-lab button.on::before { background: var(--k-sumi); border: 0; filter: url(#k-brushfill); opacity: 1; }
+        #move-lab button.on kbd { color: var(--k-kinari); border-color: var(--k-kinari); }
+        #move-lab .lab-moves {
+            display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px;
+            max-height: 94px; overflow-y: auto; scrollbar-width: thin;
+        }
+        #move-lab .lab-moves button { display: inline-flex; align-items: center; gap: 7px; letter-spacing: .06em; }
+        #move-lab kbd {
+            font: 700 10px 'Zen Kaku Gothic New', sans-serif; padding: 0 5px; border: 1px solid var(--k-sumi);
+            border-bottom-width: 2px; border-radius: 2px; background: rgba(255,255,255,.25);
+        }
+        #move-lab.folded .lab-moves { display: none; }
+        #move-lab.folded #lab-fold { transform: rotate(180deg); }
     </style>
 </head>
 <body class="flex flex-col items-center min-h-screen text-white p-2">
@@ -1091,6 +1129,17 @@
                             <!-- the sidebar manual is moved in here while paused -->
                             <div id="pause-manual"></div>
                         </div>
+                    </div>
+                    <!-- MOVE LAB (training): click a move, the dummy performs it -->
+                    <div id="move-lab" class="hidden" aria-label="Move lab">
+                        <div class="lab-head">
+                            <span class="lab-title">型 MOVE LAB</span>
+                            <span class="lab-sub">dummy: <b id="lab-who"></b> — click a move to see it</span>
+                            <button id="lab-repeat">REPEAT: OFF</button>
+                            <button id="lab-stop">STOP</button>
+                            <button id="lab-fold" aria-label="Fold the move lab">▾</button>
+                        </div>
+                        <div class="lab-moves"></div>
                     </div>
                     <!-- floating pause button (desktop + touch) -->
                     <button id="btn-pause" class="absolute top-2 right-2 z-10 w-9 h-9 bg-gray-800/80 hover:bg-gray-700 rounded-lg border border-gray-600 text-gray-300 text-sm hidden">⏸</button>
@@ -17036,6 +17085,7 @@
         // In-fight chrome: the pause button shows and the sidebar manual hides.
         function setInMatchChrome(on) {
             document.getElementById('btn-pause').classList.toggle('hidden', !on);
+            if (!on) { labStop(); document.getElementById('move-lab').classList.add('hidden'); }
             document.body.classList.toggle('in-match', on);
         }
         document.getElementById('btn-pause').addEventListener('click', () => setPaused(true));
@@ -17458,6 +17508,110 @@
             };
             try { d.run(player2, B, press, drillT); } catch (e) { /* a drill never kills the loop */ }
         }
+
+        // MOVE LAB (owner, Sep 25 2026): in training, click any move on the dummy's
+        // list and the dummy performs it live. Commands are read off MOVES_LIST (the
+        // same list the L overlay shows) and played through the REAL keyboard funnel as
+        // P2 key events, so what you see is exactly what those keys do — nothing here
+        // calls executeAttack directly. Timing runs on game time: a pause or hitstop
+        // holds the sequence instead of letting wall-clock timers race ahead.
+        const LAB_BTN = { F: 'KeyI', J: 'KeyU', G: 'KeyO', H: 'KeyP', C: 'KeyM', V: 'KeyK', X: 'KeyN' };
+        function labCommands(name) {
+            const out = [];
+            const add = (air, dirs, btns, label) => out.push({ air, dirs, btns, label: label.trim() });
+            for (const line of MOVES_LIST[name] || []) {
+                const basics = line.match(/^F \/ J \/ G \/ H — (.+)$/);
+                if (basics) {
+                    basics[1].split(' · ').forEach((l, i) => add(false, [], ['FJGH'[i]], 'FJGH'[i] + ' · ' + l));
+                    continue;
+                }
+                for (const seg of line.split(' · ')) {
+                    const m = seg.match(/^(air )?(?:((?:Fwd|Back|Up|Down)(?:\/(?:Fwd|Back|Up|Down))*)\+)?([FJGHCVX](?:\+[FJGH])?) — (.+)$/);
+                    if (!m) continue;
+                    const btns = m[3].split('+');
+                    const label = m[4].replace(/\s*\(.*$/, '');
+                    const dirs = m[2] ? m[2].split('/') : [null];
+                    for (const d of dirs) add(!!m[1], d ? [d] : [], btns,
+                        (m[1] ? 'air ' : '') + (d ? d + '+' : '') + m[3] + ' · ' + label);
+                }
+            }
+            return out;
+        }
+        let labRepeat = false, labCmd = null, labPlan = null, labLoopT = 0, labFor = null;
+        const labKey = (type, code) => window.dispatchEvent(new KeyboardEvent(type, { code, bubbles: true }));
+        function labPlay(cmd) {
+            if (!player2 || gameMode !== 'training') return;
+            const dirKey = d => ({
+                Up: 'ArrowUp', Down: 'ArrowDown',
+                Fwd:  player2.facing > 0 ? 'ArrowRight' : 'ArrowLeft',
+                Back: player2.facing > 0 ? 'ArrowLeft' : 'ArrowRight',
+            })[d];
+            const ev = [];                      // [time, type, code]
+            let t = 0;
+            if (cmd.air) { ev.push([0, 'keydown', 'ArrowUp'], [0.08, 'keyup', 'ArrowUp']); t = 0.3; }
+            const dirs = cmd.dirs.map(dirKey);
+            const btns = cmd.btns.map(b => LAB_BTN[b]);
+            // C+G style: the first button is HELD, the attack lands under it
+            const held = btns.length > 1 && btns[0] === 'KeyM' ? [btns.shift()] : [];
+            dirs.concat(held).forEach(k => ev.push([t, 'keydown', k]));
+            btns.forEach(k => ev.push([t + 0.035, 'keydown', k], [t + 0.12, 'keyup', k]));
+            dirs.concat(held).forEach(k => ev.push([t + 0.18, 'keyup', k]));
+            labPlan = { t: 0, ev: ev.sort((a, b) => a[0] - b[0]) };
+        }
+        function labRun(dt) {
+            if (gameMode !== 'training' || !player2) return;
+            if (labFor !== player2) buildMoveLab();   // a new match seats a new dummy
+            if (labPlan) {
+                labPlan.t += dt;
+                while (labPlan.ev.length && labPlan.ev[0][0] <= labPlan.t) {
+                    const [, type, code] = labPlan.ev.shift();
+                    labKey(type, code);
+                }
+                if (!labPlan.ev.length) labPlan = null;
+            }
+            if (labRepeat && labCmd && !labPlan) {
+                labLoopT += dt;
+                if (labLoopT >= 1.4 && player2.stunTimer <= 0) { labLoopT = 0; labPlay(labCmd); }
+            }
+        }
+        function labStop() {
+            if (labPlan) labPlan.ev.filter(e => e[1] === 'keyup').forEach(e => labKey('keyup', e[2]));
+            labPlan = null; labCmd = null; labLoopT = 0;
+            document.querySelectorAll('#move-lab .lab-moves button').forEach(b => b.classList.remove('on'));
+        }
+        function buildMoveLab() {
+            const lab = document.getElementById('move-lab');
+            const show = gameMode === 'training' && !!player2;
+            lab.classList.toggle('hidden', !show);
+            labStop();
+            labFor = show ? player2 : null;
+            if (!show) return;
+            document.getElementById('lab-who').textContent = player2.spec.name.toUpperCase();
+            const box = lab.querySelector('.lab-moves');
+            box.replaceChildren(...labCommands(player2.spec.name).map(cmd => {
+                const b = document.createElement('button');
+                const [keys, name] = cmd.label.split(' · ');
+                const k = document.createElement('kbd'); k.textContent = keys;
+                b.append(k, name);
+                b.addEventListener('click', () => {
+                    b.blur();                   // keep Space/Enter for the fight
+                    labStop();
+                    labCmd = cmd; b.classList.add('on');
+                    labPlay(cmd);
+                });
+                return b;
+            }));
+        }
+        document.getElementById('lab-repeat').addEventListener('click', e => {
+            labRepeat = !labRepeat; labLoopT = 0;
+            e.currentTarget.classList.toggle('on', labRepeat);
+            e.currentTarget.textContent = labRepeat ? 'REPEAT: ON' : 'REPEAT: OFF';
+            e.currentTarget.blur();
+        });
+        document.getElementById('lab-stop').addEventListener('click', e => { labStop(); e.currentTarget.blur(); });
+        document.getElementById('lab-fold').addEventListener('click', e => {
+            document.getElementById('move-lab').classList.toggle('folded'); e.currentTarget.blur();
+        });
 
         // Which fighters own a DIRECTIONAL special, and which direction unlocks it.
         // Read straight off executeAttack's own specId branches — nothing invented, so
@@ -18549,6 +18703,7 @@
             setPaused(false);              // never start a match into a stale pause
 
             setInMatchChrome(true);
+            buildMoveLab();
             document.getElementById('character-selection').classList.add('hidden');
             document.getElementById('game-over-screen').classList.add('hidden');
             // Reveal the arena (hidden on phones during select) and snap to it so
@@ -19863,6 +20018,7 @@
 
             // CPU sparring partner drives P2 when enabled
             runDrill(dt);   // training-mode mechanic drill (see DRILLS) — before the brain
+            labRun(dt);     // MOVE LAB: the move the owner clicked, played on P2's keys
 
             if (cpuMode) cpuThink(dt, 1);
             // ⛔ WATCH-MODE BRAIN 0 TYPES ON THE HUMAN'S KEYBOARD. Its key map IS P1's
