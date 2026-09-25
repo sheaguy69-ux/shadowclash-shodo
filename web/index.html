@@ -917,6 +917,9 @@
                             <button id="btn-sfx" class="px-6 py-3 bg-gray-800 hover:bg-gray-700 text-xs font-black tracking-widest rounded-lg border border-gray-600 text-gray-200 w-full mb-3">
                                 <i class="fa-solid fa-volume-high"></i> SFX: ON
                             </button>
+                            <button id="btn-cam" class="px-6 py-3 bg-gray-800 hover:bg-gray-700 text-xs font-black tracking-widest rounded-lg border border-gray-600 text-gray-200 w-full mb-3">
+                                <i class="fa-solid fa-video"></i> CAMERA: WIDE
+                            </button>
                             <button id="btn-quit" class="px-6 py-3 bg-gray-700 hover:bg-gray-600 text-xs font-black tracking-widest rounded-lg border border-gray-500 w-full">
                                 <i class="fa-solid fa-door-open"></i> QUIT TO SELECT
                             </button>
@@ -2972,6 +2975,14 @@
         let impactInvertTimer = 0;
         // KO cinematic: slow zoom punch-in on the loser for the killing blow.
         let koTimer = 0, koFocusX = 400, koFocusY = 250;
+        const LOCK_ZOOM = 1.4;                 // world scale at the height of a blade lock
+        // Player-chosen framing — see the camera block in drawScene. A CEILING, not a
+        // command: it is capped live so both fighters always stay on screen.
+        const CAM_FRAMES = [{ name: 'WIDE', z: 1 }, { name: 'CLOSE', z: 1.35 }, { name: 'CLOSER', z: 1.7 }];
+        let camFrame = Number.isInteger(save.prefs.camFrame) && CAM_FRAMES[save.prefs.camFrame]
+            ? save.prefs.camFrame : 0;
+        let camToastT = 0;
+        const camZoom = { a: 0, base: 1, bfx: 400, bfy: 250, lfx: 400, lfy: 250, t: 0, m: null };
         // Round intro gate: "ROUND N" -> "FIGHT!" with inputs locked.
         let roundIntroTimer = 0;
         const hitstopQueue = [];  // inputs received during the freeze, flushed when it ends
@@ -16473,6 +16484,18 @@
                 ? 'WATCH CPU is ON — pick the fighters and the CPUs will play this mode for you. Click again to take over.'
                 : 'WATCH CPU is off — you are playing.';
         });
+        function cycleCamFrame() {
+            camFrame = (camFrame + 1) % CAM_FRAMES.length;
+            save.prefs.camFrame = camFrame; persist();
+            camToastT = 1.6;
+            syncCamButton();
+        }
+        function syncCamButton() {
+            const b = document.getElementById('btn-cam');
+            if (b) b.innerHTML = `<i class="fa-solid fa-video"></i> CAMERA: ${CAM_FRAMES[camFrame].name}`;
+        }
+        document.getElementById('btn-cam').addEventListener('click', cycleCamFrame);
+        syncCamButton();
         document.getElementById('btn-timer').addEventListener('click', () => {
             timedRounds = !timedRounds;
             save.prefs.timed = timedRounds; persist();
@@ -16507,6 +16530,13 @@
                 const r = cv.getBoundingClientRect();
                 mouseCX = (e.clientX - r.left) * (cv.width / r.width);
                 mouseCY = (e.clientY - r.top) * (cv.height / r.height);
+                // The camera can be zoomed (framing / blade lock), so the canvas pixel under
+                // the cursor is not the world point under it. Map it back through the zoom,
+                // or aiming drifts further off the closer the camera is.
+                if (typeof camZoom !== 'undefined' && camZoom.m) {
+                    const w = camZoom.m.inverse().transformPoint({ x: mouseCX, y: mouseCY });
+                    mouseCX = w.x; mouseCY = w.y;
+                }
             });
             cv.addEventListener('mousedown', e => {
                 if (!mouseMode) return;
@@ -18912,6 +18942,9 @@
                 e.preventDefault();
                 return;
             }
+            // F8: cycle the camera framing live — WIDE / CLOSE / CLOSER. Same setting as the
+            // pause menu's CAMERA button, and saved, so a review session stays framed.
+            if (e.code === 'F8') { cycleCamFrame(); e.preventDefault(); return; }
             // F7: cycle the stage live so the owner can eyeball each one mid-fight
             if (e.code === 'F7') {
                 const i = STAGES.findIndex(st => st.id === currentStage.id);
@@ -21777,6 +21810,82 @@
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
 
+            // ⛔ ONE CAMERA, TWO REASONS TO LEAN IN. Owner: "an option ... closer and intimate,
+            // the player look bigger, people can really see their attacks" — and for review,
+            // "so I can easily catch flaws in frame by frame cycles." Plus the blade-lock
+            // punch-in. Both are the SAME operation (scale the world about a focus), so they
+            // share one matrix; two zoom systems would fight over the same pixels.
+            //
+            // THE FRAMING (F8, or CAMERA in the pause menu): WIDE is the game as it always was;
+            // CLOSE and CLOSER scale up about the fighters' FEET, so the floor stays put and
+            // the bodies grow upward instead of their feet being cropped off the bottom.
+            //
+            // ⛔ IT NEVER LOSES THE OPPONENT. A fixed zoom would push a fighter off screen the
+            // moment the two separate. So the framing is a CEILING, not a command: each frame
+            // it is capped at whatever still keeps both bodies — heads included, mid-jump —
+            // inside the view, and it eases toward that. Close in on a scramble, breathe out
+            // when they split, lean back in when they close.
+            //
+            // THE LOCK PUNCH-IN then pushes further from whatever framing is live, held
+            // through the win/lose pose so the outcome is seen, then eased back.
+            //
+            // It only ever zooms INTO the visible area about a point inside it, so it can
+            // never expose the canvas edge. Applied OUTERMOST so the HUD can take it back
+            // off with one inverse (see the HUD block). Wall clock, not the combat clock:
+            // the catch is a true freeze and the push-in should land ON the impact.
+            {
+                const now = performance.now();
+                const dtz = Math.min(0.05, (now - (camZoom.t || now)) / 1000);
+                camZoom.t = now;
+                const pair = player1 && player2;
+                const view = canvas.width > VIEW_W + 4 ? VIEW_W : canvas.width;
+                const vx0 = canvas.width > VIEW_W + 4 ? camX : 0;
+                let zBase = CAM_FRAMES[camFrame].z, fx = camZoom.bfx, fy = camZoom.bfy;
+                if (pair) {
+                    const ps = [player1, player2];
+                    fx = (ps[0].x + ps[0].width / 2 + ps[1].x + ps[1].width / 2) / 2;
+                    fy = Math.max(ps[0].y + ps[0].height, ps[1].y + ps[1].height);   // lowest feet
+                    const M = 40;                                                   // screen margin
+                    for (const p of ps) {
+                        const l = p.x - 30, r = p.x + p.width + 30, top = p.y - 40;
+                        if (l < fx) zBase = Math.min(zBase, (fx - (vx0 + M)) / (fx - l));
+                        if (r > fx) zBase = Math.min(zBase, ((vx0 + view - M) - fx) / (r - fx));
+                        if (top < fy) zBase = Math.min(zBase, (fy - M) / (fy - top));
+                    }
+                    zBase = Math.max(1, zBase);
+                }
+                const k = Math.min(1, dtz * 6);
+                camZoom.base += (zBase - camZoom.base) * k;
+                camZoom.bfx += (fx - camZoom.bfx) * Math.min(1, dtz * 10);
+                camZoom.bfy += (fy - camZoom.bfy) * Math.min(1, dtz * 10);
+
+                const binding = pair && player1.lockT > 0 && player2.lockT > 0
+                    && player1.state === STATE.BLADE_LOCK && player2.state === STATE.BLADE_LOCK;
+                const showing = pair && ((player1.lockOutcomeT || 0) > 0 || (player2.lockOutcomeT || 0) > 0);
+                if (binding) {
+                    // focus taken WHILE bound, then held: after the break the loser is thrown
+                    // back and a live midpoint would drag the camera after them
+                    const top = Math.min(player1.y, player2.y);
+                    const feet = Math.max(player1.y + player1.height, player2.y + player2.height);
+                    camZoom.lfx = (player1.x + player1.width / 2 + player2.x + player2.width / 2) / 2;
+                    camZoom.lfy = (top + feet) / 2 - 10;
+                }
+                const want = (binding || showing) ? 1 : 0;
+                const rate = want > camZoom.a ? 1 / 0.15 : 1 / 0.35;          // quick in, softer out
+                camZoom.a = want > camZoom.a ? Math.min(1, camZoom.a + dtz * rate)
+                                             : Math.max(0, camZoom.a - dtz * rate);
+                const e = camZoom.a * camZoom.a * (3 - 2 * camZoom.a);          // smoothstep
+                const zLock = Math.max(camZoom.base * 1.15, LOCK_ZOOM);
+                const z = camZoom.base + (zLock - camZoom.base) * e;
+                const FX = camZoom.bfx + (camZoom.lfx - camZoom.bfx) * e;
+                const FY = camZoom.bfy + (camZoom.lfy - camZoom.bfy) * e;
+                camZoom.m = null;
+                if (z > 1.001) {
+                    camZoom.m = new DOMMatrix().translate(FX, FY).scale(z, z).translate(-FX, -FY);
+                    ctx.setTransform(camZoom.m.multiply(ctx.getTransform()));
+                }
+            }
+
             // KO punch-in: ramp the world zoom in fast, hold, ease out — centered on
             // the fallen fighter. Background stays full-screen (cleared above).
             if (koTimer > 0) {
@@ -22262,6 +22371,11 @@
             // middle of the FOREST — invisible unless the fight happens to be there.
             // Shift into camera space and shrink the "screen width" the HUD centers on.
             ctx.save();
+            // ⛔ UNDO THE CAMERA ZOOM FOR THE HUD. The zoom is the outermost transform, so
+            // removing it is one inverse on the left; the shake and camera pan underneath
+            // stay exactly as they were. Without this the clock, pips and the lock meter —
+            // the thing a player reads DURING a bind — would swell and slide toward the fight.
+            if (camZoom.m) ctx.setTransform(camZoom.m.inverse().multiply(ctx.getTransform()));
             const hudPan = canvas.width > VIEW_W + 4;
             const hudW = hudPan ? VIEW_W : canvas.width;
             if (hudPan) ctx.translate(camX, 0);
@@ -22578,6 +22692,13 @@
 
             // Screen-space overlays: hit/KO flash + round intro (never zoomed or shaken)
             ctx.setTransform(1, 0, 0, 1, 0, 0);
+            if (camToastT > 0) {
+                camToastT -= 1 / 60;
+                ctx.font = 'bold 13px monospace';
+                ctx.textAlign = 'center';
+                ctx.fillStyle = `rgba(125,211,252,${Math.min(1, camToastT)})`;
+                ctx.fillText(`CAMERA: ${CAM_FRAMES[camFrame].name}  (F8)`, (canvas.width > VIEW_W + 4 ? VIEW_W : canvas.width) / 2, 102);
+            }
             if (feelToastT > 0) {
                 feelToastT -= 1 / 60;
                 ctx.font = 'bold 13px monospace';
