@@ -504,6 +504,63 @@
         }
         #pause-manual details { border-color: rgba(21,19,15,.22) !important; }
 
+        /* MATCH OVER — the result written on the same torn sheet as the pause menu */
+        #game-over-screen { background: rgba(7,7,6,.62) !important; backdrop-filter: blur(3px) grayscale(.6); }
+        #game-over-content {
+            position: relative; isolation: isolate; width: 400px !important;
+            background: none !important; border: 0 !important; border-radius: 0 !important;
+            color: var(--k-sumi); padding: 2rem 2.2rem 2.2rem !important;
+        }
+        #game-over-content::before {
+            content: ''; position: absolute; inset: 0; z-index: -1; background: var(--k-kinari);
+            background-image: var(--k-fibre), var(--k-grain); background-blend-mode: multiply;
+            filter: url(#k-deckle) drop-shadow(0 30px 40px rgba(0,0,0,.6));
+        }
+        #game-over-content::after {
+            content: '影衝'; position: absolute; right: 18px; top: 18px; width: 44px; height: 44px;
+            background: var(--k-shu); color: var(--k-kinari); display: grid; place-items: center;
+            font: 800 15px/1 'Shippori Mincho B1', serif; writing-mode: vertical-rl; letter-spacing: -2px;
+            filter: url(#k-stamp); transform: rotate(4deg); opacity: .9; pointer-events: none;
+        }
+        #game-over-content > .flex:first-child > div {
+            border: 0 !important; border-radius: 2px !important; background: rgba(21,19,15,.9) !important;
+            filter: url(#k-brush);
+        }
+        #game-over-content h2 {
+            font-family: 'Shippori Mincho B1', serif !important; color: var(--k-sumi) !important;
+            font-size: 24px !important; font-weight: 800; letter-spacing: .35em !important;
+            margin: .7rem 0 .4rem !important; text-shadow: none !important;
+        }
+        #game-over-content p { color: var(--k-sumi-2) !important; font-family: 'Zen Kaku Gothic New', sans-serif !important; }
+        #game-over-content .font-mono { font-family: 'Zen Kaku Gothic New', sans-serif !important; letter-spacing: .12em; }
+        #game-over-content .border-b { border-color: rgba(21,19,15,.18) !important; }
+        #game-over-content .text-gray-500, #game-over-content .text-gray-600,
+        #game-over-content .text-gray-400 { color: var(--k-sumi-2) !important; }
+        #game-over-content .text-purple-300 { color: #2d3d6e !important; font-weight: 700; }
+        #game-over-content .text-orange-300 { color: #8c1f17 !important; font-weight: 700; }
+        /* the small boxes: next opponent, a seal breaking, the toll */
+        #game-over-content .rounded-lg:not(button) {
+            background: rgba(255,255,255,.22) !important; border: 1.5px solid rgba(21,19,15,.5) !important;
+            border-radius: 2px !important;
+        }
+        #game-over-content .rounded-lg:not(button) [class*="text-yellow"],
+        #game-over-content .rounded-lg:not(button) [class*="text-red"],
+        #game-over-content .rounded-lg:not(button) [class*="text-amber"] { color: var(--k-shu) !important; }
+        #game-over-content button {
+            position: relative; isolation: isolate; background: none !important; border: 0 !important;
+            border-radius: 0 !important; color: var(--k-sumi) !important; margin-top: 12px !important;
+            font-family: 'Shippori Mincho B1', serif !important; font-weight: 700 !important;
+            letter-spacing: .32em !important; font-size: 13px !important;
+        }
+        #game-over-content button::before {
+            content: ''; position: absolute; inset: 3px -4px; z-index: -1;
+            border: 2.5px solid var(--k-sumi); border-radius: 3px; filter: url(#k-brush); opacity: .85;
+        }
+        #game-over-content button:hover::before { background: rgba(21,19,15,.08); }
+        #game-over-content button:first-of-type { color: var(--k-kinari) !important; }
+        #game-over-content button:first-of-type::before { inset: 0 -8px; border: 0; background: var(--k-sumi); filter: url(#k-brushfill); opacity: 1; }
+        #game-over-content .pad-focus { outline: 2px solid var(--k-shu) !important; outline-offset: 5px; }
+
         /* MOVE LAB — a strip of paper along the foot of the arena, training only */
         #move-lab {
             position: relative; margin: 8px 12px 12px; z-index: 15;
