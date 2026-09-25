@@ -50,12 +50,17 @@ natural hanging curve · ONE continuous unbroken chain hand→ball on every fram
 never swaps hands, never duplicates · never a hood, never a faceless void, never both eyes
 uncovered, never a katana or kunai, never red eyes, never gold or red FX.
 
-**⛔ One ruling needed — the ball.** `Exile-Identity-True-Lock.md` says *round, smooth iron
-ball, no spikes* (your Aug 11 call). **The shipped Shodō art draws it SPIKED** — measured on
-`defeat-ko-8f-v1/frame-01`, and the board is literally named `widows-orbit-long-range-mace`.
-The string above says "heavy dark iron weight ball" so it matches whatever you rule. Say
-**spiked** (matches the 197 cells that are live) or **smooth** (matches the lock, and the
-existing kit then needs a repaint pass) before these three generate.
+**The ball — SPIKED. Settled.** Owner, Sep 23 2026: *"whatever it's right now, it's what
+we going with"* — and what stands is a morningstar, roughly eight spikes. Her drawn cells
+and every Shodō board carry it, and `Exile-Identity-True-Lock.md` was rewritten on Sep 11
+to say the same, superseding his Aug 11 preference for a smooth ball. New boards draw it
+spiked; nothing gets repainted.
+
+One thing still disagrees and is NOT being changed unasked: the engine's **procedural**
+chain (the links it draws during the grapple, `web/index.html`) renders a round smooth
+ball and cites the dead Aug 11 call in its comment. Her grapple therefore swings a smooth
+ball while every drawn cell of her carries a spiked one. Say the word and it becomes
+spiked to match.
 
 ---
 

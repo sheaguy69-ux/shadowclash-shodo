@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Shadow Clash — ninja attack sound comparison</title>
+  <style>
+    body { margin: 0; padding: 2rem; color: #eee9df; background: #151915; font: 16px/1.45 system-ui, sans-serif; }
+    main { max-width: 1000px; margin: auto; }
+    h1 { font-size: 2rem; line-height: 1.1; }
+    h2 { margin: 2rem 0 .3rem; color: #d8b77d; }
+    p { color: #c5c8bd; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(215px, 1fr)); gap: .75rem; }
+    .clip { background: #252b24; border: 1px solid #4a5146; border-radius: .55rem; padding: .75rem; }
+    .clip strong, .clip small { display: block; }
+    .clip small { margin: .2rem 0 .6rem; color: #aab3a5; }
+    .previous { border-color: #b49158; }
+    .selected { border-color: #80b57a; }
+    audio { width: 100%; }
+    .note { padding: .8rem 1rem; border-left: 3px solid #b49158; background: #20251f; }
+    a { color: #e1bb7c; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Shadow Clash — ninja attack sounds</h1>
+  <p class="note">Anthony selected the green-marked ninja sounds for the live game: Light 4, Heavy 3, Swing 2 and 4, Clash 3 and 4. The amber clip in each category is the previous game sound for comparison.</p>
+  <div id="groups"></div>
+  <p>“Quiet source” means ElevenLabs generated a low-level take. It remains here for comparison and was not selected.</p>
+</main>
+<script>
+const categories = [
+  {title:'1. Light body hit', desc:'Cloth-wrapped palm strike or quick punch contact.', previous:'body-light-1.wav', stem:'ninja-light', selected:[4], quiet:[]},
+  {title:'2. Heavy body hit', desc:'Compact kick impact through clothing.', previous:'body-heavy-2.wav', stem:'ninja-heavy', selected:[3], quiet:[2,4]},
+  {title:'3. Attack swing / miss', desc:'Short blade and sleeve moving through air.', previous:'attack-air-1.wav', stem:'ninja-swing', selected:[2,4], quiet:[]},
+  {title:'4. Sword clash', desc:'Fast close-range steel parry.', previous:'blade-clash-2.wav', stem:'ninja-clash', selected:[3,4], quiet:[]},
+];
+const root = document.getElementById('groups');
+for (const group of categories) {
+  const section = document.createElement('section');
+  const heading = document.createElement('h2'); heading.textContent = group.title; section.append(heading);
+  const description = document.createElement('p'); description.textContent = group.desc; section.append(description);
+  const grid = document.createElement('div'); grid.className = 'grid';
+  const clips = [{label:'Previous game', file:`../physical-attack-sfx-20260924/audio/${group.previous}`, previous:true},
+    ...[1,2,3,4].map(n => ({label:`Ninja ${n}`, file:`audio/${group.stem}-${String(n).padStart(2,'0')}.wav`, selected:group.selected.includes(n), quiet:group.quiet.includes(n)}))];
+  for (const clip of clips) {
+    const box = document.createElement('div'); box.className = 'clip' + (clip.previous ? ' previous' : clip.selected ? ' selected' : '');
+    const label = document.createElement('strong'); label.textContent = clip.label;
+    const detail = document.createElement('small'); detail.textContent = clip.previous ? 'Earlier sound' : clip.selected ? 'Installed now' : clip.quiet ? 'Quiet source — not selected' : 'Other candidate';
+    const player = document.createElement('audio'); player.controls = true; player.preload = 'none'; player.src = clip.file;
+    box.append(label, detail, player); grid.append(box);
+  }
+  section.append(grid); root.append(section);
+}
+</script>
+</body>
+</html>

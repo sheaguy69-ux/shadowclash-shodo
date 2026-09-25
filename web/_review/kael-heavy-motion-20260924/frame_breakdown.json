@@ -1,0 +1,16 @@
+{
+  "sequence_name": "kael_niten_heavy_motion_study",
+  "status": "review_preview_only",
+  "source_route": "kcross1..8",
+  "frame_rate_target": 60,
+  "total_frames": 5,
+  "visual_window_ms": 330,
+  "note": "Durations are preview exposure choices inside the existing approximate heavy visual window. They are not installed timing or a new hitbox schedule. Frame 3 is the exact previously approved contact image; the other four are unapproved study drawings.",
+  "frames": [
+    {"frame_number":1,"source":"01-anticipation-review.png","timing_type":"held_anticipation","duration_ms":82,"phase":"coil","line_of_action":"long katana raised behind, short sword forward on inside line","anatomical_cues":{"torso_pelvis_twist":"counter-rotated","weight_distribution":"rear foot loaded","lead_limb":"short-sword arm guards forward","trailing_limb":"long-sword arm coils behind"},"foreshortening":"rear arm and raised blade","sfx_or_smear":"none","preview_floor_offset_percent":0},
+    {"frame_number":2,"source":"02-acceleration-review.png","timing_type":"fast_breakdown","duration_ms":41,"phase":"release","line_of_action":"long sword advances along overhead arc, short sword remains separate","anatomical_cues":{"torso_pelvis_twist":"beginning forward rotation","weight_distribution":"rear-to-front transfer","lead_limb":"short-sword arm at centerline","trailing_limb":"long-sword arm passes above hood"},"foreshortening":"raised long-sword arm","sfx_or_smear":"thin white blade tail","preview_floor_offset_percent":0},
+    {"frame_number":3,"source":"03-contact-approved.png","timing_type":"contact_hold","duration_ms":82,"phase":"long_sword_contact_short_sword_cover","line_of_action":"long blade reaches outer line, short blade guards inner line","anatomical_cues":{"torso_pelvis_twist":"rotated into reach","weight_distribution":"front foot receives","lead_limb":"long-sword arm extends","trailing_limb":"short-sword arm protects center"},"foreshortening":"long blade reaches far beyond body","sfx_or_smear":"substantial white tail behind real long blade","preview_floor_offset_percent":0},
+    {"frame_number":4,"source":"04-followthrough-review.png","timing_type":"follow_through","duration_ms":82,"phase":"blade_continues_downward","line_of_action":"long sword passes contact toward low right, short sword remains independent","anatomical_cues":{"torso_pelvis_twist":"continues rotation","weight_distribution":"front knee absorbs","lead_limb":"long-sword arm descends","trailing_limb":"short-sword arm remains close"},"foreshortening":"long blade occupies foreground reach","sfx_or_smear":"white tail follows actual blade path","preview_floor_offset_percent":4.9},
+    {"frame_number":5,"source":"05-recovery-review.png","timing_type":"recovery_key","duration_ms":43,"phase":"two_zone_guard","line_of_action":"long sword controls outer line, short sword covers ribs","anatomical_cues":{"torso_pelvis_twist":"settles toward neutral","weight_distribution":"balanced feet","lead_limb":"long-sword arm lowers","trailing_limb":"short-sword arm close"},"foreshortening":"none","sfx_or_smear":"none","preview_floor_offset_percent":3.1}
+  ]
+}

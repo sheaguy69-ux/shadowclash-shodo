@@ -195,24 +195,18 @@ adds the ink; then pull eight keyframes at even **angle** intervals, not even ti
 
 ## 5. Order of work, and the pilot
 
-**Pilot: Tsubasa `airhurt1..8`.** One board, one fighter.
+**Pilot: Mizu `airhurt`.** One board, one fighter. Her current air-hurt borrows
+throw-grab cells, so this tests the full generate → review → key → pack → live
+capture path and the selector change needed to display more than three authored
+beats.
 
-It is the right first shot on every axis — his sheet is the most worked-on in the tree, his
-air-hurt is the joint-worst on the roster (two distinct cells), he is the fighter the owner
-is actively playing, and the payoff is visible **every single time anybody gets launched**.
-It also proves the whole pipeline end to end — generate → key → pack → one-line engine change
-→ driven live — on one row before 23 more are commissioned.
-
-Then:
-
-1. **`airhurt1..8` for the rest** — highest payoff per board, lowest engine cost.
-2. **`walk1..8`** — zero engine work, but hold until the `WALK_TIME` ruling so the art is
-   drawn to the right window.
-3. **`njump1..8`** — the most per-fighter design thought, but the least engine work. Start
-   with **Mokurai** (3 distinct flight poses today) and the **Executioner** (4), who have the
-   most to gain, before the fighters who already have six.
-
----
+**Owner order, Sep 23 2026:** work Mizu, Shin, Mokurai and Exile first.
+Tsubasa, Ember, Executioner and Kael are the final four. Anthony may redesign
+the first three and plans a parry-focused move set for Kael. Recheck approved
+references and move definitions before preparing their boards.
+For each fighter, prioritize launched hurt, then walk and second jump according
+to the animation-fluidity handoff. Do not use the older Tsubasa-first pilot or
+Executioner-early jump order.
 
 ## 6. Not in scope — logged, not fixed
 

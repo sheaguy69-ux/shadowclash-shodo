@@ -1,0 +1,174 @@
+[
+  {
+    "fighter": "executioner",
+    "row": "xnuki",
+    "source_cells": [
+      [
+        "xnuki1",
+        477
+      ],
+      [
+        "xnuki2",
+        478
+      ],
+      [
+        "xnuki3",
+        479
+      ],
+      [
+        "xnuki4",
+        480
+      ],
+      [
+        "xnuki5",
+        481
+      ],
+      [
+        "xnuki6",
+        482
+      ]
+    ],
+    "live_count": 6,
+    "shared_crop": [
+      212,
+      185,
+      452,
+      496
+    ]
+  },
+  {
+    "fighter": "executioner",
+    "row": "xjodan",
+    "source_cells": [
+      [
+        "xjodan1",
+        483
+      ],
+      [
+        "xjodan2",
+        484
+      ],
+      [
+        "xjodan3",
+        485
+      ],
+      [
+        "xjodan4",
+        486
+      ],
+      [
+        "xjodan5",
+        487
+      ],
+      [
+        "xjodan6",
+        488
+      ],
+      [
+        "xjodan7",
+        489
+      ],
+      [
+        "xjodan8",
+        490
+      ]
+    ],
+    "live_count": 6,
+    "shared_crop": [
+      190,
+      196,
+      450,
+      496
+    ]
+  },
+  {
+    "fighter": "kael",
+    "row": "kdual",
+    "source_cells": [
+      [
+        "kdual1",
+        222
+      ],
+      [
+        "kdual2",
+        223
+      ],
+      [
+        "kdual3",
+        224
+      ],
+      [
+        "kdual4",
+        236
+      ],
+      [
+        "kdual5",
+        225
+      ],
+      [
+        "kdual6",
+        226
+      ],
+      [
+        "kdual7",
+        227
+      ],
+      [
+        "kdual8",
+        228
+      ]
+    ],
+    "live_count": 8,
+    "shared_crop": [
+      63,
+      128,
+      238,
+      320
+    ]
+  },
+  {
+    "fighter": "kael",
+    "row": "kcross",
+    "source_cells": [
+      [
+        "kcross1",
+        194
+      ],
+      [
+        "kcross2",
+        196
+      ],
+      [
+        "kcross3",
+        196
+      ],
+      [
+        "kcross4",
+        197
+      ],
+      [
+        "kcross5",
+        198
+      ],
+      [
+        "kcross6",
+        200
+      ],
+      [
+        "kcross7",
+        200
+      ],
+      [
+        "kcross8",
+        201
+      ]
+    ],
+    "live_count": 8,
+    "shared_crop": [
+      61,
+      140,
+      248,
+      320
+    ]
+  }
+]
