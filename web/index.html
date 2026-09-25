@@ -22,7 +22,11 @@
 
         /* Keep pause controls inside the visible screen, even on tall arenas. */
         #pause-screen { position: fixed; z-index: 80; padding: 12px; overflow: auto; }
-        #pause-screen > div { width: min(100%, 24rem); max-height: 100%; overflow-y: auto; flex-shrink: 0; }
+        #pause-screen > div { width: min(100%, 60rem); max-height: 100%; overflow-y: auto; flex-shrink: 0; }
+        /* In a fight the sidebar manual steps aside; it lives in the pause menu instead. */
+        body.in-match #manual-aside { display: none; }
+        @media (min-width: 1024px) { body.in-match #main-panel { grid-column: span 5 / span 5; } }
+        #pause-manual { max-height: min(70vh, 40rem); overflow-y: auto; text-align: left; font-size: 13px; }
 
         .arcade-font {
             font-family: 'Press Start 2P', monospace;
@@ -356,9 +360,254 @@
             color: var(--sh-soft) !important; opacity: .5;
         }
         #character-selection #btn-fight:disabled::before { opacity: .35; filter: grayscale(1); }
+
+        /* ===== FIGHT HUD + PAUSE: KOZO PAPER AND BRUSH INK (owner-approved preview, 2026-09-25) =====
+           Drawn entirely in code — paper fibre and brush edges come from the SVG
+           filters in #ink-defs (feTurbulence/feDisplacementMap). No image assets. */
+        :root {
+            --k-sumi:#15130f; --k-sumi-2:#2a2620; --k-kinari:#efe6d2;
+            --k-shu:#b3261e; --k-gold:#b08a3e;
+            --k-fibre:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1000' height='700'%3E%3Cfilter id='f'%3E%3CfeTurbulence stitchTiles='stitch' type='fractalNoise' baseFrequency='.0125 .09' numOctaves='4' seed='7'/%3E%3CfeColorMatrix values='0 0 0 0 .55 0 0 0 0 .47 0 0 0 0 .34 0 0 0 1.1 -.35'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23f)'/%3E%3C/svg%3E");
+            --k-grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='g'%3E%3CfeTurbulence stitchTiles='stitch' type='fractalNoise' baseFrequency='.9' numOctaves='2' seed='3'/%3E%3CfeColorMatrix values='0 0 0 0 .3 0 0 0 0 .25 0 0 0 0 .18 0 0 0 .9 -.4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+        }
+        #arena { border-color: rgba(239,230,210,.14) !important; border-radius: 4px !important; }
+
+        /* HUD */
+        #hud-p1-name, #hud-p2-name {
+            font-family: 'Shippori Mincho B1', serif !important; font-size: 16px !important;
+            font-weight: 800 !important; letter-spacing: .3em; color: var(--k-kinari) !important;
+            text-shadow: 0 1px 3px #000;
+        }
+        #hud-p1-hp-text, #hud-p2-hp-text {
+            font-family: 'Zen Kaku Gothic New', sans-serif !important; font-size: 11px !important;
+            color: rgba(239,230,210,.7) !important; letter-spacing: .08em; text-shadow: 0 1px 2px #000;
+        }
+        #arena > .top-4 .h-4.overflow-hidden {
+            height: 14px !important; border-radius: 0 !important; border: 0 !important;
+            background: rgba(21,19,15,.88) !important; filter: url(#k-brush);
+        }
+        #hud-p1-hp, #hud-p2-hp { transition: width 90ms linear !important; }
+        #hud-p1-hp.bg-gradient-to-r { background: linear-gradient(90deg, #2d3d6e, #5a6fae) !important; }
+        #hud-p2-hp.bg-gradient-to-l { background: linear-gradient(270deg, #8c1f17, #c9402c) !important; }
+        #hud-p1-gray, #hud-p2-gray { background: rgba(239,230,210,.5) !important; }
+        #arena > .top-4 .h-1\.5 { height: 3px !important; border: 0 !important; border-radius: 0 !important;
+            background: rgba(21,19,15,.6) !important; }
+        #hud-p1-stamina, #hud-p2-stamina { background: var(--k-gold) !important; }
+        #arena > .top-4 .text-\[10px\].text-gray-400 { color: rgba(239,230,210,.6) !important;
+            font-family: 'Zen Kaku Gothic New', sans-serif; letter-spacing: .2em; font-size: 9px; }
+        .hud-portrait { border-radius: 2px; box-shadow: 0 0 0 1px rgba(239,230,210,.35), 0 3px 10px rgba(0,0,0,.6); }
+        #arena .w-10.h-10.rounded-full {
+            width: 46px !important; height: 46px !important; border-radius: 0 !important; border: 0 !important;
+            background: var(--k-shu) !important; transform: rotate(-4deg); filter: url(#k-stamp);
+        }
+        #arena .w-10.h-10 .neon-text-red {
+            font-family: 'Shippori Mincho B1', serif !important; color: var(--k-kinari) !important;
+            text-shadow: none !important; font-size: 18px !important; font-weight: 800;
+        }
+        #btn-pause {
+            background: rgba(21,19,15,.72) !important; border: 1px solid rgba(239,230,210,.3) !important;
+            color: var(--k-kinari) !important; border-radius: 2px !important;
+        }
+
+        /* PAUSE: a torn sheet of kozo paper over the dimmed fight */
+        #pause-screen { background: rgba(7,7,6,.6) !important; backdrop-filter: blur(3px) grayscale(.6); }
+        #pause-screen > div {
+            background: none !important; border: 0 !important; border-radius: 0 !important; box-shadow: none !important;
+            color: var(--k-sumi) !important; position: relative; isolation: isolate; padding: 2.5rem 3rem !important;
+        }
+        #pause-screen .k-paper {
+            position: absolute; inset: 0; z-index: -2; background: var(--k-kinari);
+            filter: url(#k-deckle) drop-shadow(0 30px 40px rgba(0,0,0,.6));
+        }
+        #pause-screen > div::before {
+            content: ''; position: absolute; inset: 6px; z-index: -1; pointer-events: none;
+            mix-blend-mode: multiply; opacity: .55;
+            background: var(--k-fibre), var(--k-grain),
+                        radial-gradient(140% 100% at 50% 40%, transparent 55%, rgba(120,90,40,.28));
+        }
+        #pause-screen .k-seal {
+            position: absolute; right: 30px; bottom: 26px; width: 58px; height: 58px;
+            background: var(--k-shu); color: var(--k-kinari); display: grid; place-items: center;
+            font: 800 21px/1 'Shippori Mincho B1', serif; writing-mode: vertical-rl; letter-spacing: -2px;
+            filter: url(#k-stamp); transform: rotate(3deg); opacity: .92; pointer-events: none;
+        }
+        #pause-title {
+            font-family: 'Shippori Mincho B1', serif !important; color: var(--k-sumi) !important;
+            font-size: 30px !important; font-weight: 800; letter-spacing: .55em !important;
+            margin-bottom: 1.6rem !important; text-align: left;
+        }
+        #pause-title small {
+            display: block; margin-top: 8px; font: 500 11px 'Shippori Mincho B1', serif;
+            letter-spacing: .5em; color: var(--k-sumi-2); opacity: .7;
+        }
+        #pause-screen button {
+            position: relative; isolation: isolate; background: none !important; border: 0 !important;
+            border-radius: 0 !important; box-shadow: none !important; color: var(--k-sumi) !important;
+            font-family: 'Shippori Mincho B1', serif !important; font-weight: 700 !important;
+            letter-spacing: .38em !important; font-size: 13px !important; padding: .85rem 1rem !important;
+            margin-bottom: 14px !important;
+        }
+        #pause-screen button::before {
+            content: ''; position: absolute; inset: 4px -4px; z-index: -1;
+            border: 2.5px solid var(--k-sumi); border-radius: 3px; filter: url(#k-brush); opacity: .85;
+        }
+        #pause-screen button:hover::before, #pause-screen button:focus-visible::before { background: rgba(21,19,15,.08); }
+        #pause-screen button:focus-visible { outline: none; }
+        #pause-screen #btn-resume { color: var(--k-kinari) !important; }
+        #pause-screen #btn-resume::before { inset: 0 -8px; border: 0; background: var(--k-sumi); filter: url(#k-brushfill); opacity: 1; }
+        #pause-screen #btn-resume::after {
+            content: ''; position: absolute; left: -18px; top: 50%; width: 8px; height: 8px;
+            background: var(--k-shu); transform: translateY(-50%) rotate(45deg);
+        }
+        #pause-screen .pad-focus { outline: 2px solid var(--k-shu) !important; outline-offset: 5px; }
+        #pause-screen label, #pause-screen p { color: var(--k-sumi-2) !important;
+            font-family: 'Zen Kaku Gothic New', sans-serif; letter-spacing: .3em; }
+        #pause-screen input[type=range] { accent-color: var(--k-shu) !important; }
+        #cam-pick { text-align: left; margin: 2px 0 18px; }
+        #cam-pick label { display: block; font-size: 10px; font-weight: 700; margin: 0 0 8px 4px; }
+        #cam-pick .cam-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+        #pause-screen #cam-pick button {
+            margin: 0 !important; padding: .5rem 0 .45rem !important; font-size: 10px !important;
+            letter-spacing: .18em !important; display: grid; justify-items: center; gap: 2px;
+        }
+        #cam-pick button span { font-size: 17px; font-weight: 800; letter-spacing: 0; line-height: 1.1; }
+        #pause-screen #cam-pick button.on { color: var(--k-kinari) !important; }
+        #pause-screen #cam-pick button.on::before { border: 0; background: var(--k-sumi); filter: url(#k-brushfill); opacity: 1; }
+
+        /* the controller map on the same sheet */
+        #pause-manual { padding-left: 2.5rem; scrollbar-color: rgba(21,19,15,.35) transparent; scrollbar-width: thin; }
+        #pause-manual h2 {
+            font-family: 'Shippori Mincho B1', serif !important; font-size: 15px !important; font-weight: 800;
+            letter-spacing: .5em; color: var(--k-sumi) !important; border: 0 !important;
+            padding-bottom: 0 !important; margin-bottom: 1.4rem !important; position: relative;
+        }
+        #pause-manual h2::after {
+            content: ''; position: absolute; left: 0; bottom: -12px; width: 70%; height: 10px;
+            background: var(--k-sumi); filter: url(#k-brushfill);
+            clip-path: polygon(0 40%, 100% 0, 98% 70%, 0 100%);
+        }
+        #pause-manual h2 i { display: none; }
+        #pause-manual, #pause-manual p, #pause-manual div, #pause-manual li, #pause-manual span {
+            color: var(--k-sumi-2) !important;
+        }
+        #pause-manual p.font-bold {
+            color: var(--k-shu) !important; font-family: 'Shippori Mincho B1', serif !important;
+            letter-spacing: .25em; text-transform: uppercase; font-size: 12px;
+        }
+        #pause-manual p.font-bold .rounded-full { display: none; }
+        #pause-manual b, #pause-manual summary { color: var(--k-sumi) !important;
+            font-family: 'Shippori Mincho B1', serif !important; letter-spacing: .08em; }
+        #pause-manual kbd {
+            background: rgba(255,255,255,.25) !important; color: var(--k-sumi) !important;
+            border: 1.5px solid var(--k-sumi); border-bottom-width: 3px; border-radius: 3px !important;
+            font-family: 'Zen Kaku Gothic New', sans-serif !important; font-weight: 700;
+        }
+        #pause-manual details { border-color: rgba(21,19,15,.22) !important; }
+
+        /* MATCH OVER — the result written on the same torn sheet as the pause menu */
+        #game-over-screen { background: rgba(7,7,6,.62) !important; backdrop-filter: blur(3px) grayscale(.6); }
+        #game-over-content {
+            position: relative; isolation: isolate; width: 400px !important;
+            background: none !important; border: 0 !important; border-radius: 0 !important;
+            color: var(--k-sumi); padding: 2rem 2.2rem 2.2rem !important;
+        }
+        #game-over-content::before {
+            content: ''; position: absolute; inset: 0; z-index: -1; background: var(--k-kinari);
+            background-image: var(--k-fibre), var(--k-grain); background-blend-mode: multiply;
+            filter: url(#k-deckle) drop-shadow(0 30px 40px rgba(0,0,0,.6));
+        }
+        #game-over-content::after {
+            content: '影衝'; position: absolute; right: 18px; top: 18px; width: 44px; height: 44px;
+            background: var(--k-shu); color: var(--k-kinari); display: grid; place-items: center;
+            font: 800 15px/1 'Shippori Mincho B1', serif; writing-mode: vertical-rl; letter-spacing: -2px;
+            filter: url(#k-stamp); transform: rotate(4deg); opacity: .9; pointer-events: none;
+        }
+        #game-over-content > .flex:first-child > div {
+            border: 0 !important; border-radius: 2px !important; background: rgba(21,19,15,.9) !important;
+            filter: url(#k-brush);
+        }
+        #game-over-content h2 {
+            font-family: 'Shippori Mincho B1', serif !important; color: var(--k-sumi) !important;
+            font-size: 24px !important; font-weight: 800; letter-spacing: .35em !important;
+            margin: .7rem 0 .4rem !important; text-shadow: none !important;
+        }
+        #game-over-content p { color: var(--k-sumi-2) !important; font-family: 'Zen Kaku Gothic New', sans-serif !important; }
+        #game-over-content .font-mono { font-family: 'Zen Kaku Gothic New', sans-serif !important; letter-spacing: .12em; }
+        #game-over-content .border-b { border-color: rgba(21,19,15,.18) !important; }
+        #game-over-content .text-gray-500, #game-over-content .text-gray-600,
+        #game-over-content .text-gray-400 { color: var(--k-sumi-2) !important; }
+        #game-over-content .text-purple-300 { color: #2d3d6e !important; font-weight: 700; }
+        #game-over-content .text-orange-300 { color: #8c1f17 !important; font-weight: 700; }
+        /* the small boxes: next opponent, a seal breaking, the toll */
+        #game-over-content .rounded-lg:not(button) {
+            background: rgba(255,255,255,.22) !important; border: 1.5px solid rgba(21,19,15,.5) !important;
+            border-radius: 2px !important;
+        }
+        #game-over-content .rounded-lg:not(button) [class*="text-yellow"],
+        #game-over-content .rounded-lg:not(button) [class*="text-red"],
+        #game-over-content .rounded-lg:not(button) [class*="text-amber"] { color: var(--k-shu) !important; }
+        #game-over-content button {
+            position: relative; isolation: isolate; background: none !important; border: 0 !important;
+            border-radius: 0 !important; color: var(--k-sumi) !important; margin-top: 12px !important;
+            font-family: 'Shippori Mincho B1', serif !important; font-weight: 700 !important;
+            letter-spacing: .32em !important; font-size: 13px !important;
+        }
+        #game-over-content button::before {
+            content: ''; position: absolute; inset: 3px -4px; z-index: -1;
+            border: 2.5px solid var(--k-sumi); border-radius: 3px; filter: url(#k-brush); opacity: .85;
+        }
+        #game-over-content button:hover::before { background: rgba(21,19,15,.08); }
+        #game-over-content button:first-of-type { color: var(--k-kinari) !important; }
+        #game-over-content button:first-of-type::before { inset: 0 -8px; border: 0; background: var(--k-sumi); filter: url(#k-brushfill); opacity: 1; }
+        #game-over-content .pad-focus { outline: 2px solid var(--k-shu) !important; outline-offset: 5px; }
+
+        /* MOVE LAB — a strip of paper along the foot of the arena, training only */
+        #move-lab {
+            position: relative; margin: 8px 12px 12px; z-index: 15;
+            color: var(--k-sumi); padding: 10px 14px 12px; isolation: isolate;
+        }
+        #move-lab::before {
+            content: ''; position: absolute; inset: 0; z-index: -1; background: var(--k-kinari);
+            background-image: var(--k-fibre); background-blend-mode: multiply;
+            filter: url(#k-deckle) drop-shadow(0 8px 18px rgba(0,0,0,.55)); opacity: .96;
+        }
+        #move-lab .lab-head { display: flex; align-items: center; gap: 12px; }
+        #move-lab .lab-title { font: 800 14px 'Shippori Mincho B1', serif; letter-spacing: .3em; }
+        #move-lab .lab-sub { font: 11px 'Zen Kaku Gothic New', sans-serif; letter-spacing: .08em; color: var(--k-sumi-2); flex: 1; }
+        #move-lab .lab-sub b { color: var(--k-shu); letter-spacing: .15em; }
+        #move-lab button {
+            position: relative; isolation: isolate; background: none; border: 0; color: var(--k-sumi);
+            font: 700 11px 'Shippori Mincho B1', serif; letter-spacing: .12em; padding: 5px 10px; cursor: pointer;
+        }
+        #move-lab button::before {
+            content: ''; position: absolute; inset: 1px -1px; z-index: -1;
+            border: 1.5px solid var(--k-sumi); border-radius: 2px; filter: url(#k-brush); opacity: .7;
+        }
+        #move-lab button:hover::before { background: rgba(21,19,15,.08); }
+        #move-lab button.on { color: var(--k-kinari); }
+        #move-lab button.on::before { background: var(--k-sumi); border: 0; filter: url(#k-brushfill); opacity: 1; }
+        #move-lab button.on kbd { color: var(--k-kinari); border-color: var(--k-kinari); }
+        #move-lab .lab-moves {
+            display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px;
+            max-height: 94px; overflow-y: auto; scrollbar-width: thin;
+        }
+        #move-lab .lab-moves button { display: inline-flex; align-items: center; gap: 7px; letter-spacing: .06em; }
+        #move-lab kbd {
+            font: 700 10px 'Zen Kaku Gothic New', sans-serif; padding: 0 5px; border: 1px solid var(--k-sumi);
+            border-bottom-width: 2px; border-radius: 2px; background: rgba(255,255,255,.25);
+        }
+        #move-lab.folded .lab-moves { display: none; }
+        #move-lab.folded #lab-fold { transform: rotate(180deg); }
     </style>
 </head>
 <body class="flex flex-col items-center min-h-screen text-white p-2">
+    <!-- Brush + paper filters for the ink UI (fight HUD, pause menu) -->
+    <svg id="ink-defs" aria-hidden="true" style="position:absolute;width:0;height:0"><defs>
+        <filter id="k-brush" x="-10%" y="-40%" width="120%" height="180%"><feTurbulence type="fractalNoise" baseFrequency=".04 .6" numOctaves="3" seed="4"/><feDisplacementMap in="SourceGraphic" scale="3"/></filter>
+        <filter id="k-brushfill" x="-10%" y="-40%" width="120%" height="180%"><feTurbulence type="fractalNoise" baseFrequency=".02 .5" numOctaves="4" seed="9" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="6" result="d"/><feTurbulence type="fractalNoise" baseFrequency=".6 .03" numOctaves="2" seed="2" result="dry"/><feColorMatrix in="dry" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -3 2.6" result="m"/><feComposite in="d" in2="m" operator="in"/></filter>
+        <filter id="k-stamp"><feTurbulence type="fractalNoise" baseFrequency=".7" numOctaves="2" seed="5"/><feColorMatrix values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -1.6 1.45" result="m"/><feComposite in="SourceGraphic" in2="m" operator="in" result="c"/><feTurbulence type="fractalNoise" baseFrequency=".05" seed="1"/><feDisplacementMap in="c" scale="3"/></filter>
+        <filter id="k-deckle" x="-3%" y="-3%" width="106%" height="106%"><feTurbulence type="fractalNoise" baseFrequency=".08" numOctaves="3" seed="11"/><feDisplacementMap in="SourceGraphic" scale="7"/></filter>
+    </defs></svg>
 
     <!-- Screen Flash Overlay -->
     <div id="flash-overlay" class="fixed inset-0 pointer-events-none z-50"></div>
@@ -387,8 +636,8 @@
         <div class="grid grid-cols-1 lg:grid-cols-5 gap-4">
 
             <!-- Sidebar: Controls & Instructions -->
-            <aside class="order-last lg:order-none lg:col-span-1 bg-gray-900/60 border border-gray-800/80 rounded-xl p-4 flex flex-col justify-between backdrop-blur-md text-sm lg:max-h-[calc(100vh-140px)] lg:overflow-y-auto">
-                <div>
+            <aside id="manual-aside" class="order-last lg:order-none lg:col-span-1 bg-gray-900/60 border border-gray-800/80 rounded-xl p-4 flex flex-col justify-between backdrop-blur-md text-sm lg:max-h-[calc(100vh-140px)] lg:overflow-y-auto">
+                <div id="manual-body">
                     <h2 class="arcade-font text-[10px] text-gray-400 mb-4 border-b border-gray-800 pb-2 flex items-center gap-2">
                         <i class="fa-solid fa-gamepad text-purple-500"></i> CONTROLLER MAP
                     </h2>
@@ -623,7 +872,7 @@
             </aside>
 
             <!-- Main Interactive Display Panel -->
-            <div class="lg:col-span-4 flex flex-col gap-4 relative">
+            <div id="main-panel" class="lg:col-span-4 flex flex-col gap-4 relative">
 
                 <!-- Character Selection Screen (Active initially) -->
                 <!-- lg:max-h-full is load-bearing. This panel overlays the arena box
@@ -812,7 +1061,7 @@
                         <!-- VS Center Indicator -->
                         <div class="flex flex-col items-center justify-center">
                             <div class="w-10 h-10 rounded-full bg-gray-950/90 border border-gray-800 flex items-center justify-center">
-                                <span class="arcade-font text-xs text-yellow-400 neon-text-red">VS</span>
+                                <span class="arcade-font text-xs text-yellow-400 neon-text-red">対</span>
                             </div>
                         </div>
 
@@ -902,29 +1151,52 @@
                         </div>
                     </div>
 
-                    <!-- Pause overlay: Esc or the ⏸ button -->
+                    <!-- Pause overlay: click the arena, Esc, or the ⏸ button. Click outside the panel to resume. -->
                     <div id="pause-screen" role="dialog" aria-modal="true" aria-labelledby="pause-title" class="absolute inset-0 bg-black/85 z-20 flex flex-col items-center justify-center hidden">
-                        <div class="text-center p-6 border border-cyan-600 bg-gray-950/90 rounded-2xl max-w-sm">
-                            <h2 id="pause-title" class="arcade-font text-cyan-400 text-lg md:text-xl tracking-wider mb-6">PAUSED</h2>
-                            <button id="btn-resume" class="px-6 py-3 bg-green-600 hover:bg-green-500 text-xs font-black tracking-widest rounded-lg border border-green-500 w-full mb-3">
-                                <i class="fa-solid fa-play"></i> RESUME
-                            </button>
-                            <!-- Audio: master volume + SFX mute, persisted in the save blob -->
-                            <div class="text-left mb-3 px-1">
-                                <label for="opt-vol" class="text-[10px] text-gray-400 font-black tracking-widest">VOLUME</label>
-                                <input type="range" id="opt-vol" min="0" max="100" class="w-full accent-cyan-400 cursor-pointer">
+                        <div class="p-6 border border-cyan-600 bg-gray-950/90 rounded-2xl grid gap-6 md:grid-cols-[16rem_1fr]">
+                            <div class="k-paper" aria-hidden="true"></div>
+                            <div class="k-seal" aria-hidden="true">影衝</div>
+                            <div class="text-center">
+                                <h2 id="pause-title" class="arcade-font text-cyan-400 text-lg md:text-xl tracking-wider mb-6">休止<small>PAUSED</small></h2>
+                                <button id="btn-resume" class="px-6 py-3 bg-green-600 hover:bg-green-500 text-xs font-black tracking-widest rounded-lg border border-green-500 w-full mb-3">
+                                    <i class="fa-solid fa-play"></i> RESUME
+                                </button>
+                                <!-- Audio: master volume + SFX mute, persisted in the save blob -->
+                                <div class="text-left mb-3 px-1">
+                                    <label for="opt-vol" class="text-[10px] text-gray-400 font-black tracking-widest">VOLUME</label>
+                                    <input type="range" id="opt-vol" min="0" max="100" class="w-full accent-cyan-400 cursor-pointer">
+                                </div>
+                                <button id="btn-sfx" class="px-6 py-3 bg-gray-800 hover:bg-gray-700 text-xs font-black tracking-widest rounded-lg border border-gray-600 text-gray-200 w-full mb-3">
+                                    <i class="fa-solid fa-volume-high"></i> SFX: ON
+                                </button>
+                                <!-- Camera framing: pick one of three (F8 cycles it mid-fight) -->
+                                <div id="cam-pick" role="radiogroup" aria-labelledby="cam-pick-label">
+                                    <label id="cam-pick-label">CAMERA · F8</label>
+                                    <div class="cam-row">
+                                        <button data-cam="0" role="radio"><span>広</span>WIDE</button>
+                                        <button data-cam="1" role="radio"><span>近</span>CLOSE</button>
+                                        <button data-cam="2" role="radio"><span>迫</span>CLOSER</button>
+                                    </div>
+                                </div>
+                                <button id="btn-quit" class="px-6 py-3 bg-gray-700 hover:bg-gray-600 text-xs font-black tracking-widest rounded-lg border border-gray-500 w-full">
+                                    <i class="fa-solid fa-door-open"></i> QUIT TO SELECT
+                                </button>
+                                <p class="text-[10px] text-gray-500 mt-4">Click outside or Esc to resume</p>
                             </div>
-                            <button id="btn-sfx" class="px-6 py-3 bg-gray-800 hover:bg-gray-700 text-xs font-black tracking-widest rounded-lg border border-gray-600 text-gray-200 w-full mb-3">
-                                <i class="fa-solid fa-volume-high"></i> SFX: ON
-                            </button>
-                            <button id="btn-cam" class="px-6 py-3 bg-gray-800 hover:bg-gray-700 text-xs font-black tracking-widest rounded-lg border border-gray-600 text-gray-200 w-full mb-3">
-                                <i class="fa-solid fa-video"></i> CAMERA: WIDE
-                            </button>
-                            <button id="btn-quit" class="px-6 py-3 bg-gray-700 hover:bg-gray-600 text-xs font-black tracking-widest rounded-lg border border-gray-500 w-full">
-                                <i class="fa-solid fa-door-open"></i> QUIT TO SELECT
-                            </button>
-                            <p class="text-[10px] text-gray-500 mt-4">Esc to resume</p>
+                            <!-- the sidebar manual is moved in here while paused -->
+                            <div id="pause-manual"></div>
                         </div>
+                    </div>
+                    <!-- MOVE LAB (training): click a move, the dummy performs it -->
+                    <div id="move-lab" class="hidden" aria-label="Move lab">
+                        <div class="lab-head">
+                            <span class="lab-title">型 MOVE LAB</span>
+                            <span class="lab-sub">dummy: <b id="lab-who"></b> — click a move to see it</span>
+                            <button id="lab-repeat">REPEAT: OFF</button>
+                            <button id="lab-stop">STOP</button>
+                            <button id="lab-fold" aria-label="Fold the move lab">▾</button>
+                        </div>
+                        <div class="lab-moves"></div>
                     </div>
                     <!-- floating pause button (desktop + touch) -->
                     <button id="btn-pause" class="absolute top-2 right-2 z-10 w-9 h-9 bg-gray-800/80 hover:bg-gray-700 rounded-lg border border-gray-600 text-gray-300 text-sm hidden">⏸</button>
@@ -16606,14 +16878,26 @@
             camFrame = (camFrame + 1) % CAM_FRAMES.length;
             save.prefs.camFrame = camFrame; persist();
             camToastT = 1.6;
-            syncCamButton();
+            syncCamPicker();
         }
-        function syncCamButton() {
-            const b = document.getElementById('btn-cam');
-            if (b) b.innerHTML = `<i class="fa-solid fa-video"></i> CAMERA: ${CAM_FRAMES[camFrame].name}`;
+        function setCamFrame(i) {
+            if (i === camFrame) return;
+            camFrame = i;
+            save.prefs.camFrame = camFrame; persist();
+            camToastT = 1.6;
+            syncCamPicker();
+            sfx('select');
         }
-        document.getElementById('btn-cam').addEventListener('click', cycleCamFrame);
-        syncCamButton();
+        function syncCamPicker() {
+            document.querySelectorAll('#cam-pick button').forEach(b => {
+                const on = +b.dataset.cam === camFrame;
+                b.classList.toggle('on', on);
+                b.setAttribute('aria-checked', on);
+            });
+        }
+        document.querySelectorAll('#cam-pick button').forEach(b =>
+            b.addEventListener('click', () => setCamFrame(+b.dataset.cam)));
+        syncCamPicker();
         document.getElementById('btn-timer').addEventListener('click', () => {
             timedRounds = !timedRounds;
             save.prefs.timed = timedRounds; persist();
@@ -16966,10 +17250,26 @@
                 p._mChak = p._sChak = undefined;
             }
             if (!paused) lastTime = performance.now();
+            // the manual rides along into the pause menu and goes home on resume
+            const manual = document.getElementById('manual-body');
+            (paused ? document.getElementById('pause-manual') : document.getElementById('manual-aside')).prepend(manual);
             document.getElementById('pause-screen').classList.toggle('hidden', !paused);
             sfx('select');
         }
+        // In-fight chrome: the pause button shows and the sidebar manual hides.
+        function setInMatchChrome(on) {
+            document.getElementById('btn-pause').classList.toggle('hidden', !on);
+            if (!on) { labStop(); document.getElementById('move-lab').classList.add('hidden'); }
+            document.body.classList.toggle('in-match', on);
+        }
         document.getElementById('btn-pause').addEventListener('click', () => setPaused(true));
+        // A left click on the arena pauses (mouse mode owns the left button for Light).
+        document.getElementById('game-canvas').addEventListener('mousedown', e => {
+            if (e.button === 0 && !mouseMode && matchActive) setPaused(true);
+        });
+        document.getElementById('pause-screen').addEventListener('click', e => {
+            if (e.target.id === 'pause-screen') setPaused(false);
+        });
         document.getElementById('btn-resume').addEventListener('click', () => setPaused(false));
         // --- AUDIO OPTIONS (pause menu): volume slider + SFX mute, saved + applied live ---
         const volEl = document.getElementById('opt-vol'), sfxBtn = document.getElementById('btn-sfx');
@@ -16995,7 +17295,7 @@
             setPaused(false);
             clearTimeout(roundResetTimer);
             matchActive = false;
-            document.getElementById('btn-pause').classList.add('hidden');
+            setInMatchChrome(false);
             document.getElementById('game-over-screen').classList.add('hidden');
             document.getElementById('character-selection').classList.remove('hidden');
             document.getElementById('arena').classList.add('hidden');   // phone: re-hide so the full select screen shows
@@ -17156,7 +17456,7 @@
             document.getElementById('title-screen').classList.remove('hidden');
             startNewGame();
             playMusic('title');   // AFTER startNewGame — its seedAbyss just cued the attract board
-            document.getElementById('btn-pause').classList.add('hidden');
+            setInMatchChrome(false);
         }
         function dismissTitle() {
             if (!attractMode) return;
@@ -17382,6 +17682,110 @@
             };
             try { d.run(player2, B, press, drillT); } catch (e) { /* a drill never kills the loop */ }
         }
+
+        // MOVE LAB (owner, Sep 25 2026): in training, click any move on the dummy's
+        // list and the dummy performs it live. Commands are read off MOVES_LIST (the
+        // same list the L overlay shows) and played through the REAL keyboard funnel as
+        // P2 key events, so what you see is exactly what those keys do — nothing here
+        // calls executeAttack directly. Timing runs on game time: a pause or hitstop
+        // holds the sequence instead of letting wall-clock timers race ahead.
+        const LAB_BTN = { F: 'KeyI', J: 'KeyU', G: 'KeyO', H: 'KeyP', C: 'KeyM', V: 'KeyK', X: 'KeyN' };
+        function labCommands(name) {
+            const out = [];
+            const add = (air, dirs, btns, label) => out.push({ air, dirs, btns, label: label.trim() });
+            for (const line of MOVES_LIST[name] || []) {
+                const basics = line.match(/^F \/ J \/ G \/ H — (.+)$/);
+                if (basics) {
+                    basics[1].split(' · ').forEach((l, i) => add(false, [], ['FJGH'[i]], 'FJGH'[i] + ' · ' + l));
+                    continue;
+                }
+                for (const seg of line.split(' · ')) {
+                    const m = seg.match(/^(air )?(?:((?:Fwd|Back|Up|Down)(?:\/(?:Fwd|Back|Up|Down))*)\+)?([FJGHCVX](?:\+[FJGH])?) — (.+)$/);
+                    if (!m) continue;
+                    const btns = m[3].split('+');
+                    const label = m[4].replace(/\s*\(.*$/, '');
+                    const dirs = m[2] ? m[2].split('/') : [null];
+                    for (const d of dirs) add(!!m[1], d ? [d] : [], btns,
+                        (m[1] ? 'air ' : '') + (d ? d + '+' : '') + m[3] + ' · ' + label);
+                }
+            }
+            return out;
+        }
+        let labRepeat = false, labCmd = null, labPlan = null, labLoopT = 0, labFor = null;
+        const labKey = (type, code) => window.dispatchEvent(new KeyboardEvent(type, { code, bubbles: true }));
+        function labPlay(cmd) {
+            if (!player2 || gameMode !== 'training') return;
+            const dirKey = d => ({
+                Up: 'ArrowUp', Down: 'ArrowDown',
+                Fwd:  player2.facing > 0 ? 'ArrowRight' : 'ArrowLeft',
+                Back: player2.facing > 0 ? 'ArrowLeft' : 'ArrowRight',
+            })[d];
+            const ev = [];                      // [time, type, code]
+            let t = 0;
+            if (cmd.air) { ev.push([0, 'keydown', 'ArrowUp'], [0.08, 'keyup', 'ArrowUp']); t = 0.3; }
+            const dirs = cmd.dirs.map(dirKey);
+            const btns = cmd.btns.map(b => LAB_BTN[b]);
+            // C+G style: the first button is HELD, the attack lands under it
+            const held = btns.length > 1 && btns[0] === 'KeyM' ? [btns.shift()] : [];
+            dirs.concat(held).forEach(k => ev.push([t, 'keydown', k]));
+            btns.forEach(k => ev.push([t + 0.035, 'keydown', k], [t + 0.12, 'keyup', k]));
+            dirs.concat(held).forEach(k => ev.push([t + 0.18, 'keyup', k]));
+            labPlan = { t: 0, ev: ev.sort((a, b) => a[0] - b[0]) };
+        }
+        function labRun(dt) {
+            if (gameMode !== 'training' || !player2) return;
+            if (labFor !== player2) buildMoveLab();   // a new match seats a new dummy
+            if (labPlan) {
+                labPlan.t += dt;
+                while (labPlan.ev.length && labPlan.ev[0][0] <= labPlan.t) {
+                    const [, type, code] = labPlan.ev.shift();
+                    labKey(type, code);
+                }
+                if (!labPlan.ev.length) labPlan = null;
+            }
+            if (labRepeat && labCmd && !labPlan) {
+                labLoopT += dt;
+                if (labLoopT >= 1.4 && player2.stunTimer <= 0) { labLoopT = 0; labPlay(labCmd); }
+            }
+        }
+        function labStop() {
+            if (labPlan) labPlan.ev.filter(e => e[1] === 'keyup').forEach(e => labKey('keyup', e[2]));
+            labPlan = null; labCmd = null; labLoopT = 0;
+            document.querySelectorAll('#move-lab .lab-moves button').forEach(b => b.classList.remove('on'));
+        }
+        function buildMoveLab() {
+            const lab = document.getElementById('move-lab');
+            const show = gameMode === 'training' && !!player2;
+            lab.classList.toggle('hidden', !show);
+            labStop();
+            labFor = show ? player2 : null;
+            if (!show) return;
+            document.getElementById('lab-who').textContent = player2.spec.name.toUpperCase();
+            const box = lab.querySelector('.lab-moves');
+            box.replaceChildren(...labCommands(player2.spec.name).map(cmd => {
+                const b = document.createElement('button');
+                const [keys, name] = cmd.label.split(' · ');
+                const k = document.createElement('kbd'); k.textContent = keys;
+                b.append(k, name);
+                b.addEventListener('click', () => {
+                    b.blur();                   // keep Space/Enter for the fight
+                    labStop();
+                    labCmd = cmd; b.classList.add('on');
+                    labPlay(cmd);
+                });
+                return b;
+            }));
+        }
+        document.getElementById('lab-repeat').addEventListener('click', e => {
+            labRepeat = !labRepeat; labLoopT = 0;
+            e.currentTarget.classList.toggle('on', labRepeat);
+            e.currentTarget.textContent = labRepeat ? 'REPEAT: ON' : 'REPEAT: OFF';
+            e.currentTarget.blur();
+        });
+        document.getElementById('lab-stop').addEventListener('click', e => { labStop(); e.currentTarget.blur(); });
+        document.getElementById('lab-fold').addEventListener('click', e => {
+            document.getElementById('move-lab').classList.toggle('folded'); e.currentTarget.blur();
+        });
 
         // Which fighters own a DIRECTIONAL special, and which direction unlocks it.
         // Read straight off executeAttack's own specId branches — nothing invented, so
@@ -18472,7 +18876,8 @@
             clearTimeout(roundResetTimer); // drop any stale between-rounds reset
             setPaused(false);              // never start a match into a stale pause
 
-            document.getElementById('btn-pause').classList.remove('hidden');
+            setInMatchChrome(true);
+            buildMoveLab();
             document.getElementById('character-selection').classList.add('hidden');
             document.getElementById('game-over-screen').classList.add('hidden');
             // Reveal the arena (hidden on phones during select) and snap to it so
@@ -19830,6 +20235,7 @@
 
             // CPU sparring partner drives P2 when enabled
             runDrill(dt);   // training-mode mechanic drill (see DRILLS) — before the brain
+            labRun(dt);     // MOVE LAB: the move the owner clicked, played on P2's keys
 
             if (cpuMode) cpuThink(dt, 1);
             // ⛔ WATCH-MODE BRAIN 0 TYPES ON THE HUMAN'S KEYBOARD. Its key map IS P1's
@@ -21031,7 +21437,7 @@
             }
             matchActive = false; // fire once, halt gameplay behind the overlay
             setPaused(false);
-            document.getElementById('btn-pause').classList.add('hidden');
+            setInMatchChrome(false);
 
             // resolve a winner index; -1 = draw
             let w = matchWinnerIdx;
@@ -23011,10 +23417,24 @@
             ctx.setTransform(1, 0, 0, 1, 0, 0);
             if (camToastT > 0) {
                 camToastT -= 1 / 60;
-                ctx.font = 'bold 13px monospace';
-                ctx.textAlign = 'center';
-                ctx.fillStyle = `rgba(125,211,252,${Math.min(1, camToastT)})`;
-                ctx.fillText(`CAMERA: ${CAM_FRAMES[camFrame].name}  (F8)`, (canvas.width > VIEW_W + 4 ? VIEW_W : canvas.width) / 2, 102);
+                const a = Math.min(1, camToastT), cx = (canvas.width > VIEW_W + 4 ? VIEW_W : canvas.width) / 2;
+                const label = `CAMERA  ${CAM_FRAMES[camFrame].name}`;
+                ctx.save();
+                ctx.font = '700 15px "Shippori Mincho B1", serif';
+                ctx.letterSpacing = '4px';
+                const w = ctx.measureText(label).width + 56;
+                ctx.globalAlpha = a;
+                ctx.fillStyle = 'rgba(21,19,15,.86)';       // the ink band
+                ctx.beginPath();
+                ctx.moveTo(cx - w / 2, 88); ctx.lineTo(cx + w / 2 + 6, 86);
+                ctx.lineTo(cx + w / 2, 112); ctx.lineTo(cx - w / 2 - 4, 114);
+                ctx.closePath(); ctx.fill();
+                ctx.fillStyle = '#b3261e';                  // vermilion mark
+                ctx.fillRect(cx - w / 2 + 14, 96, 8, 8);
+                ctx.fillStyle = '#efe6d2';
+                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.fillText(label, cx + 8, 101);
+                ctx.restore();
             }
             if (feelToastT > 0) {
                 feelToastT -= 1 / 60;
