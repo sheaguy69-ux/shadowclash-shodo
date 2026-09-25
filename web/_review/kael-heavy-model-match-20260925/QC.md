@@ -1,0 +1,7 @@
+# Kael heavy model match · review pass
+
+Source appearance: current `kcross1..8` strip at `../sword-swing-motion-20260924/current-kael-kcross.png` and `media/roster-consistency-20260913/kael/MODEL.md`. New motion pose source: `../kael-heavy-motion-20260924/`. The new contact drawing interprets the exact previously approved contact pose while matching the older compact character model; that approved source PNG has not been changed.
+
+Five 1536 × 1024 opaque review drawings: anticipation, acceleration, contact, follow-through and recovery. All show one long katana and one short sword, a pointed charcoal hood with a narrow gold rim, black void face with a single solid white eye and no pupil, modest gold scarf and compact dark outfit. Built-in image editor model was not verified as GPT Image 2.5; do not attribute these to that model.
+
+Dark-pixel bottom y measured at 842, 835, 869, 813 and 825. The review player displays frames 2–5 with approximate vertical offsets +0.7%, −2.6%, +2.8% and +1.7% of image height to compare feet against frame 1; the PNGs themselves are unchanged. These generated keys still need a transparent registered cell pass, exact weapon-tip/hand tracking, missing in-betweens and inspection at native runtime size and both facings. The first two poses are close in silhouette, so release spacing may need a stronger breakdown. No sprite sheet, route, hitbox, timing, combat rule or audio was changed.
