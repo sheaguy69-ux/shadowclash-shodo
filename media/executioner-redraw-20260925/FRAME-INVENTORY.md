@@ -9,6 +9,7 @@ Existing owner approvals found before drawing:
 - New appearance: `web/_review/sword-swing-motion-20260924/APPROVED-EXECUTIONER-LOOK.md`.
 - Original three heavy-swing keys and three shoulder-bump keys: `media/attack-redraws-20260924/APPROVAL.md`.
 - Three further heavy-swing pose images approved this session: `art/shodo-source/executioner/executioner-heavy-redraw-20260925/APPROVAL.md`.
+- A new lower, longer shoulder-bump contact drawing is shown in the review page as a **candidate only**. It is not part of the approved three-key shoulder-bump strip or a finished eight-frame cycle.
 - Many older move-specific approval folders remain under `art/shodo-source/executioner/`; these establish move choreography and source continuity but do not silently approve the newer mask/armor redraw of every cell.
 
 For each animation, assemble the approved model, real startup/contact/follow-through/recovery drawings, correct long-katana length and scabbard, registered feet/pelvis, and both facing previews. Show consecutive frames at game size before touching the atlas. Keep timing, hitboxes, and combat mechanics unchanged during this art pass. An attractive isolated key is not a finished frame-by-frame move. No full-atlas replacement is claimed yet.
