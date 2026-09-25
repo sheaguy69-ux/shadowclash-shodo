@@ -2982,7 +2982,8 @@
         let camFrame = Number.isInteger(save.prefs.camFrame) && CAM_FRAMES[save.prefs.camFrame]
             ? save.prefs.camFrame : 0;
         let camToastT = 0;
-        const camZoom = { a: 0, base: 1, bfx: 400, bfy: 250, lfx: 400, lfy: 250, t: 0, m: null };
+        // cx/feet: where the camera is looking (eased); lfx/lfeet: the bind's centre, held.
+        const camZoom = { a: 0, base: 1, cx: 512, feet: 700, lfx: null, lfeet: null, t: 0, m: null };
         // Round intro gate: "ROUND N" -> "FIGHT!" with inputs locked.
         let roundIntroTimer = 0;
         const hitstopQueue = [];  // inputs received during the freeze, flushed when it ends
@@ -21813,75 +21814,99 @@
             // ⛔ ONE CAMERA, TWO REASONS TO LEAN IN. Owner: "an option ... closer and intimate,
             // the player look bigger, people can really see their attacks" — and for review,
             // "so I can easily catch flaws in frame by frame cycles." Plus the blade-lock
-            // punch-in. Both are the SAME operation (scale the world about a focus), so they
-            // share one matrix; two zoom systems would fight over the same pixels.
+            // punch-in. Both are the same operation, so they share one matrix; two zoom
+            // systems would fight over the same pixels.
             //
-            // THE FRAMING (F8, or CAMERA in the pause menu): WIDE is the game as it always was;
-            // CLOSE and CLOSER scale up about the fighters' FEET, so the floor stays put and
-            // the bodies grow upward instead of their feet being cropped off the bottom.
+            // ⛔ IT TRACKS, IT DOES NOT JUST ZOOM. Owner: "camera tracking so ... players never
+            // leave the sight of the camera." The first cut scaled the world about the
+            // fighters' midpoint, which pins that point where it already sat on screen — so
+            // the only way to keep both fighters in view was to zoom back OUT, and CLOSER
+            // quietly stopped being close the moment anyone moved. This is a follow camera:
+            // a window onto the world, CENTRED on the pair, gliding after them. The framing
+            // holds at full strength while both bodies fit inside it; it widens only when
+            // the gap between them is genuinely wider than the close view.
             //
-            // ⛔ IT NEVER LOSES THE OPPONENT. A fixed zoom would push a fighter off screen the
-            // moment the two separate. So the framing is a CEILING, not a command: each frame
-            // it is capped at whatever still keeps both bodies — heads included, mid-jump —
-            // inside the view, and it eases toward that. Close in on a scramble, breathe out
-            // when they split, lean back in when they close.
+            // THE WINDOW STAYS INSIDE THE STAGE. It is clamped to the area already visible
+            // at 1x, so at a wall the camera stops panning instead of showing past the edge
+            // (and nothing a draw routine might cull outside that area can be exposed).
+            // Vertically the fighters' feet sit near the bottom, so jumps have headroom and
+            // the floor is never cropped.
             //
-            // THE LOCK PUNCH-IN then pushes further from whatever framing is live, held
-            // through the win/lose pose so the outcome is seen, then eased back.
+            // THE LOCK PUNCH-IN centres on the bind and pushes further, held through the
+            // win/lose pose so the outcome is seen. Its centre is taken while the pair is
+            // bound and then held, so it does not chase the loser as he is thrown clear.
             //
-            // It only ever zooms INTO the visible area about a point inside it, so it can
-            // never expose the canvas edge. Applied OUTERMOST so the HUD can take it back
-            // off with one inverse (see the HUD block). Wall clock, not the combat clock:
-            // the catch is a true freeze and the push-in should land ON the impact.
+            // Applied OUTERMOST so the HUD can take it back off with one inverse (see the HUD
+            // block). Wall clock, not the combat clock: the catch is a true freeze, and the
+            // push-in should land ON the impact.
             {
                 const now = performance.now();
                 const dtz = Math.min(0.05, (now - (camZoom.t || now)) / 1000);
                 camZoom.t = now;
-                const pair = player1 && player2;
+                const H = canvas.height;
                 const view = canvas.width > VIEW_W + 4 ? VIEW_W : canvas.width;
                 const vx0 = canvas.width > VIEW_W + 4 ? camX : 0;
-                let zBase = CAM_FRAMES[camFrame].z, fx = camZoom.bfx, fy = camZoom.bfy;
+                const M = 40;                                      // screen margin, px
+                const pair = player1 && player2;
+
+                // what has to stay in frame: both bodies, with room for a raised weapon
+                let l = vx0 + view / 2, r = l, top = H / 2, feet = H / 2;
                 if (pair) {
                     const ps = [player1, player2];
-                    fx = (ps[0].x + ps[0].width / 2 + ps[1].x + ps[1].width / 2) / 2;
-                    fy = Math.max(ps[0].y + ps[0].height, ps[1].y + ps[1].height);   // lowest feet
-                    const M = 40;                                                   // screen margin
-                    for (const p of ps) {
-                        const l = p.x - 30, r = p.x + p.width + 30, top = p.y - 40;
-                        if (l < fx) zBase = Math.min(zBase, (fx - (vx0 + M)) / (fx - l));
-                        if (r > fx) zBase = Math.min(zBase, ((vx0 + view - M) - fx) / (r - fx));
-                        if (top < fy) zBase = Math.min(zBase, (fy - M) / (fy - top));
-                    }
-                    zBase = Math.max(1, zBase);
+                    l = Math.min(...ps.map(p => p.x - 30));
+                    r = Math.max(...ps.map(p => p.x + p.width + 30));
+                    top = Math.min(...ps.map(p => p.y - 40));
+                    feet = Math.max(...ps.map(p => p.y + p.height));
                 }
-                const k = Math.min(1, dtz * 6);
-                camZoom.base += (zBase - camZoom.base) * k;
-                camZoom.bfx += (fx - camZoom.bfx) * Math.min(1, dtz * 10);
-                camZoom.bfy += (fy - camZoom.bfy) * Math.min(1, dtz * 10);
+                // the most zoom at which that box still fits the view (and never below 1x)
+                const fit = Math.max(1, Math.min((view - 2 * M) / Math.max(1, r - l),
+                                                 (H - 2 * M) / Math.max(1, feet + 40 - top)));
 
                 const binding = pair && player1.lockT > 0 && player2.lockT > 0
                     && player1.state === STATE.BLADE_LOCK && player2.state === STATE.BLADE_LOCK;
                 const showing = pair && ((player1.lockOutcomeT || 0) > 0 || (player2.lockOutcomeT || 0) > 0);
                 if (binding) {
-                    // focus taken WHILE bound, then held: after the break the loser is thrown
-                    // back and a live midpoint would drag the camera after them
-                    const top = Math.min(player1.y, player2.y);
-                    const feet = Math.max(player1.y + player1.height, player2.y + player2.height);
-                    camZoom.lfx = (player1.x + player1.width / 2 + player2.x + player2.width / 2) / 2;
-                    camZoom.lfy = (top + feet) / 2 - 10;
+                    camZoom.lfx = (l + r) / 2;
+                    camZoom.lfeet = feet;
                 }
                 const want = (binding || showing) ? 1 : 0;
                 const rate = want > camZoom.a ? 1 / 0.15 : 1 / 0.35;          // quick in, softer out
                 camZoom.a = want > camZoom.a ? Math.min(1, camZoom.a + dtz * rate)
                                              : Math.max(0, camZoom.a - dtz * rate);
                 const e = camZoom.a * camZoom.a * (3 - 2 * camZoom.a);          // smoothstep
-                const zLock = Math.max(camZoom.base * 1.15, LOCK_ZOOM);
-                const z = camZoom.base + (zLock - camZoom.base) * e;
-                const FX = camZoom.bfx + (camZoom.lfx - camZoom.bfx) * e;
-                const FY = camZoom.bfy + (camZoom.lfy - camZoom.bfy) * e;
+
+                const zFrame = Math.min(CAM_FRAMES[camFrame].z, fit);
+                const zLock = Math.min(Math.max(zFrame * 1.15, LOCK_ZOOM), Math.max(fit, LOCK_ZOOM));
+                const zWant = zFrame + (zLock - zFrame) * e;
+                const cxWant = (l + r) / 2 + ((camZoom.lfx ?? (l + r) / 2) - (l + r) / 2) * e;
+                const feetWant = feet + ((camZoom.lfeet ?? feet) - feet) * e;
+                // glide, don't snap: the camera eases after the pair
+                camZoom.base += (zWant - camZoom.base) * Math.min(1, dtz * 6);
+                camZoom.cx += (cxWant - camZoom.cx) * Math.min(1, dtz * 8);
+                camZoom.feet += (feetWant - camZoom.feet) * Math.min(1, dtz * 8);
+
+                // ⛔ THE HARD GUARANTEE. Easing is for ordinary motion, but a fighter can cover
+                // half the stage in one frame — a shunshin dash, a throw, a cross-up, a wall
+                // anchor — and an eased camera then trails behind with him off screen. Measured:
+                // a pair teleported far apart spent frames 394px outside the view. So after the
+                // easing, the zoom is never allowed above what fits RIGHT NOW...
+                if (camZoom.base > Math.max(fit, zLock * e + fit * (1 - e))) camZoom.base = Math.max(1, fit);
+                const z = camZoom.base;
                 camZoom.m = null;
                 if (z > 1.001) {
-                    camZoom.m = new DOMMatrix().translate(FX, FY).scale(z, z).translate(-FX, -FY);
+                    const ww = view / z, wh = H / z;                          // world window size
+                    let Lw = camZoom.cx - ww / 2;
+                    let Tw = camZoom.feet + M / z * 2 - wh;                   // feet near the bottom
+                    // ...and the window is pulled over whatever body has escaped it, this frame,
+                    // before the stage clamp. The eased centre catches up behind it.
+                    const mz = M / z;
+                    if (l - mz < Lw) Lw = l - mz;
+                    if (r + mz > Lw + ww) Lw = r + mz - ww;
+                    if (top - mz < Tw) Tw = top - mz;
+                    if (feet + mz > Tw + wh) Tw = feet + mz - wh;
+                    Lw = Math.max(vx0, Math.min(vx0 + view - ww, Lw));        // stay inside the stage
+                    Tw = Math.max(0, Math.min(H - wh, Tw));
+                    camZoom.m = new DOMMatrix().translate(vx0, 0).scale(z, z).translate(-Lw, -Tw);
                     ctx.setTransform(camZoom.m.multiply(ctx.getTransform()));
                 }
             }
