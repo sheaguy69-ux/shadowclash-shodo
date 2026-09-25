@@ -2,10 +2,10 @@
   "frameW": 300,
   "frameH": 248,
   "footY": 218,
-  "cols": 410,
+  "cols": 414,
   "frames": {
-    "airhurt1": 180,
-    "airhurt2": 181,
+    "airhurt1": 410,
+    "airhurt2": 412,
     "airhurt3": 183,
     "upatk3": 336,
     "bheavy1": 335,
@@ -202,7 +202,11 @@
     "dive3": 405,
     "dive4": 404,
     "dive5": 404,
-    "dive6": 404
+    "dive6": 404,
+    "ah1": 410,
+    "ah2": 411,
+    "ah3": 412,
+    "ah4": 413
   },
   "scale": 0.4807692307692308,
   "animations": {
@@ -390,7 +394,11 @@
     "406": true,
     "407": true,
     "408": true,
-    "409": true
+    "409": true,
+    "410": true,
+    "411": true,
+    "412": true,
+    "413": true
   },
   "frameClear": {
     "99": [
