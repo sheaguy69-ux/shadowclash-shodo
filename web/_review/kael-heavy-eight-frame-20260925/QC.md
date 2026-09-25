@@ -1,5 +1,9 @@
 # Kael heavy · eight-frame sprite preparation
 
+## Owner review correction · 2026-09-25
+
+Do not pack this eight-frame draft. Anthony rejected its animation continuity: body scale changes between drawings, hands switch swords, and some arms/limbs are malformed. He liked the energy of the swings and directed a fast, fluid all-around slashing frenzy with cuts behind Kael as well as above, beside and below him. Preserve the files as a choreography record only. The approved five standalone study poses in the model-match folder do not certify this connected eight-frame animation. The temporary atlas/manifest/SHEET_V attempt was rolled back before a commit or live installation.
+
 Scope assumed from the active Kael heavy-attack review. This is an eight-drawing replacement candidate for `kcross1..8`, not a redraw of Kael's entire 345-cell character atlas. A scope clarification has been sent to Anthony.
 
 Frames 01, 02, 04, 06 and 07 are transparent derivatives of the five approved model-matched study poses (`../kael-heavy-model-match-20260925/APPROVAL.md`). Frames 03 (mid cut), 05 (overtravel) and 08 (settle) are newly generated connectors and have not received separate visual approval. The five approved opaque originals remain unchanged. Built-in image editor model identity is unverified; do not label these as GPT Image 2.5.

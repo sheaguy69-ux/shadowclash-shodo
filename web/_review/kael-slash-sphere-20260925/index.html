@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kael · organic circular frenzy motion study</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#171c1a;color:#f3f1e8;font:16px/1.55 system-ui,sans-serif}main{width:min(1100px,calc(100% - 2rem));margin:auto;padding:2rem 0 5rem}h1{font-size:clamp(2rem,4vw,3rem);line-height:1.14}.notice{padding:1rem;background:#30322a;border-left:5px solid #efc77f;max-width:82ch}h2{margin-top:2rem}p,li{max-width:82ch}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:.8rem}.card{background:#25302c;border:1px solid #5d6b60;padding:1rem;border-radius:9px}.card strong{color:#ffe0a4}.flow{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.55rem}.flow div{padding:.75rem;background:#222b27;border-top:3px solid #e8d5ad}.small{color:#c5d0c7;font-size:.92rem}a{color:#f6d48e}
+</style></head><body><main>
+<h1>Kael · organic circular frenzy</h1>
+<p class="notice"><strong>Research and motion breakdown, before new art.</strong> Anthony rejected the simple orbiting-slash preview: it kept the body nearly static and sent every slash in roughly the same direction. That preview was withdrawn. The eight-frame redraw also remains rejected for changing sword hands, body size and limb anatomy. Neither is installed in the game.</p>
+<p>The target is a connected sequence of <strong>different cuts in different planes</strong>. The long katana moves from front to side to behind Kael through an actual turn of his feet, pelvis, ribs and right shoulder. The short blade moves independently through the inside gaps. White trails must be drawn from the measured blade-tip travel after the body poses work.</p>
+<h2>What has to move</h2>
+<div class="grid">
+<div class="card"><strong>Ground and pelvis</strong><br>Plant a support foot, pivot through the turn, then transfer weight for the reverse cut. Track the same floor and pelvis height so the fighter does not grow between frames.</div>
+<div class="card"><strong>Ribs and shoulders</strong><br>Let the torso wind against the pelvis, then unwind. Shoulders carry each upper-arm change; no detached arm rotations.</div>
+<div class="card"><strong>Arms and weapons</strong><br>Right hand = long katana. Left hand = short wakizashi. Every hilt stays inside its glove. Track elbow and wrist positions through the occluded rear poses.</div>
+<div class="card"><strong>Blade-tip path</strong><br>Cross the front, continue behind the body, reverse upward, then cut down another diagonal. Draw rear trails behind the sprite and front trails in front, with direction-specific taper.</div>
+</div>
+<h2>Connected action, not repeated circles</h2>
+<div class="flow">
+<div>1. Coil from the feet; right blade chambers, left guards center.</div>
+<div>2. Wide front-to-side cut with the long katana.</div>
+<div>3. Let that cut continue past the hip and behind the back.</div>
+<div>4. Left short blade cuts across the near opening.</div>
+<div>5. Pivot and reverse: long blade rises from rear-low to front-high.</div>
+<div>6. Long blade descends on a different diagonal while left protects.</div>
+<div>7. Short blade makes a tight reverse cut; the long blade carries through behind.</div>
+<div>8. Both arms settle to their original guard with no hand swap.</div>
+</div>
+<p>These are choreography targets, not claims that a historical school uses this exact game move. The <a href="MOTION-SPEC.md">motion spec</a> records the anatomy, reference findings, projection and rejection checks. The <a href="frame_breakdown.json">machine-readable beat data</a> fixes hand identity and the intended direction of each cut.</p>
+<h2>Research anchors</h2>
+<ul>
+<li><a href="https://www.jstage.jst.go.jp/article/ijshs/15/0/15_201611/_article">Murase et al., kendo strike biomechanics</a>: foot push, body travel and shoulder motion matter to strike timing.</li>
+<li><a href="https://commons.nmu.edu/isbs/vol38/iss1/135/">Murase et al., eighth-dan motion capture</a>: shinai, both shoulders and the hip are tracked as a changing system.</li>
+<li><a href="https://www.kendo.or.jp/en/information/20201221/">All Japan Kendo Federation training videos</a> and <a href="https://kendostar.com/blogs/kendostar-blog/the-kendo-show-kendo-suburi-practice-swings">The Kendo Show suburi lesson</a>: movement references for cuts and footwork. The video pages were located; playback was not verified in this research pass.</li>
+<li><a href="https://miyamoto-musashi.org/en/genten/gorin/chi/05/">Musashi's two-sword text</a>: long and short weapons have different reach roles. Kael's frenzy is a stylized adaptation.</li>
+</ul>
+<p class="small">Review only · current game sprite, combat data, sound and timing unchanged.</p>
+</main></body></html>
