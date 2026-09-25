@@ -361,121 +361,148 @@
         }
         #character-selection #btn-fight:disabled::before { opacity: .35; filter: grayscale(1); }
 
-        /* ===== THE FIGHT AND THE PAUSE, IN THE SAME HAND AS THE SELECT SCREEN =====
-           Washi, sumi ink, one vermilion (shu) seal. The HUD is ink laid over the
-           board; the pause menu is a sheet of paper laid over the paused fight. */
-        #arena { border-color: rgba(168,166,162,.18) !important; border-radius: 4px !important; }
+        /* ===== FIGHT HUD + PAUSE: KOZO PAPER AND BRUSH INK (owner-approved preview, 2026-09-25) =====
+           Drawn entirely in code — paper fibre and brush edges come from the SVG
+           filters in #ink-defs (feTurbulence/feDisplacementMap). No image assets. */
+        :root {
+            --k-sumi:#15130f; --k-sumi-2:#2a2620; --k-kinari:#efe6d2;
+            --k-shu:#b3261e; --k-gold:#b08a3e;
+            --k-fibre:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1000' height='700'%3E%3Cfilter id='f'%3E%3CfeTurbulence stitchTiles='stitch' type='fractalNoise' baseFrequency='.0125 .09' numOctaves='4' seed='7'/%3E%3CfeColorMatrix values='0 0 0 0 .55 0 0 0 0 .47 0 0 0 0 .34 0 0 0 1.1 -.35'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23f)'/%3E%3C/svg%3E");
+            --k-grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='g'%3E%3CfeTurbulence stitchTiles='stitch' type='fractalNoise' baseFrequency='.9' numOctaves='2' seed='3'/%3E%3CfeColorMatrix values='0 0 0 0 .3 0 0 0 0 .25 0 0 0 0 .18 0 0 0 .9 -.4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+        }
+        #arena { border-color: rgba(239,230,210,.14) !important; border-radius: 4px !important; }
 
-        /* HUD: names in the brush serif, numbers quiet, bars as ink strokes */
+        /* HUD */
         #hud-p1-name, #hud-p2-name {
-            font-family: 'Shippori Mincho B1', serif !important; font-size: 15px !important;
-            font-weight: 800 !important; letter-spacing: .22em; color: var(--paper) !important;
-            text-shadow: 0 1px 2px rgba(0,0,0,.85);
+            font-family: 'Shippori Mincho B1', serif !important; font-size: 16px !important;
+            font-weight: 800 !important; letter-spacing: .3em; color: var(--k-kinari) !important;
+            text-shadow: 0 1px 3px #000;
         }
         #hud-p1-hp-text, #hud-p2-hp-text {
             font-family: 'Zen Kaku Gothic New', sans-serif !important; font-size: 11px !important;
-            color: var(--paper-dim) !important; letter-spacing: .08em; text-shadow: 0 1px 2px #000;
+            color: rgba(239,230,210,.7) !important; letter-spacing: .08em; text-shadow: 0 1px 2px #000;
+        }
+        #arena > .top-4 .h-4.overflow-hidden {
+            height: 14px !important; border-radius: 0 !important; border: 0 !important;
+            background: rgba(21,19,15,.88) !important; filter: url(#k-brush);
         }
         #hud-p1-hp, #hud-p2-hp { transition: width 90ms linear !important; }
-        #hud-p1-hp.bg-gradient-to-r { background: linear-gradient(90deg, #3d4f8a, #6d7fc4) !important; }
-        #hud-p2-hp.bg-gradient-to-l { background: linear-gradient(270deg, #8f2418, #c8452f) !important; }
-        #hud-p1-hp, #hud-p2-hp { box-shadow: inset 0 1px 0 rgba(255,255,255,.18), inset 0 -2px 0 rgba(0,0,0,.25); }
-        #hud-p1-gray, #hud-p2-gray { background: rgba(236,229,211,.55) !important; }
-        #hud-p1-hp, #hud-p2-hp { position: relative; }
-        #arena .h-4.overflow-hidden {
-            height: 14px !important; border-radius: 1px !important;
-            background: rgba(16,15,20,.82) !important;
-            border: 1px solid rgba(236,229,211,.28) !important;
-            box-shadow: 0 2px 10px rgba(0,0,0,.45);
-        }
-        #arena .h-1\.5 { height: 4px !important; border-radius: 0 !important;
-            background: rgba(16,15,20,.8) !important; border-color: rgba(236,229,211,.14) !important; }
-        #hud-p1-stamina, #hud-p2-stamina { background: #d9c79a !important; }
-        #arena > .top-4 .text-\[10px\].text-gray-400 { color: var(--paper-dim) !important;
+        #hud-p1-hp.bg-gradient-to-r { background: linear-gradient(90deg, #2d3d6e, #5a6fae) !important; }
+        #hud-p2-hp.bg-gradient-to-l { background: linear-gradient(270deg, #8c1f17, #c9402c) !important; }
+        #hud-p1-gray, #hud-p2-gray { background: rgba(239,230,210,.5) !important; }
+        #arena > .top-4 .h-1\.5 { height: 3px !important; border: 0 !important; border-radius: 0 !important;
+            background: rgba(21,19,15,.6) !important; }
+        #hud-p1-stamina, #hud-p2-stamina { background: var(--k-gold) !important; }
+        #arena > .top-4 .text-\[10px\].text-gray-400 { color: rgba(239,230,210,.6) !important;
             font-family: 'Zen Kaku Gothic New', sans-serif; letter-spacing: .2em; font-size: 9px; }
-        .hud-portrait { border-radius: 2px; box-shadow: 0 0 0 1px rgba(236,229,211,.35), 0 3px 10px rgba(0,0,0,.6); }
-        /* VS becomes a vermilion seal */
+        .hud-portrait { border-radius: 2px; box-shadow: 0 0 0 1px rgba(239,230,210,.35), 0 3px 10px rgba(0,0,0,.6); }
         #arena .w-10.h-10.rounded-full {
-            border-radius: 3px !important; background: var(--sh-shu) !important;
-            border: 0 !important; transform: rotate(-4deg);
-            box-shadow: inset 0 0 0 2px rgba(236,229,211,.25), 0 3px 12px rgba(0,0,0,.55);
+            width: 46px !important; height: 46px !important; border-radius: 0 !important; border: 0 !important;
+            background: var(--k-shu) !important; transform: rotate(-4deg); filter: url(#k-stamp);
         }
         #arena .w-10.h-10 .neon-text-red {
-            font-family: 'Shippori Mincho B1', serif !important; color: var(--paper) !important;
-            text-shadow: none !important; font-size: 13px; letter-spacing: .05em;
+            font-family: 'Shippori Mincho B1', serif !important; color: var(--k-kinari) !important;
+            text-shadow: none !important; font-size: 18px !important; font-weight: 800;
         }
         #btn-pause {
-            background: rgba(16,15,20,.7) !important; border: 1px solid rgba(236,229,211,.3) !important;
-            color: var(--paper) !important; border-radius: 2px !important;
+            background: rgba(21,19,15,.72) !important; border: 1px solid rgba(239,230,210,.3) !important;
+            color: var(--k-kinari) !important; border-radius: 2px !important;
         }
 
-        /* PAUSE: a dimmed, blurred fight under a sheet of washi */
-        #pause-screen { background: rgba(7,7,13,.62) !important; backdrop-filter: blur(3px) grayscale(.6); }
+        /* PAUSE: a torn sheet of kozo paper over the dimmed fight */
+        #pause-screen { background: rgba(7,7,6,.6) !important; backdrop-filter: blur(3px) grayscale(.6); }
         #pause-screen > div {
-            background: url('assets/ui/shodo/washi.png') no-repeat 50% 50% / cover, var(--sh-washi) !important;
-            color: var(--sh-sumi) !important; border: 0 !important; border-radius: 3px !important;
-            box-shadow: 0 24px 70px rgba(0,0,0,.7), 0 0 0 1px rgba(20,19,26,.55);
-            position: relative;
+            background: none !important; border: 0 !important; border-radius: 0 !important; box-shadow: none !important;
+            color: var(--k-sumi) !important; position: relative; isolation: isolate; padding: 2.5rem 3rem !important;
+        }
+        #pause-screen .k-paper {
+            position: absolute; inset: 0; z-index: -2; background: var(--k-kinari);
+            filter: url(#k-deckle) drop-shadow(0 30px 40px rgba(0,0,0,.6));
         }
         #pause-screen > div::before {
-            content: ''; position: absolute; right: 18px; bottom: 14px; width: 150px; aspect-ratio: 1;
-            background: url('assets/ui/shodo/enso.png') no-repeat center / contain; opacity: .09; pointer-events: none;
+            content: ''; position: absolute; inset: 6px; z-index: -1; pointer-events: none;
+            mix-blend-mode: multiply; opacity: .55;
+            background: var(--k-fibre), var(--k-grain),
+                        radial-gradient(140% 100% at 50% 40%, transparent 55%, rgba(120,90,40,.28));
+        }
+        #pause-screen .k-seal {
+            position: absolute; right: 30px; bottom: 26px; width: 58px; height: 58px;
+            background: var(--k-shu); color: var(--k-kinari); display: grid; place-items: center;
+            font: 800 21px/1 'Shippori Mincho B1', serif; writing-mode: vertical-rl; letter-spacing: -2px;
+            filter: url(#k-stamp); transform: rotate(3deg); opacity: .92; pointer-events: none;
         }
         #pause-title {
-            font-family: 'Shippori Mincho B1', serif !important; color: var(--sh-washi) !important;
-            font-size: 20px !important; font-weight: 800; letter-spacing: .5em !important; text-indent: .5em;
-            background: var(--sh-plate) no-repeat center / 100% 100%;
-            padding: .6rem .5rem .7rem; margin-bottom: 1.4rem !important;
+            font-family: 'Shippori Mincho B1', serif !important; color: var(--k-sumi) !important;
+            font-size: 30px !important; font-weight: 800; letter-spacing: .55em !important;
+            margin-bottom: 1.6rem !important; text-align: left;
+        }
+        #pause-title small {
+            display: block; margin-top: 8px; font: 500 11px 'Shippori Mincho B1', serif;
+            letter-spacing: .5em; color: var(--k-sumi-2); opacity: .7;
         }
         #pause-screen button {
-            background: transparent !important; color: var(--sh-sumi) !important;
-            border: 9px solid transparent !important; border-image: var(--sh-frame) 42 / 9px stretch !important;
-            border-radius: 0 !important; box-shadow: none !important;
+            position: relative; isolation: isolate; background: none !important; border: 0 !important;
+            border-radius: 0 !important; box-shadow: none !important; color: var(--k-sumi) !important;
             font-family: 'Shippori Mincho B1', serif !important; font-weight: 700 !important;
-            letter-spacing: .24em !important; font-size: 13px !important; padding: .55rem 1rem !important;
+            letter-spacing: .38em !important; font-size: 13px !important; padding: .85rem 1rem !important;
+            margin-bottom: 14px !important;
         }
-        #pause-screen button:hover, #pause-screen button:focus-visible {
-            background: rgba(20,19,26,.08) !important; outline: none;
+        #pause-screen button::before {
+            content: ''; position: absolute; inset: 4px -4px; z-index: -1;
+            border: 2.5px solid var(--k-sumi); border-radius: 3px; filter: url(#k-brush); opacity: .85;
         }
-        #pause-screen #btn-resume {
-            border-image: none !important; color: var(--sh-washi) !important;
-            background: var(--sh-plate) no-repeat center / 100% 100% !important;
-            background-origin: border-box !important; background-clip: border-box !important;
+        #pause-screen button:hover::before, #pause-screen button:focus-visible::before { background: rgba(21,19,15,.08); }
+        #pause-screen button:focus-visible { outline: none; }
+        #pause-screen #btn-resume { color: var(--k-kinari) !important; }
+        #pause-screen #btn-resume::before { inset: 0 -8px; border: 0; background: var(--k-sumi); filter: url(#k-brushfill); opacity: 1; }
+        #pause-screen #btn-resume::after {
+            content: ''; position: absolute; left: -18px; top: 50%; width: 8px; height: 8px;
+            background: var(--k-shu); transform: translateY(-50%) rotate(45deg);
         }
-        #pause-screen #btn-resume:hover { filter: brightness(1.25); }
-        #pause-screen .pad-focus { outline: 2px solid var(--sh-shu) !important; outline-offset: 3px; }
-        #pause-screen label, #pause-screen p { color: var(--sh-soft) !important;
-            font-family: 'Zen Kaku Gothic New', sans-serif; letter-spacing: .2em; }
-        #pause-screen input[type=range] { accent-color: var(--sh-shu) !important; }
+        #pause-screen .pad-focus { outline: 2px solid var(--k-shu) !important; outline-offset: 5px; }
+        #pause-screen label, #pause-screen p { color: var(--k-sumi-2) !important;
+            font-family: 'Zen Kaku Gothic New', sans-serif; letter-spacing: .3em; }
+        #pause-screen input[type=range] { accent-color: var(--k-shu) !important; }
 
-        /* the controller map, set on the same paper */
-        #pause-manual {
-            border-left: 1px solid rgba(20,19,26,.22); padding-left: 1.5rem;
-            scrollbar-color: rgba(20,19,26,.35) transparent; scrollbar-width: thin;
-        }
+        /* the controller map on the same sheet */
+        #pause-manual { padding-left: 2.5rem; scrollbar-color: rgba(21,19,15,.35) transparent; scrollbar-width: thin; }
         #pause-manual h2 {
-            font-family: 'Shippori Mincho B1', serif !important; font-size: 14px !important;
-            letter-spacing: .4em; color: var(--sh-sumi) !important;
-            border-bottom: 0 !important; padding-bottom: .6rem !important;
-            background: url('assets/ui/shodo/rule.png') no-repeat left bottom / 100% 10px;
+            font-family: 'Shippori Mincho B1', serif !important; font-size: 15px !important; font-weight: 800;
+            letter-spacing: .5em; color: var(--k-sumi) !important; border: 0 !important;
+            padding-bottom: 0 !important; margin-bottom: 1.4rem !important; position: relative;
         }
-        #pause-manual h2 i { color: var(--sh-shu) !important; }
-        #pause-manual, #pause-manual p, #pause-manual div, #pause-manual li, #pause-manual span:not(.rounded-full) {
-            color: var(--sh-soft) !important;
+        #pause-manual h2::after {
+            content: ''; position: absolute; left: 0; bottom: -12px; width: 70%; height: 10px;
+            background: var(--k-sumi); filter: url(#k-brushfill);
+            clip-path: polygon(0 40%, 100% 0, 98% 70%, 0 100%);
         }
-        #pause-manual p.font-bold, #pause-manual b, #pause-manual summary,
-        #pause-manual .font-bold { color: var(--sh-sumi) !important;
+        #pause-manual h2 i { display: none; }
+        #pause-manual, #pause-manual p, #pause-manual div, #pause-manual li, #pause-manual span {
+            color: var(--k-sumi-2) !important;
+        }
+        #pause-manual p.font-bold {
+            color: var(--k-shu) !important; font-family: 'Shippori Mincho B1', serif !important;
+            letter-spacing: .25em; text-transform: uppercase; font-size: 12px;
+        }
+        #pause-manual p.font-bold .rounded-full { display: none; }
+        #pause-manual b, #pause-manual summary { color: var(--k-sumi) !important;
             font-family: 'Shippori Mincho B1', serif !important; letter-spacing: .08em; }
-        #pause-manual .rounded-full { background: var(--sh-shu) !important; }
         #pause-manual kbd {
-            background: rgba(16,15,20,.88) !important; color: var(--paper) !important;
-            border-radius: 2px !important; font-family: 'Zen Kaku Gothic New', monospace !important;
-            box-shadow: 0 1px 0 rgba(0,0,0,.4);
+            background: rgba(255,255,255,.25) !important; color: var(--k-sumi) !important;
+            border: 1.5px solid var(--k-sumi); border-bottom-width: 3px; border-radius: 3px !important;
+            font-family: 'Zen Kaku Gothic New', sans-serif !important; font-weight: 700;
         }
-        #pause-manual details { border-color: rgba(20,19,26,.22) !important; }
+        #pause-manual details { border-color: rgba(21,19,15,.22) !important; }
     </style>
 </head>
 <body class="flex flex-col items-center min-h-screen text-white p-2">
+    <!-- Brush + paper filters for the ink UI (fight HUD, pause menu) -->
+    <svg id="ink-defs" aria-hidden="true" style="position:absolute;width:0;height:0"><defs>
+        <filter id="k-brush" x="-10%" y="-40%" width="120%" height="180%"><feTurbulence type="fractalNoise" baseFrequency=".04 .6" numOctaves="3" seed="4"/><feDisplacementMap in="SourceGraphic" scale="3"/></filter>
+        <filter id="k-brushfill" x="-10%" y="-40%" width="120%" height="180%"><feTurbulence type="fractalNoise" baseFrequency=".02 .5" numOctaves="4" seed="9" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="6" result="d"/><feTurbulence type="fractalNoise" baseFrequency=".6 .03" numOctaves="2" seed="2" result="dry"/><feColorMatrix in="dry" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -3 2.6" result="m"/><feComposite in="d" in2="m" operator="in"/></filter>
+        <filter id="k-stamp"><feTurbulence type="fractalNoise" baseFrequency=".7" numOctaves="2" seed="5"/><feColorMatrix values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -1.6 1.45" result="m"/><feComposite in="SourceGraphic" in2="m" operator="in" result="c"/><feTurbulence type="fractalNoise" baseFrequency=".05" seed="1"/><feDisplacementMap in="c" scale="3"/></filter>
+        <filter id="k-deckle" x="-3%" y="-3%" width="106%" height="106%"><feTurbulence type="fractalNoise" baseFrequency=".08" numOctaves="3" seed="11"/><feDisplacementMap in="SourceGraphic" scale="7"/></filter>
+    </defs></svg>
 
     <!-- Screen Flash Overlay -->
     <div id="flash-overlay" class="fixed inset-0 pointer-events-none z-50"></div>
@@ -929,7 +956,7 @@
                         <!-- VS Center Indicator -->
                         <div class="flex flex-col items-center justify-center">
                             <div class="w-10 h-10 rounded-full bg-gray-950/90 border border-gray-800 flex items-center justify-center">
-                                <span class="arcade-font text-xs text-yellow-400 neon-text-red">VS</span>
+                                <span class="arcade-font text-xs text-yellow-400 neon-text-red">対</span>
                             </div>
                         </div>
 
@@ -1022,8 +1049,10 @@
                     <!-- Pause overlay: click the arena, Esc, or the ⏸ button. Click outside the panel to resume. -->
                     <div id="pause-screen" role="dialog" aria-modal="true" aria-labelledby="pause-title" class="absolute inset-0 bg-black/85 z-20 flex flex-col items-center justify-center hidden">
                         <div class="p-6 border border-cyan-600 bg-gray-950/90 rounded-2xl grid gap-6 md:grid-cols-[16rem_1fr]">
+                            <div class="k-paper" aria-hidden="true"></div>
+                            <div class="k-seal" aria-hidden="true">影衝</div>
                             <div class="text-center">
-                                <h2 id="pause-title" class="arcade-font text-cyan-400 text-lg md:text-xl tracking-wider mb-6">PAUSED</h2>
+                                <h2 id="pause-title" class="arcade-font text-cyan-400 text-lg md:text-xl tracking-wider mb-6">休止<small>PAUSED</small></h2>
                                 <button id="btn-resume" class="px-6 py-3 bg-green-600 hover:bg-green-500 text-xs font-black tracking-widest rounded-lg border border-green-500 w-full mb-3">
                                     <i class="fa-solid fa-play"></i> RESUME
                                 </button>
