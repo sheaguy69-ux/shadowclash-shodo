@@ -128,239 +128,6 @@
         aside h2 { color: var(--paper-dim) !important; letter-spacing: .2em; }
         kbd { background: var(--ink-2) !important; border: 1px solid var(--line) !important; color: var(--ember) !important; border-radius: 3px; }
 
-        /* ===== SHODO SELECT SCREEN (SHEET_V 622) =========================
-           The panel is a sheet of washi and every mark on it came out of the
-           same brush that painted the fourteen boards — the strokes, the box
-           frames, the enso and the hanko are all cut by
-           tools/stages/shodo_ui.py, so the menu and the stage behind it are
-           one hand. Nothing here is generated art.
-
-           SCOPED TO #character-selection ON PURPOSE. The header, the sidebar
-           and the in-match HUD keep the dark lacquer they already had: the
-           select screen reads as a sheet of paper LAID ON that dark ground,
-           which is the whole picture. Widening this to <body> would take the
-           HUD's contrast with it. */
-        :root {
-            --sh-washi:#a8a6a2; --sh-sumi:#100f14; --sh-soft:#33313a;
-            --sh-shu:#a8291d; --sh-ai:#2b3a63;
-            --sh-frame:url('assets/ui/shodo/frame.png');
-            --sh-plate:url('assets/ui/shodo/plate.png');
-        }
-        #character-selection {
-            background: url('assets/ui/shodo/washi.png') no-repeat 50% 50% / cover,
-                        var(--sh-washi) !important;
-            border: 0 !important;
-            border-radius: 3px !important;
-            color: var(--sh-sumi) !important;
-            box-shadow: 0 22px 60px rgba(0,0,0,.66), 0 0 0 1px rgba(20,19,26,.55) !important;
-        }
-        /* the enso watermark, swept once and left alone */
-        #character-selection::before {
-            content: ''; position: absolute; left: 50%; top: 44%;
-            width: min(78vh, 820px); aspect-ratio: 1; transform: translate(-50%, -50%);
-            background: url('assets/ui/shodo/enso.png') no-repeat center / contain;
-            opacity: .085; pointer-events: none; z-index: 0;
-        }
-        #character-selection > * { position: relative; z-index: 1; }
-        /* the same air that moves on the boards, moving here */
-        #character-selection::after {
-            content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 2;
-            background:
-                radial-gradient(58% 26% at 18% 34%, rgba(226,228,233,.16), transparent 70%),
-                radial-gradient(64% 22% at 74% 62%, rgba(226,228,233,.13), transparent 72%),
-                radial-gradient(80% 30% at 46% 92%, rgba(226,228,233,.15), transparent 74%);
-            animation: sh-drift 41s ease-in-out infinite alternate;
-        }
-        @keyframes sh-drift {
-            from { transform: translate3d(-2.5%, 0.6%, 0) scale(1.05); }
-            to   { transform: translate3d( 2.5%, -0.8%, 0) scale(1.12); }
-        }
-        @media (prefers-reduced-motion: reduce) {
-            #character-selection::after { animation: none; }
-        }
-        #character-selection h2 {
-            color: var(--sh-washi) !important; letter-spacing: .46em !important;
-            font-weight: 800 !important; text-indent: .46em;
-            background: var(--sh-plate) no-repeat center / 100% 100%;
-            padding: .62rem .5rem .72rem !important; margin-bottom: .35rem !important;
-            text-shadow: 0 1px 0 rgba(0,0,0,.5);
-        }
-        /* and the stroke sweeps out from under it */
-        #character-selection h2 + p::before {
-            content: ''; display: block; height: 22px; margin: 0 auto .25rem;
-            width: min(760px, 92%);
-            background: url('assets/ui/shodo/stroke.png') no-repeat center / 100% 100%;
-        }
-        #character-selection h2 + p { color: var(--sh-soft) !important; }
-        #select-hint {
-            color: var(--sh-soft) !important; font-style: italic;
-            padding-bottom: .5rem;
-            background: url('assets/ui/shodo/rule.png') no-repeat center bottom / 96% 14px;
-        }
-        #difficulty-row > span { color: var(--sh-soft) !important; }
-
-        /* EVERY BUTTON IS A BRUSHED BOX. The border is transparent and the
-           frame rides border-image, so the live state can swap the box for a
-           slab of ink WITHOUT the button changing size. */
-        #character-selection .mode-btn,
-        #character-selection .tier-btn,
-        #character-selection .sticky button:not(#btn-fight),
-        #stage-row .stage-tile {
-            background: transparent !important;
-            border: 9px solid transparent !important;
-            border-image: var(--sh-frame) 42 / 9px stretch !important;
-            border-radius: 0 !important;
-            box-shadow: none !important;
-            color: var(--sh-sumi) !important;
-            font-family: 'Shippori Mincho B1', serif !important;
-            font-weight: 700 !important; letter-spacing: .18em;
-            transition: none;
-        }
-        #character-selection .mode-btn:hover,
-        #character-selection .tier-btn:hover,
-        #character-selection .sticky button:not(#btn-fight):hover:not(:disabled),
-        #stage-row .stage-tile:hover {
-            background: rgba(20,19,26,.07) !important;
-            color: var(--sh-sumi) !important; transform: none !important;
-        }
-        /* live = stamped: the plate fills the border box too, so nothing moves */
-        #character-selection .mode-btn.sc-on,
-        #character-selection .sticky button.sh-on:not(#btn-fight) {
-            background: var(--sh-plate) no-repeat center / 100% 100% !important;
-            background-origin: border-box !important; background-clip: border-box !important;
-            border-image: none !important;
-            color: var(--sh-washi) !important;
-        }
-        #difficulty-row button.text-yellow-300 {
-            border-image: none !important;
-            background: var(--sh-plate) no-repeat center / 100% 100% !important;
-            background-origin: border-box !important; background-clip: border-box !important;
-            color: var(--sh-washi) !important;
-        }
-        #tier-elite { color: var(--sh-shu) !important; }
-
-        /* THE ROSTER — paper cards in brushed boxes */
-        #ninja-grid::after {
-            left: 0; right: 0; bottom: -13px; height: 22px; background: none;
-            clip-path: none; opacity: .85;
-            background: url('assets/ui/shodo/rule.png') no-repeat center / 100% 100%;
-        }
-        #character-selection .sc-card {
-            /* the 14px brush frame eats 28px of the h-48; with the plaque on a fixed
-               basis the card must be free to grow past it, or a two-line weapon line
-               pushes the badge out through the bottom of the frame. */
-            height: auto !important; min-height: 12rem;
-            background: rgba(255,255,255,.16) !important;
-            border: 14px solid transparent !important;
-            border-image: var(--sh-frame) 44 / 14px stretch !important;
-            border-radius: 0 !important; box-shadow: none !important;
-            position: relative;
-        }
-        #character-selection .sc-card:hover {
-            background: rgba(255,255,255,.34) !important; transform: none !important;
-        }
-        #character-selection .sc-card .arch { color: var(--sh-soft) !important; letter-spacing: .22em; }
-        #character-selection .sc-card .nm { color: var(--sh-sumi) !important; }
-        #character-selection .sc-card .wp { color: var(--sh-soft) !important; }
-        #character-selection .sc-card [data-badge] { color: var(--sh-shu) !important; }
-        /* the fighter's own colour survives as ONE ink-washed rule under the name */
-        #character-selection .sc-card .nm::after {
-            content: ''; display: block; height: 2px; width: 46%; margin: 3px auto 0;
-            background: var(--fc, var(--sh-sumi)); opacity: .8;
-        }
-        #character-selection .sc-plaque {
-            background: linear-gradient(180deg, #c3c0ba, #a5a29b) !important;
-            border: 1px solid rgba(20,19,26,.42) !important; border-radius: 0 !important;
-        }
-        /* THE STAMP. A chosen fighter is SEALED, not outlined in neon. */
-        #character-selection .sc-card[data-pick]::after {
-            content: ''; position: absolute; right: -11px; top: 44%;
-            width: 40px; height: 40px; z-index: 3;
-            background: url('assets/ui/shodo/seal-pick.png') no-repeat center / contain;
-            filter: drop-shadow(0 1px 2px rgba(0,0,0,.35));
-        }
-        #character-selection .sc-card[data-pick] { background: rgba(168,41,29,.16) !important; }
-        #character-selection .sc-card[data-pick="p2"]::after,
-        #character-selection .sc-card[data-pick="p2b"]::after { right: auto; left: -11px; }
-
-        /* THE BOARD STRIP */
-        #stage-block .arcade-font { color: var(--sh-sumi) !important; letter-spacing: .34em; }
-        #stage-pick-name { color: var(--sh-soft) !important; }
-        #stage-row .stage-tile {
-            opacity: .82 !important; position: relative;
-            border-width: 6px !important; border-image-width: 6px !important;
-            letter-spacing: .04em;
-        }
-        #stage-row .stage-tile:hover { opacity: 1 !important; }
-        #stage-row .stage-tile > div:first-child { border-radius: 0 !important; }
-        #stage-row .stage-tile .text-gray-200 { color: var(--sh-sumi) !important; }
-        #stage-row .stage-tile .text-gray-500 { color: var(--sh-soft) !important; }
-        #stage-row .stage-tile.border-yellow-400 {
-            opacity: 1 !important; box-shadow: none !important;
-        }
-        #stage-row .stage-tile.border-yellow-400::after {
-            content: ''; position: absolute; right: -8px; top: -9px; width: 32px; height: 32px;
-            background: url('assets/ui/shodo/seal-stage.png') no-repeat center / contain;
-            filter: drop-shadow(0 1px 2px rgba(0,0,0,.35)); z-index: 3;
-        }
-
-        /* THE BOTTOM BAR — paper, ruled off with a dry stroke */
-        #character-selection .sticky button:not(#btn-fight) {
-            border-width: 7px !important; border-image-width: 7px !important;
-            letter-spacing: .05em !important; font-size: .68rem !important;
-            padding: .3rem .45rem !important; white-space: nowrap;
-        }
-        #character-selection .sticky {
-            flex-wrap: wrap !important; row-gap: .5rem;
-            background: rgba(168,166,162,.94) !important;
-            border: 0 !important; border-radius: 0 !important;
-            backdrop-filter: blur(2px);
-        }
-        #character-selection .sticky::before {
-            content: ''; position: absolute; left: 0; right: 0; top: -9px; height: 18px;
-            background: url('assets/ui/shodo/rule.png') no-repeat center / 100% 100%;
-            pointer-events: none;
-        }
-        #character-selection .sticky .text-purple-400 { color: var(--sh-ai) !important; }
-        #character-selection .sticky .text-orange-400 { color: var(--sh-shu) !important; }
-        #p1-choice-name, #p2-choice-name { color: var(--sh-sumi) !important; }
-        /* each pick sits inside its own enso */
-        #p1-choice-card, #p2-choice-card {
-            border: 0 !important; border-radius: 0 !important; box-shadow: none !important;
-            background-color: transparent !important;
-            position: relative; color: var(--sh-soft);
-        }
-        #p1-choice-card::before, #p2-choice-card::before {
-            content: ''; position: absolute; inset: -7px;
-            background: url('assets/ui/shodo/enso.png') no-repeat center / contain;
-            opacity: .82; pointer-events: none;
-        }
-        #p1-choice-card img, #p2-choice-card img { position: relative; z-index: 1; }
-
-        /* FIGHT — a slab of ink with the seal 闘 pressed into the paper beside it */
-        #character-selection #btn-fight {
-            background: var(--sh-plate) no-repeat center / 100% 100% !important;
-            background-origin: border-box !important; background-clip: border-box !important;
-            border: 9px solid transparent !important; border-image: none !important;
-            border-radius: 0 !important; box-shadow: none !important;
-            color: var(--sh-washi) !important; letter-spacing: .18em !important;
-            font-size: .95rem !important;
-            position: relative; padding: .45rem .9rem .45rem 2.5rem !important;
-            margin-left: auto;
-        }
-        #character-selection #btn-fight::before {
-            content: ''; position: absolute; left: .5rem; top: 50%; transform: translateY(-50%);
-            width: 27px; height: 27px;
-            background: url('assets/ui/shodo/seal-fight.png') no-repeat center / contain;
-        }
-        #character-selection #btn-fight:hover:not(:disabled) { filter: brightness(1.18); transform: none !important; }
-        #character-selection #btn-fight:disabled {
-            background: transparent !important;
-            border-image: var(--sh-frame) 42 / 9px stretch !important;
-            color: var(--sh-soft) !important; opacity: .5;
-        }
-        #character-selection #btn-fight:disabled::before { opacity: .35; filter: grayscale(1); }
-
         /* ===== FIGHT HUD + PAUSE: KOZO PAPER AND BRUSH INK (owner-approved preview, 2026-09-25) =====
            Drawn entirely in code — paper fibre and brush edges come from the SVG
            filters in #ink-defs (feTurbulence/feDisplacementMap). No image assets. */
@@ -598,6 +365,270 @@
         }
         #move-lab.folded .lab-moves { display: none; }
         #move-lab.folded #lab-fold { transform: rotate(180deg); }
+        /* ===== SELECT SCREEN, TITLE, HEADER, SIDEBAR — KOZO PAPER AND BRUSH INK =====
+           The same code-drawn hand as the fight HUD and pause menu (filters in
+           #ink-defs, tokens --k-* below). No image assets. */
+
+        /* the sheet */
+        #character-selection {
+            background: var(--k-fibre), var(--k-grain),
+                        radial-gradient(140% 100% at 50% 40%, transparent 55%, rgba(120,90,40,.28)),
+                        var(--k-kinari) !important;
+            background-blend-mode: multiply, multiply, normal, normal;
+            background-size: 100% 100%, 220px 220px, auto, auto !important;
+            border: 0 !important; border-radius: 2px !important;
+            color: var(--k-sumi) !important;
+            box-shadow: 0 22px 60px rgba(0,0,0,.66) !important;
+        }
+        #character-selection::before {
+            content: '影'; position: absolute; right: 3%; top: 2%; z-index: 0; pointer-events: none;
+            font: 800 min(38vh, 360px)/1 'Shippori Mincho B1', serif; color: var(--k-sumi); opacity: .045;
+        }
+        #character-selection > * { position: relative; z-index: 1; }
+        #character-selection h2 {
+            color: var(--k-sumi) !important; font-weight: 800 !important;
+            letter-spacing: .5em !important; text-indent: .5em; margin-bottom: .2rem !important;
+        }
+        #character-selection h2 + p { color: var(--k-sumi-2) !important; font-style: italic; }
+        #character-selection h2 + p::before {
+            content: ''; display: block; height: 9px; margin: .1rem auto .5rem; width: min(520px, 70%);
+            background: var(--k-sumi); filter: url(#k-brushfill);
+            clip-path: polygon(0 45%, 100% 0, 97% 75%, 2% 100%);
+        }
+        #select-hint { color: var(--k-sumi-2) !important; font-style: italic; }
+        #difficulty-row > span { color: var(--k-sumi-2) !important; }
+
+        /* every button is a brushed box; the live one is inked in */
+        #character-selection .mode-btn,
+        #character-selection .tier-btn,
+        #character-selection #difficulty-row button,
+        #character-selection .sticky button:not(#btn-fight),
+        #stage-row .stage-tile {
+            position: relative; isolation: isolate;
+            background: transparent !important; border: 0 !important; border-image: none !important;
+            border-radius: 0 !important; box-shadow: none !important; transform: none !important;
+            color: var(--k-sumi) !important;
+            font-family: 'Shippori Mincho B1', serif !important; font-weight: 700 !important;
+            letter-spacing: .16em;
+        }
+        #character-selection .mode-btn::before,
+        #character-selection .tier-btn::before,
+        #character-selection #difficulty-row button::before,
+        #character-selection .sticky button:not(#btn-fight)::before,
+        #stage-row .stage-tile::before {
+            content: ''; position: absolute; inset: 2px -2px; z-index: -1; pointer-events: none;
+            border: 2px solid var(--k-sumi); border-radius: 3px; filter: url(#k-brush); opacity: .75;
+        }
+        #character-selection .mode-btn:hover::before,
+        #character-selection .tier-btn:hover::before,
+        #character-selection #difficulty-row button:hover::before,
+        #character-selection .sticky button:not(#btn-fight):hover::before,
+        #stage-row .stage-tile:hover::before { background: rgba(21,19,15,.08); }
+        #character-selection .mode-btn.sc-on,
+        #character-selection #difficulty-row button.text-yellow-300,
+        #character-selection .sticky button.sh-on:not(#btn-fight) { color: var(--k-kinari) !important; }
+        #character-selection .mode-btn.sc-on::before,
+        #character-selection #difficulty-row button.text-yellow-300::before,
+        #character-selection .sticky button.sh-on:not(#btn-fight)::before {
+            inset: 0 -4px; border: 0; background: var(--k-sumi); filter: url(#k-inkfill); opacity: 1;
+        }
+        #tier-elite { color: var(--k-shu) !important; }
+
+        /* the roster: paper cards in brushed boxes, the pick stamped in vermilion */
+        #ninja-grid::after {
+            left: 2%; right: 2%; bottom: -12px; height: 8px; opacity: .8; clip-path: none;
+            background: var(--k-sumi); filter: url(#k-brushfill);
+        }
+        #character-selection .sc-card {
+            height: auto !important; min-height: 12rem; position: relative; isolation: isolate;
+            background: rgba(255,255,255,.2) !important; border: 0 !important; border-image: none !important;
+            border-radius: 0 !important; box-shadow: none !important; padding: 10px !important;
+        }
+        #character-selection .sc-card::before {
+            content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+            border: 2.5px solid var(--k-sumi); border-radius: 3px; filter: url(#k-brush); opacity: .8;
+        }
+        #character-selection .sc-card:hover { background: rgba(255,255,255,.4) !important; transform: none !important; }
+        #character-selection .sc-card .arch { color: var(--k-sumi-2) !important; letter-spacing: .22em; }
+        #character-selection .sc-card .nm { color: var(--k-sumi) !important; }
+        #character-selection .sc-card .wp { color: var(--k-sumi-2) !important; }
+        #character-selection .sc-card [data-badge] { color: var(--k-shu) !important; }
+        #character-selection .sc-card .nm::after {
+            content: ''; display: block; height: 3px; width: 46%; margin: 4px auto 0;
+            background: var(--fc, var(--k-sumi)); opacity: .85; filter: url(#k-brush);
+        }
+        #character-selection .sc-plaque {
+            background: rgba(21,19,15,.06) !important; border: 1px solid rgba(21,19,15,.3) !important;
+            border-radius: 0 !important;
+        }
+        #character-selection .sc-card[data-pick] { background: rgba(179,38,30,.13) !important; }
+        #character-selection .sc-card[data-pick]::after {
+            content: '選'; position: absolute; right: -12px; top: 40%; z-index: 3;
+            width: 34px; height: 34px; display: grid; place-items: center;
+            background: var(--k-shu); color: var(--k-kinari); font: 800 17px/1 'Shippori Mincho B1', serif;
+            filter: url(#k-stamp); transform: rotate(5deg);
+        }
+        #character-selection .sc-card[data-pick="p2"]::after,
+        #character-selection .sc-card[data-pick="p2b"]::after { right: auto; left: -12px; transform: rotate(-5deg); }
+
+        /* the board strip */
+        #stage-block .arcade-font { color: var(--k-sumi) !important; letter-spacing: .34em; }
+        #stage-pick-name { color: var(--k-sumi-2) !important; }
+        #stage-row .stage-tile { opacity: .85 !important; letter-spacing: .04em; padding: 5px !important; }
+        #stage-row .stage-tile:hover { opacity: 1 !important; }
+        #stage-row .stage-tile > div:first-child { border-radius: 0 !important; }
+        #stage-row .stage-tile .text-gray-200 { color: var(--k-sumi) !important; }
+        #stage-row .stage-tile .text-gray-500 { color: var(--k-sumi-2) !important; }
+        #stage-row .stage-tile.border-yellow-400 { opacity: 1 !important; }
+        #stage-row .stage-tile.border-yellow-400::before { border-width: 3px; opacity: 1; }
+        #stage-row .stage-tile.border-yellow-400::after {
+            content: '場'; position: absolute; right: -7px; top: -8px; z-index: 3;
+            width: 24px; height: 24px; display: grid; place-items: center;
+            background: var(--k-shu); color: var(--k-kinari); font: 800 13px/1 'Shippori Mincho B1', serif;
+            filter: url(#k-stamp); transform: rotate(6deg);
+        }
+
+        /* the bottom bar */
+        #character-selection .sticky button:not(#btn-fight) {
+            letter-spacing: .05em !important; font-size: .68rem !important;
+            padding: .4rem .6rem !important; white-space: nowrap;
+        }
+        #character-selection .sticky {
+            flex-wrap: wrap !important; row-gap: .5rem;
+            background: rgba(239,230,210,.94) !important; border: 0 !important; border-radius: 0 !important;
+        }
+        #character-selection .sticky::before {
+            content: ''; position: absolute; left: 0; right: 0; top: -5px; height: 7px; pointer-events: none;
+            background: var(--k-sumi); filter: url(#k-brushfill);
+        }
+        #character-selection .sticky .text-purple-400 { color: #2d3d6e !important; }
+        #character-selection .sticky .text-orange-400 { color: var(--k-shu) !important; }
+        #p1-choice-name, #p2-choice-name { color: var(--k-sumi) !important; }
+        #p1-choice-card, #p2-choice-card {
+            border: 0 !important; border-radius: 0 !important; box-shadow: none !important;
+            background-color: transparent !important; position: relative; isolation: isolate;
+        }
+        #p1-choice-card::before, #p2-choice-card::before {
+            content: ''; position: absolute; inset: -6px; z-index: -1; border-radius: 50%;
+            border: 3px solid var(--k-sumi); filter: url(#k-brush); opacity: .8; pointer-events: none;
+        }
+
+        /* FIGHT: a vermilion-marked slab of ink */
+        #character-selection #btn-fight {
+            position: relative; isolation: isolate; margin-left: auto;
+            background: none !important; border: 0 !important; border-image: none !important;
+            border-radius: 0 !important; box-shadow: none !important;
+            color: var(--k-kinari) !important; letter-spacing: .3em !important; font-size: 1rem !important;
+            padding: .7rem 1.4rem .7rem 3rem !important;
+        }
+        #character-selection #btn-fight::before {
+            content: ''; position: absolute; inset: 0; z-index: -1;
+            background: var(--k-sumi); filter: url(#k-inkfill);
+        }
+        #character-selection #btn-fight::after {
+            content: '闘'; position: absolute; left: .7rem; top: 50%; transform: translateY(-50%) rotate(-4deg);
+            width: 26px; height: 26px; display: grid; place-items: center;
+            background: var(--k-shu); color: var(--k-kinari); font: 800 14px/1 'Shippori Mincho B1', serif;
+            letter-spacing: 0; filter: url(#k-stamp);
+        }
+        #character-selection #btn-fight:hover:not(:disabled) { filter: brightness(1.3); transform: none !important; }
+        #character-selection #btn-fight:disabled { color: var(--k-sumi-2) !important; opacity: .55; }
+        #character-selection #btn-fight:disabled::before { background: none; border: 2px solid var(--k-sumi); filter: url(#k-brush); }
+        #character-selection #btn-fight:disabled::after { filter: grayscale(1) url(#k-stamp); opacity: .5; }
+        #character-selection .pad-focus { outline: 2px solid var(--k-shu) !important; outline-offset: 4px; box-shadow: none !important; }
+
+
+        /* TITLE — sumi night, the name brushed large, one vermilion seal */
+        #title-screen {
+            background: radial-gradient(ellipse 70% 45% at 50% 42%, rgba(239,230,210,.07), transparent 70%),
+                        radial-gradient(ellipse 60% 38% at 50% 8%, rgba(176,138,62,.14), transparent 70%),
+                        rgba(10,9,7,.94) !important;
+        }
+        #title-screen > .font-mono:first-child { opacity: 0; }
+        #title-screen h1 {
+            font-family: 'Shippori Mincho B1', serif !important; font-weight: 800 !important;
+            color: var(--k-kinari) !important; letter-spacing: .32em !important; text-indent: .32em;
+            text-shadow: 0 3px 18px rgba(0,0,0,.9) !important; position: relative;
+        }
+        #title-screen h1::after {
+            content: ''; display: block; height: 12px; width: 78%; margin: .6rem auto 0;
+            background: var(--k-kinari); opacity: .85; filter: url(#k-brushfill);
+            clip-path: polygon(0 40%, 100% 0, 97% 72%, 2% 100%);
+        }
+        #title-screen h1 + div {
+            opacity: 1 !important; margin-top: 1.1rem !important; width: 64px; height: 64px;
+            display: grid; place-items: center; background: var(--k-shu); color: var(--k-kinari);
+            font: 800 34px/1 'Shippori Mincho B1', serif !important; filter: url(#k-stamp); transform: rotate(-4deg);
+        }
+        #title-screen p { font-family: 'Zen Kaku Gothic New', sans-serif !important; color: rgba(239,230,210,.62) !important; }
+        #title-prompt {
+            font-family: 'Shippori Mincho B1', serif !important; color: var(--k-kinari) !important;
+            letter-spacing: .6em !important; font-size: 13px !important;
+        }
+        #title-screen button {
+            position: relative; isolation: isolate; background: none !important; border: 0 !important;
+            border-radius: 0 !important; color: var(--k-kinari) !important;
+            font-family: 'Shippori Mincho B1', serif !important; font-weight: 700; letter-spacing: .3em !important;
+            padding: .8rem 1.6rem !important;
+        }
+        #title-screen button::before {
+            content: ''; position: absolute; inset: 2px -3px; z-index: -1; pointer-events: none;
+            border: 2px solid var(--k-kinari); border-radius: 3px; filter: url(#k-brush); opacity: .7;
+        }
+        #title-screen #btn-quickplay { color: var(--k-kinari) !important; }
+        #title-screen #btn-quickplay::before { inset: 0 -6px; border: 0; background: var(--k-shu); filter: url(#k-inkfill); opacity: .95; }
+        #title-screen button:hover::before { background: rgba(239,230,210,.1); }
+        #title-screen #btn-quickplay:hover::before { background: #c9372b; }
+
+        /* HEADER — an ink bar, name in the brush serif */
+        header {
+            background: rgba(16,15,12,.88) !important; border: 0 !important; border-radius: 2px !important;
+            border-bottom: 1px solid rgba(239,230,210,.14) !important;
+        }
+        header h1 { font-family: 'Shippori Mincho B1', serif !important; color: var(--k-kinari) !important;
+            -webkit-text-fill-color: var(--k-kinari) !important; }
+        header h1::after { height: 5px !important; background: var(--k-kinari) !important; opacity: .7; filter: url(#k-brushfill); }
+        header i.fa-yin-yang { display: none; }
+        header #btn-restart {
+            position: relative; isolation: isolate; background: none !important; border: 0 !important;
+            color: var(--k-kinari) !important; font-family: 'Shippori Mincho B1', serif; letter-spacing: .2em;
+        }
+        header #btn-restart::before {
+            content: ''; position: absolute; inset: 0 -3px; z-index: -1;
+            border: 1.5px solid rgba(239,230,210,.7); border-radius: 3px; filter: url(#k-brush);
+        }
+        header #btn-restart:hover::before { background: rgba(239,230,210,.1); }
+        header .text-gray-400 { color: rgba(239,230,210,.55) !important; }
+        header .text-purple-400 { color: #7f91cf !important; }
+        header .text-orange-400 { color: #d65a45 !important; }
+
+        /* SIDEBAR — the controller map on a strip of the same paper */
+        #manual-aside {
+            background: var(--k-fibre), var(--k-grain), var(--k-kinari) !important;
+            background-blend-mode: multiply, multiply, normal !important;
+            background-size: 100% 100%, 220px 220px, auto !important;
+            border: 0 !important; border-radius: 2px !important; color: var(--k-sumi);
+        }
+        #manual-aside h2 {
+            font-family: 'Shippori Mincho B1', serif !important; font-size: 13px !important; font-weight: 800;
+            letter-spacing: .4em; color: var(--k-sumi) !important; border: 0 !important; position: relative;
+        }
+        #manual-aside h2::after {
+            content: ''; position: absolute; left: 0; bottom: -2px; width: 80%; height: 7px;
+            background: var(--k-sumi); filter: url(#k-brushfill);
+        }
+        #manual-aside h2 i { display: none; }
+        #manual-aside, #manual-aside p, #manual-aside div, #manual-aside li, #manual-aside span { color: var(--k-sumi-2) !important; }
+        #manual-aside p.font-bold { color: var(--k-shu) !important; font-family: 'Shippori Mincho B1', serif !important;
+            letter-spacing: .2em; text-transform: uppercase; font-size: 11px; }
+        #manual-aside p.font-bold .rounded-full { display: none; }
+        #manual-aside b, #manual-aside summary { color: var(--k-sumi) !important; font-family: 'Shippori Mincho B1', serif !important; }
+        #manual-aside kbd {
+            background: rgba(255,255,255,.25) !important; color: var(--k-sumi) !important;
+            border: 1.5px solid var(--k-sumi) !important; border-bottom-width: 3px !important; border-radius: 3px !important;
+            font-family: 'Zen Kaku Gothic New', sans-serif !important; font-weight: 700;
+        }
+        #manual-aside details { border-color: rgba(21,19,15,.22) !important; }
     </style>
 </head>
 <body class="flex flex-col items-center min-h-screen text-white p-2">
@@ -606,6 +637,7 @@
         <filter id="k-brush" x="-10%" y="-40%" width="120%" height="180%"><feTurbulence type="fractalNoise" baseFrequency=".04 .6" numOctaves="3" seed="4"/><feDisplacementMap in="SourceGraphic" scale="3"/></filter>
         <filter id="k-brushfill" x="-10%" y="-40%" width="120%" height="180%"><feTurbulence type="fractalNoise" baseFrequency=".02 .5" numOctaves="4" seed="9" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="6" result="d"/><feTurbulence type="fractalNoise" baseFrequency=".6 .03" numOctaves="2" seed="2" result="dry"/><feColorMatrix in="dry" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -3 2.6" result="m"/><feComposite in="d" in2="m" operator="in"/></filter>
         <filter id="k-stamp"><feTurbulence type="fractalNoise" baseFrequency=".7" numOctaves="2" seed="5"/><feColorMatrix values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -1.6 1.45" result="m"/><feComposite in="SourceGraphic" in2="m" operator="in" result="c"/><feTurbulence type="fractalNoise" baseFrequency=".05" seed="1"/><feDisplacementMap in="c" scale="3"/></filter>
+        <filter id="k-inkfill" x="-10%" y="-40%" width="120%" height="180%"><feTurbulence type="fractalNoise" baseFrequency=".03 .4" numOctaves="3" seed="6"/><feDisplacementMap in="SourceGraphic" scale="5"/></filter>
         <filter id="k-deckle" x="-3%" y="-3%" width="106%" height="106%"><feTurbulence type="fractalNoise" baseFrequency=".08" numOctaves="3" seed="11"/><feDisplacementMap in="SourceGraphic" scale="7"/></filter>
     </defs></svg>
 
