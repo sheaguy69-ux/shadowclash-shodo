@@ -360,6 +360,119 @@
             color: var(--sh-soft) !important; opacity: .5;
         }
         #character-selection #btn-fight:disabled::before { opacity: .35; filter: grayscale(1); }
+
+        /* ===== THE FIGHT AND THE PAUSE, IN THE SAME HAND AS THE SELECT SCREEN =====
+           Washi, sumi ink, one vermilion (shu) seal. The HUD is ink laid over the
+           board; the pause menu is a sheet of paper laid over the paused fight. */
+        #arena { border-color: rgba(168,166,162,.18) !important; border-radius: 4px !important; }
+
+        /* HUD: names in the brush serif, numbers quiet, bars as ink strokes */
+        #hud-p1-name, #hud-p2-name {
+            font-family: 'Shippori Mincho B1', serif !important; font-size: 15px !important;
+            font-weight: 800 !important; letter-spacing: .22em; color: var(--paper) !important;
+            text-shadow: 0 1px 2px rgba(0,0,0,.85);
+        }
+        #hud-p1-hp-text, #hud-p2-hp-text {
+            font-family: 'Zen Kaku Gothic New', sans-serif !important; font-size: 11px !important;
+            color: var(--paper-dim) !important; letter-spacing: .08em; text-shadow: 0 1px 2px #000;
+        }
+        #hud-p1-hp, #hud-p2-hp { transition: width 90ms linear !important; }
+        #hud-p1-hp.bg-gradient-to-r { background: linear-gradient(90deg, #3d4f8a, #6d7fc4) !important; }
+        #hud-p2-hp.bg-gradient-to-l { background: linear-gradient(270deg, #8f2418, #c8452f) !important; }
+        #hud-p1-hp, #hud-p2-hp { box-shadow: inset 0 1px 0 rgba(255,255,255,.18), inset 0 -2px 0 rgba(0,0,0,.25); }
+        #hud-p1-gray, #hud-p2-gray { background: rgba(236,229,211,.55) !important; }
+        #hud-p1-hp, #hud-p2-hp { position: relative; }
+        #arena .h-4.overflow-hidden {
+            height: 14px !important; border-radius: 1px !important;
+            background: rgba(16,15,20,.82) !important;
+            border: 1px solid rgba(236,229,211,.28) !important;
+            box-shadow: 0 2px 10px rgba(0,0,0,.45);
+        }
+        #arena .h-1\.5 { height: 4px !important; border-radius: 0 !important;
+            background: rgba(16,15,20,.8) !important; border-color: rgba(236,229,211,.14) !important; }
+        #hud-p1-stamina, #hud-p2-stamina { background: #d9c79a !important; }
+        #arena > .top-4 .text-\[10px\].text-gray-400 { color: var(--paper-dim) !important;
+            font-family: 'Zen Kaku Gothic New', sans-serif; letter-spacing: .2em; font-size: 9px; }
+        .hud-portrait { border-radius: 2px; box-shadow: 0 0 0 1px rgba(236,229,211,.35), 0 3px 10px rgba(0,0,0,.6); }
+        /* VS becomes a vermilion seal */
+        #arena .w-10.h-10.rounded-full {
+            border-radius: 3px !important; background: var(--sh-shu) !important;
+            border: 0 !important; transform: rotate(-4deg);
+            box-shadow: inset 0 0 0 2px rgba(236,229,211,.25), 0 3px 12px rgba(0,0,0,.55);
+        }
+        #arena .w-10.h-10 .neon-text-red {
+            font-family: 'Shippori Mincho B1', serif !important; color: var(--paper) !important;
+            text-shadow: none !important; font-size: 13px; letter-spacing: .05em;
+        }
+        #btn-pause {
+            background: rgba(16,15,20,.7) !important; border: 1px solid rgba(236,229,211,.3) !important;
+            color: var(--paper) !important; border-radius: 2px !important;
+        }
+
+        /* PAUSE: a dimmed, blurred fight under a sheet of washi */
+        #pause-screen { background: rgba(7,7,13,.62) !important; backdrop-filter: blur(3px) grayscale(.6); }
+        #pause-screen > div {
+            background: url('assets/ui/shodo/washi.png') no-repeat 50% 50% / cover, var(--sh-washi) !important;
+            color: var(--sh-sumi) !important; border: 0 !important; border-radius: 3px !important;
+            box-shadow: 0 24px 70px rgba(0,0,0,.7), 0 0 0 1px rgba(20,19,26,.55);
+            position: relative;
+        }
+        #pause-screen > div::before {
+            content: ''; position: absolute; right: 18px; bottom: 14px; width: 150px; aspect-ratio: 1;
+            background: url('assets/ui/shodo/enso.png') no-repeat center / contain; opacity: .09; pointer-events: none;
+        }
+        #pause-title {
+            font-family: 'Shippori Mincho B1', serif !important; color: var(--sh-washi) !important;
+            font-size: 20px !important; font-weight: 800; letter-spacing: .5em !important; text-indent: .5em;
+            background: var(--sh-plate) no-repeat center / 100% 100%;
+            padding: .6rem .5rem .7rem; margin-bottom: 1.4rem !important;
+        }
+        #pause-screen button {
+            background: transparent !important; color: var(--sh-sumi) !important;
+            border: 9px solid transparent !important; border-image: var(--sh-frame) 42 / 9px stretch !important;
+            border-radius: 0 !important; box-shadow: none !important;
+            font-family: 'Shippori Mincho B1', serif !important; font-weight: 700 !important;
+            letter-spacing: .24em !important; font-size: 13px !important; padding: .55rem 1rem !important;
+        }
+        #pause-screen button:hover, #pause-screen button:focus-visible {
+            background: rgba(20,19,26,.08) !important; outline: none;
+        }
+        #pause-screen #btn-resume {
+            border-image: none !important; color: var(--sh-washi) !important;
+            background: var(--sh-plate) no-repeat center / 100% 100% !important;
+            background-origin: border-box !important; background-clip: border-box !important;
+        }
+        #pause-screen #btn-resume:hover { filter: brightness(1.25); }
+        #pause-screen .pad-focus { outline: 2px solid var(--sh-shu) !important; outline-offset: 3px; }
+        #pause-screen label, #pause-screen p { color: var(--sh-soft) !important;
+            font-family: 'Zen Kaku Gothic New', sans-serif; letter-spacing: .2em; }
+        #pause-screen input[type=range] { accent-color: var(--sh-shu) !important; }
+
+        /* the controller map, set on the same paper */
+        #pause-manual {
+            border-left: 1px solid rgba(20,19,26,.22); padding-left: 1.5rem;
+            scrollbar-color: rgba(20,19,26,.35) transparent; scrollbar-width: thin;
+        }
+        #pause-manual h2 {
+            font-family: 'Shippori Mincho B1', serif !important; font-size: 14px !important;
+            letter-spacing: .4em; color: var(--sh-sumi) !important;
+            border-bottom: 0 !important; padding-bottom: .6rem !important;
+            background: url('assets/ui/shodo/rule.png') no-repeat left bottom / 100% 10px;
+        }
+        #pause-manual h2 i { color: var(--sh-shu) !important; }
+        #pause-manual, #pause-manual p, #pause-manual div, #pause-manual li, #pause-manual span:not(.rounded-full) {
+            color: var(--sh-soft) !important;
+        }
+        #pause-manual p.font-bold, #pause-manual b, #pause-manual summary,
+        #pause-manual .font-bold { color: var(--sh-sumi) !important;
+            font-family: 'Shippori Mincho B1', serif !important; letter-spacing: .08em; }
+        #pause-manual .rounded-full { background: var(--sh-shu) !important; }
+        #pause-manual kbd {
+            background: rgba(16,15,20,.88) !important; color: var(--paper) !important;
+            border-radius: 2px !important; font-family: 'Zen Kaku Gothic New', monospace !important;
+            box-shadow: 0 1px 0 rgba(0,0,0,.4);
+        }
+        #pause-manual details { border-color: rgba(20,19,26,.22) !important; }
     </style>
 </head>
 <body class="flex flex-col items-center min-h-screen text-white p-2">
