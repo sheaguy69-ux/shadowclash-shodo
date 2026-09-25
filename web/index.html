@@ -21628,6 +21628,10 @@
                 // THE SUTRA STORE — a dark room behind the LEFT wall. The RIGHT wall stays
                 // the door to the temple. See THE DARK ROOM beside BREAK_AT.
                 dark: -1, room: 'The Sutra Store',
+                // THE LEAK: rain comes through the hole the roof fight made (the light
+                // shaft in the art, ~39% across) and a second crack right of centre.
+                // x is a FRACTION of the board width, w is px. See THE GROUND.
+                puddles: [ { x: 0.39, w: 190, leak: true }, { x: 0.71, w: 130, leak: true } ],
             },
             {
                 id: 'drowned', name: 'Drowned Shrine',
@@ -22254,11 +22258,22 @@
         // pool (groundFx) so a busy fight's splashes never crowd out hit sparks.
         //   'water' — standing water over the whole floor: sheen, drifting glints,
         //             ripple rings at every footfall, droplets and a sheet on impact.
+        //   puddles — local water on a dry floor, same splashes when a fighter's
+        //             feet land in one. `leak: true` drips into it from above.
         const groundFx = [];
         const GROUND_FX_MAX = 260;
         const groundPrev = new WeakMap();   // fighter -> last frame's grounded/vy/step
         function groundFighters() {
             return gameMode === 'brawl' && brawlAll.length ? brawlAll : [player1, player2];
+        }
+        // Is the floor at world x wet? Whole-floor water, or inside a puddle.
+        function puddleSpans(s) {
+            return (s.puddles || []).map(p => ({ x: p.x * canvas.width, w: p.w, leak: p.leak }));
+        }
+        function wetAt(s, x) {
+            if (s.ground === 'water') return true;
+            for (const p of puddleSpans(s)) if (Math.abs(x - p.x) < p.w / 2) return true;
+            return false;
         }
         function groundSplash(x, power) {
             // power 0..1: a light step is a few beads, a knockdown is a sheet
@@ -22283,6 +22298,7 @@
                     g.x += g.vx * dt; g.y += g.vy * dt; g.vy += 1100 * dt;
                     // a bead that falls back into the water ends in a tiny ring
                     if (g.y >= GROUND_Y && g.vy > 0) {
+                        if (g.drip) { groundFx.splice(i, 1); groundSplash(g.x, 0.05); continue; }
                         if (Math.random() < 0.25 && groundFx.length < GROUND_FX_MAX)
                             groundFx.push({ ring: true, x: g.x, r: 1, grow: 30, life: 0.4, max: 0.4 });
                         g.life = 0;
@@ -22291,11 +22307,17 @@
                 if (g.life <= 0) groundFx.splice(i, 1);
             }
             const s = currentStage;
-            if (!s || s.ground !== 'water' || !matchActive) return;
+            if (!s || !(s.ground === 'water' || s.puddles) || !matchActive) return;
+            // the leak: a drop every ~0.5-1.1s per crack, falling from the beam line
+            for (const pd of puddleSpans(s)) {
+                if (!pd.leak || Math.random() > dt * 1.4 || groundFx.length > GROUND_FX_MAX) continue;
+                groundFx.push({ drip: true, x: pd.x + (Math.random() - 0.5) * pd.w * 0.3,
+                                y: GROUND_Y * 0.22, vx: 0, vy: 120, r: 1.6, life: 3, max: 3 });
+            }
             for (const p of groundFighters()) {
                 if (!p || p.benchedOut || isHidden(p)) continue;
                 const cx = p.x + p.width / 2;
-                const onFloor = p.isGrounded && Math.abs(p.y + p.height - GROUND_Y) < 2
+                const onFloor = wetAt(s, cx) && p.isGrounded && Math.abs(p.y + p.height - GROUND_Y) < 2
                     && cx > (s.ledge || 0) && cx < canvas.width - (s.ledge || 0);
                 const prev = groundPrev.get(p) || { on: onFloor, vy: 0, step: 0 };
                 if (onFloor && !prev.on) {
@@ -22325,9 +22347,26 @@
             g.addColorStop(1, 'rgb(10,13,15)');
             ctx.fillStyle = g;
             ctx.fillRect(x0, GROUND_Y, x1 - x0, h);
+            drawWaterDetail(x0, x1, h, t);
+        }
+        // Puddles on a dry floor: a pool of the same water, feathered at the ends.
+        function drawPuddles(s) {
+            const t = animClock, h = canvas.height - GROUND_Y;
+            for (const p of puddleSpans(s)) {
+                const x0 = p.x - p.w / 2, x1 = p.x + p.w / 2;
+                ctx.save();
+                ctx.beginPath(); ctx.ellipse(p.x, GROUND_Y + 8, p.w / 2, 14, 0, 0, Math.PI * 2); ctx.clip();
+                const g = ctx.createLinearGradient(0, GROUND_Y, 0, GROUND_Y + 24);
+                g.addColorStop(0, 'rgba(58,62,70,0.95)'); g.addColorStop(1, 'rgba(18,20,24,0.9)');
+                ctx.fillStyle = g; ctx.fillRect(x0, GROUND_Y - 6, p.w, 30);
+                drawWaterDetail(x0, x1, h, t, true);
+                ctx.restore();
+            }
+        }
+        function drawWaterDetail(x0, x1, h, t, clipped) {
             // drifting glints: short ink-thin highlights that slide and breathe
             ctx.save();
-            ctx.beginPath(); ctx.rect(x0, GROUND_Y, x1 - x0, h); ctx.clip();
+            if (!clipped) { ctx.beginPath(); ctx.rect(x0, GROUND_Y, x1 - x0, h); ctx.clip(); }
             for (let row = 0; row < 7; row++) {
                 const y = GROUND_Y + 5 + row * row * 2.2;
                 const a = 0.16 - row * 0.018;
@@ -22366,6 +22405,11 @@
             ctx.save();
             for (const d of groundFx) {
                 if (d.ring) continue;
+                if (d.drip) {
+                    ctx.strokeStyle = 'rgba(214,224,232,0.7)'; ctx.lineWidth = 1.5;
+                    ctx.beginPath(); ctx.moveTo(d.x, d.y - Math.min(22, d.vy * 0.02)); ctx.lineTo(d.x, d.y); ctx.stroke();
+                    continue;
+                }
                 const a = Math.min(1, d.life / d.max * 1.6) * 0.85;
                 ctx.fillStyle = `rgba(214,224,232,${a})`;
                 ctx.beginPath(); ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2); ctx.fill();
@@ -22857,6 +22901,7 @@
                 else {
                     ctx.fillStyle = SK ? SK.floor : "#111827";
                     ctx.fillRect(floorL, GROUND_Y, floorR - floorL, canvas.height - GROUND_Y);
+                    if (SK && SK.puddles) drawPuddles(SK);
                 }
                 if (floorL > 0 || floorR < canvas.width) {
                     ctx.fillStyle = 'rgba(0,0,0,0.55)';
