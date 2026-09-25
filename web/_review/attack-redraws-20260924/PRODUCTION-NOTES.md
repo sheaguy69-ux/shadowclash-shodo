@@ -8,9 +8,9 @@ The images in this gallery are exact owner-selected key-pose studies, not packed
 | --- | --- | --- |
 | Executioner heavy, `executioner-heavy-three-keys-approved.png` | `xjodan1..6` live; source cells `xjodan7/8` exist but are not played | Breakdown between raised blade and contact; measured blade-tip arc; recovery to approved idle; preserve exact long sword length and one shoulder pad |
 | Executioner shoulder bump, `executioner-shoulder-bump-three-keys-approved.png` | `xbump1..8`, Dash + Light, 320 ms move | Pad-first impact construction, foot support and travel spacing, recovery; sheathed sword throughout; both facings |
-| Kael long/short contact, `kael-niten-contact-approved.png` | `kcross1..8`; positions 2/3 and 6/7 currently reuse source cells | Distinct anticipation, independent long/short blade breakdowns, separate tip tracks, long-sword reach, short-sword cover, follow-through and recovery |
+| Kael long/short contact, `kael-niten-contact-white-eyes-review.png` | `kcross1..8`; positions 2/3 and 6/7 currently reuse source cells | Preserve the corrected normal white eye area with dark pupil; distinct anticipation, independent long/short blade breakdowns, separate tip tracks, long-sword reach, short-sword cover, follow-through and recovery |
 
-Kael's grounded light `kdual1..8` is the next separate redraw: the **short blade** leads that light action. The current brief and source strips are in `../sword-swing-motion-20260924/`. The approved Kael contact pose does not approve a two-long-sword design.
+Kael's grounded light `kdual1..8` is the next separate redraw: the **short blade** leads that light action. The current brief and source strips are in `../sword-swing-motion-20260924/`. Anthony approved Kael's one-long/one-short contact-pose direction, then requested normal white eyes. The white-eye edit is the current image for review; the earlier amber-eye image is retained only as edit provenance and is not the current character look.
 
 ## Continuity gates before installation
 
