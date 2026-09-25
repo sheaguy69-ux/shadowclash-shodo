@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Kael · eight-frame heavy sprite review</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#171c19;color:#f3f0e8;font:16px/1.5 system-ui,sans-serif}main{width:min(1480px,calc(100% - 2rem));margin:auto;padding:2rem 0 4rem}h1{font-size:clamp(2rem,4vw,3rem);margin:.15rem 0}.note{max-width:90ch;background:#27312b;border-left:4px solid #e9c47c;padding:1rem}.player{padding:1rem;background:#222b25;border:1px solid #606b60;border-radius:12px}.stage{width:300px;margin:auto}.stage.native{width:121px}.stage canvas{width:100%;height:auto;display:block;border:2px solid #bca875;border-radius:7px;background:#eee5d0}.controls{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:.7rem;margin:1rem 0}.controls button{background:#f1d08a;color:#1c211d;border:0;border-radius:6px;padding:.5rem .9rem;font:inherit;cursor:pointer}.controls label{display:flex;gap:.3rem;align-items:center}.controls input[type=range]{width:min(360px,45vw)}.status{text-align:center;font-weight:700}.strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(205px,1fr));gap:.75rem;margin:1rem 0}.strip a{color:#f3d493;text-decoration:none}.strip img{display:block;width:100%;aspect-ratio:3/2;object-fit:contain;background:#efe6d2;border:2px solid #746951;border-radius:7px}.strip span{display:block;padding:.3rem 0}.old{max-width:100%;height:auto;border:1px solid #69736b;border-radius:8px}.small{font-size:.9rem;color:#cdd4cb}a{color:#f3d493}
+</style></head><body><main>
+<h1>Kael · complete heavy sprite pass</h1>
+<p class="note">Eight distinct transparent drawings are staged in Kael’s existing 300×320 cell geometry, including the three new connecting poses. Play the move at its current 330 ms visual duration. This is a production review before replacing the playable sprite cells.</p>
+<h2>Cell-size playback</h2><section class="player"><div id="stage" class="stage"><canvas id="canvas" width="300" height="320" aria-label="Kael heavy attack sprite playback"></canvas></div>
+<div class="controls"><button id="play">Play</button><button id="restart">Restart</button><label><input id="loop" type="checkbox" checked> Loop</label><label><input id="mirror" type="checkbox"> Face left</label><label><input id="native" type="checkbox"> Actual game size</label></div>
+<div class="controls"><label for="scrub">Frame</label><input id="scrub" type="range" min="0" max="7" value="0"><span id="count">1 / 8</span></div><div id="status" class="status">1 · Anticipation</div></section>
+<h2>New eight-frame strip</h2><div class="strip">
+<a href="frame-01.png"><img src="frame-01.png" alt="Kael anticipation"><span>1 · Anticipation · approved pose derivative</span></a>
+<a href="frame-02.png"><img src="frame-02.png" alt="Kael acceleration"><span>2 · Acceleration · approved pose derivative</span></a>
+<a href="frame-03.png"><img src="frame-03.png" alt="Kael mid cut"><span>3 · Mid cut · new connector</span></a>
+<a href="frame-04.png"><img src="frame-04.png" alt="Kael contact"><span>4 · Contact · approved pose derivative</span></a>
+<a href="frame-05.png"><img src="frame-05.png" alt="Kael overtravel"><span>5 · Overtravel · new connector</span></a>
+<a href="frame-06.png"><img src="frame-06.png" alt="Kael follow-through"><span>6 · Follow-through · approved pose derivative</span></a>
+<a href="frame-07.png"><img src="frame-07.png" alt="Kael recovery"><span>7 · Recovery · approved pose derivative</span></a>
+<a href="frame-08.png"><img src="frame-08.png" alt="Kael settle"><span>8 · Settle · new connector</span></a>
+</div>
+<h2>Current playable cells · model reference</h2><img class="old" src="../sword-swing-motion-20260924/current-kael-kcross.png" alt="Current Kael kcross strip">
+<p class="small"><a href="QC.md">Production measurements and open checks</a> · <a href="../kael-heavy-model-match-20260925/APPROVAL.md">Approved five-pose sources</a>. The artwork in this preview has not been packed into the playable game.</p>
+<script>
+const names=['Anticipation','Acceleration','Mid cut','Contact','Overtravel','Follow-through','Recovery','Settle'];
+const duration=[70,30,28,55,24,35,47,41]; // current total 330 ms
+const footOffset=[0,-8,3,-5,0,-1,-3,2]; // preview-only alignment; not source edits
+const images=names.map((_,i)=>{const im=new Image();im.src=`frame-${String(i+1).padStart(2,'0')}.png`;im.onload=draw;return im});
+const canvas=document.getElementById('canvas'),ctx=canvas.getContext('2d'),stage=document.getElementById('stage'),play=document.getElementById('play'),scrub=document.getElementById('scrub');let index=0,running=false,timer=null;
+function draw(){ctx.clearRect(0,0,300,320);ctx.fillStyle='#efe6d2';ctx.fillRect(0,0,300,320);const im=images[index];if(im?.complete&&im.naturalWidth){ctx.save();if(document.getElementById('mirror').checked){ctx.translate(300,0);ctx.scale(-1,1)}ctx.drawImage(im,-67,101+footOffset[index],376.32,250.88);ctx.restore()}scrub.value=index;document.getElementById('count').textContent=`${index+1} / 8`;document.getElementById('status').textContent=`${index+1} · ${names[index]}`}
+function stop(){running=false;clearTimeout(timer);timer=null;play.textContent='Play'}function tick(){if(!running)return;timer=setTimeout(()=>{if(index===7){if(!document.getElementById('loop').checked){stop();return}index=0}else index++;draw();tick()},duration[index])}
+play.addEventListener('click',()=>{if(running){stop();return}running=true;play.textContent='Pause';tick()});document.getElementById('restart').addEventListener('click',()=>{stop();index=0;draw()});scrub.addEventListener('input',()=>{stop();index=Number(scrub.value);draw()});document.getElementById('mirror').addEventListener('change',draw);document.getElementById('native').addEventListener('change',e=>stage.classList.toggle('native',e.target.checked));draw();
+</script></main></body></html>
