@@ -1,0 +1,37 @@
+{
+  "status": "reviewed_key_pose_studies_only",
+  "note": "Frame numbers order the displayed study keys, not runtime sprite indices or approved exposure timing. Breakdown and in-between art remains to be drawn.",
+  "sequences": [
+    {
+      "sequence_name": "executioner_heavy_katana_study",
+      "source_route": "xjodan1..6",
+      "total_frames": 3,
+      "frame_rate_target": 60,
+      "frames": [
+        {"frame_number": 1, "timing_type": "anticipation_key", "phase": "coil", "line_of_action": "compressed C curve, sword above rear shoulder", "anatomical_cues": {"torso_pelvis_twist": "counter-rotated", "weight_distribution": "loaded rear foot", "lead_limb": "front leg braces", "trailing_limb": "rear leg drives"}, "foreshortening": "hands raised close to head", "sfx_or_smear": "none"},
+        {"frame_number": 2, "timing_type": "contact_key", "phase": "full_reach", "line_of_action": "hips and ribcage drive sword toward opponent", "anatomical_cues": {"torso_pelvis_twist": "rotated through cut", "weight_distribution": "transferring to front foot", "lead_limb": "front leg receives weight", "trailing_limb": "rear leg extends"}, "foreshortening": "both arms extend with long sword", "sfx_or_smear": "white tail behind actual blade path"},
+        {"frame_number": 3, "timing_type": "follow_through_key", "phase": "deceleration", "line_of_action": "blade continues past contact", "anatomical_cues": {"torso_pelvis_twist": "continues rotation", "weight_distribution": "front foot loaded", "lead_limb": "front knee absorbs", "trailing_limb": "rear foot stays grounded"}, "foreshortening": "sword length must remain exact", "sfx_or_smear": "directional tail, then clear"}
+      ]
+    },
+    {
+      "sequence_name": "executioner_armored_shoulder_bump_study",
+      "source_route": "xbump1..8",
+      "total_frames": 3,
+      "frame_rate_target": 60,
+      "frames": [
+        {"frame_number": 1, "timing_type": "anticipation_key", "phase": "load", "line_of_action": "armored shoulder coils behind hips", "anatomical_cues": {"torso_pelvis_twist": "counter-rotated", "weight_distribution": "rear foot loaded", "lead_limb": "front leg prepares step", "trailing_limb": "rear leg compresses"}, "foreshortening": "pad and chest remain readable", "sfx_or_smear": "none"},
+        {"frame_number": 2, "timing_type": "contact_key", "phase": "pad_impact", "line_of_action": "single armored shoulder drives into target", "anatomical_cues": {"torso_pelvis_twist": "hip drive through ribcage", "weight_distribution": "transferring forward", "lead_limb": "front foot plants", "trailing_limb": "rear leg pushes"}, "foreshortening": "head and fists must stay behind the striking pad in final contact drawing", "sfx_or_smear": "short impact accent"},
+        {"frame_number": 3, "timing_type": "follow_through_key", "phase": "settle", "line_of_action": "body decelerates with armored shoulder still leading", "anatomical_cues": {"torso_pelvis_twist": "returns toward guard", "weight_distribution": "front foot absorbs", "lead_limb": "front knee flexes", "trailing_limb": "rear foot catches up"}, "foreshortening": "sword remains sheathed", "sfx_or_smear": "none"}
+      ]
+    },
+    {
+      "sequence_name": "kael_long_short_niten_contact_study",
+      "source_route": "kcross1..8",
+      "total_frames": 1,
+      "frame_rate_target": 60,
+      "frames": [
+        {"frame_number": 1, "timing_type": "contact_key", "phase": "simultaneous_deflect_and_strike", "line_of_action": "long blade cuts on outer track while short blade covers separate inner track", "anatomical_cues": {"torso_pelvis_twist": "rotates into long-sword reach", "weight_distribution": "grounded wide stance", "lead_limb": "long-sword arm extends", "trailing_limb": "short-sword arm guards centerline"}, "foreshortening": "two clearly distinct sword lengths and independent arm paths", "sfx_or_smear": "white tail behind long blade only"}
+      ]
+    }
+  ]
+}
