@@ -21749,7 +21749,7 @@
             {
                 id: 'bamboo', name: 'Severed Bamboo Grove',
                 ground: 'leaves', grit: '120,132,88',   // floor detail + what kicks up (THE GROUND)
-                img: 'assets/stages/shodo/bamboo-far.png',
+                img: 'assets/stages/blend/bamboo-far.png',
                 parallax: 0.14, dim: 0.12, anchor: 0.87, mist: '214,220,214', mistAmt: 1.05,
                 floor: 'rgb(22,26,20)', line: 'rgba(96,116,86,0.85)',
                 plat: 'rgba(30,36,28,0.95)', platEdge: 'rgba(96,116,86,0.55)',
@@ -21757,7 +21757,7 @@
             {
                 id: 'rooftops', name: 'Moonlit Edo',
                 ground: 'tile', grit: '110,106,112',   // floor detail + what kicks up (THE GROUND)
-                img: 'assets/stages/shodo/rooftops-far.png',
+                img: 'assets/stages/blend/rooftops-far.png',
                 parallax: 0.11, dim: 0.13, anchor: 0.87, mist: '204,210,222', mistAmt: 1.0,
                 floor: 'rgb(24,22,24)', line: 'rgba(175,41,30,0.85)',
                 plat: 'rgba(32,30,32,0.95)', platEdge: 'rgba(175,41,30,0.5)',
@@ -21770,7 +21770,7 @@
             {
                 id: 'roof', name: 'Temple Roofs',
                 ground: 'tile', grit: '96,104,124',   // floor detail + what kicks up (THE GROUND)
-                img: 'assets/stages/shodo/roof-far.png',
+                img: 'assets/stages/blend/roof-far.png',
                 parallax: 0.12, dim: 0.13, anchor: 0.87, mist: '200,208,224', mistAmt: 1.15,
                 floor: 'rgb(20,22,28)', line: 'rgba(52,80,128,0.85)',
                 plat: 'rgba(28,32,40,0.95)', platEdge: 'rgba(52,80,128,0.5)',
@@ -21779,7 +21779,7 @@
             {
                 id: 'hall', name: 'The Broken Hall',
                 ground: 'stone', grit: '120,110,104',   // floor detail + what kicks up (THE GROUND)
-                img: 'assets/stages/shodo/hall-far.png',
+                img: 'assets/stages/blend/hall-far.png',
                 parallax: 0.10, dim: 0.14, anchor: 0.87, mist: '224,204,190', mistAmt: 0.65,
                 floor: 'rgb(26,20,18)', line: 'rgba(175,41,30,0.85)',
                 plat: 'rgba(36,28,24,0.95)', platEdge: 'rgba(175,41,30,0.5)',
@@ -21787,14 +21787,14 @@
                 // THE SUTRA STORE — a dark room behind the LEFT wall. The RIGHT wall stays
                 // the door to the temple. See THE DARK ROOM beside BREAK_AT.
                 dark: -1, room: 'The Sutra Store',
-                // THE LEAK: rain comes through the hole the roof fight made (the light
-                // shaft in the art, ~39% across) and a second crack right of centre.
+                // THE LEAK: rain comes through the hole the roof fight made (dead centre
+                // in the blend backdrop) and a second crack right of centre.
                 // x is a FRACTION of the board width, w is px. See THE GROUND.
-                puddles: [ { x: 0.39, w: 190, leak: true }, { x: 0.71, w: 130, leak: true } ],
+                puddles: [ { x: 0.50, w: 200, leak: true }, { x: 0.74, w: 130, leak: true } ],
             },
             {
                 id: 'drowned', name: 'Drowned Shrine',
-                img: 'assets/stages/shodo/drowned-far.png',
+                img: 'assets/stages/blend/drowned-far.png',
                 parallax: 0.12, dim: 0.12, anchor: 0.87, mist: '205,214,224', mistAmt: 1.35,
                 floor: 'rgb(20,24,26)', line: 'rgba(175,41,30,0.80)',
                 plat: 'rgba(28,34,36,0.95)', platEdge: 'rgba(175,41,30,0.5)',
@@ -21804,7 +21804,7 @@
             {
                 id: 'village', name: 'Ash Village',
                 ground: 'ash', grit: '150,144,138',   // floor detail + what kicks up (THE GROUND)
-                img: 'assets/stages/shodo/village-far.png',
+                img: 'assets/stages/blend/village-far.png',
                 parallax: 0.13, dim: 0.15, anchor: 0.87, mist: '220,208,196', mistAmt: 0.9,
                 floor: 'rgb(26,22,18)', line: 'rgba(193,77,22,0.85)',
                 plat: 'rgba(36,30,24,0.95)', platEdge: 'rgba(193,77,22,0.5)',
@@ -21814,7 +21814,7 @@
             {
                 id: 'warrant', name: 'Warrant Yard',
                 ground: 'stone', grit: '128,124,118',   // floor detail + what kicks up (THE GROUND)
-                img: 'assets/stages/shodo/warrant-far.png',
+                img: 'assets/stages/blend/warrant-far.png',
                 parallax: 0.13, dim: 0.13, anchor: 0.87, mist: '214,214,210', mistAmt: 0.85,
                 floor: 'rgb(24,22,20)', line: 'rgba(175,41,30,0.80)',
                 plat: 'rgba(34,30,26,0.95)', platEdge: 'rgba(175,41,30,0.5)',
@@ -21841,7 +21841,7 @@
             },
             {
                 id: 'snow', name: 'Frozen Shrine',
-                img: 'assets/stages/shodo/snow-far.png',
+                img: 'assets/stages/blend/snow-far.png',
                 parallax: 0.13, dim: 0.09, anchor: 0.87, mist: '226,230,238', mistAmt: 1.25,
                 floor: 'rgb(28,30,34)', line: 'rgba(175,41,30,0.80)',
                 plat: 'rgba(38,42,48,0.95)', platEdge: 'rgba(175,41,30,0.5)',
@@ -21850,7 +21850,7 @@
             {
                 id: 'keep', name: 'The Falling Keep',
                 ground: 'ash', grit: '150,140,132',   // floor detail + what kicks up (THE GROUND)
-                img: 'assets/stages/shodo/keep-far.png',
+                img: 'assets/stages/blend/keep-far.png',
                 parallax: 0.12, dim: 0.15, anchor: 0.87, mist: '236,202,176', mistAmt: 0.6,
                 floor: 'rgb(26,20,16)', line: 'rgba(193,77,22,0.90)',
                 plat: 'rgba(36,28,22,0.95)', platEdge: 'rgba(193,77,22,0.55)',
@@ -21861,7 +21861,7 @@
             {
                 id: 'tollgate', name: 'The First Door',
                 ground: 'gravel', grit: '138,134,126',   // kicked-up stones (THE GROUND)
-                img: 'assets/stages/shodo/tollgate-far.png',
+                img: 'assets/stages/blend/tollgate-far.png',
                 parallax: 0.11, dim: 0.12, anchor: 0.87, mist: '210,212,218', mistAmt: 1.0,
                 floor: 'rgb(22,22,24)', line: 'rgba(146,105,33,0.85)',
                 plat: 'rgba(32,30,30,0.95)', platEdge: 'rgba(146,105,33,0.5)',
@@ -21869,7 +21869,7 @@
             {
                 id: 'temple', name: 'The Second Door',
                 ground: 'stone', grit: '140,128,108',   // floor detail + what kicks up (THE GROUND)
-                img: 'assets/stages/shodo/temple-far.png',
+                img: 'assets/stages/blend/temple-far.png',
                 parallax: 0.10, dim: 0.13, anchor: 0.87, mist: '226,210,182', mistAmt: 0.85,
                 floor: 'rgb(26,22,16)', line: 'rgba(146,105,33,0.85)',
                 plat: 'rgba(36,30,22,0.95)', platEdge: 'rgba(146,105,33,0.5)',
@@ -21879,7 +21879,7 @@
             {
                 id: 'volcano', name: 'The Last Door',
                 ground: 'gravel', grit: '120,92,78',   // kicked-up stones (THE GROUND)
-                img: 'assets/stages/shodo/volcano-far.png',
+                img: 'assets/stages/blend/volcano-far.png',
                 parallax: 0.12, dim: 0.16, anchor: 0.87, mist: '238,196,166', mistAmt: 0.55,
                 floor: 'rgb(24,16,12)', line: 'rgba(193,77,22,0.95)',
                 plat: 'rgba(34,22,18,0.95)', platEdge: 'rgba(193,77,22,0.6)',
@@ -21887,7 +21887,7 @@
             {
                 id: 'lantern', name: 'The Lantern',
                 ground: 'stone', grit: '140,126,100',   // floor detail + what kicks up (THE GROUND)
-                img: 'assets/stages/shodo/lantern-far.png',
+                img: 'assets/stages/blend/lantern-far.png',
                 parallax: 0.10, dim: 0.13, anchor: 0.87, mist: '228,208,176', mistAmt: 0.7,
                 floor: 'rgb(24,20,14)', line: 'rgba(146,105,33,0.90)',
                 plat: 'rgba(34,28,20,0.95)', platEdge: 'rgba(146,105,33,0.55)',
@@ -21897,7 +21897,7 @@
             {
                 id: 'abyss', name: 'The Breaking Stair',
                 ground: 'gravel', grit: '116,120,134',   // kicked-up stones (THE GROUND)
-                img: 'assets/stages/shodo/abyss-far.png',
+                img: 'assets/stages/blend/abyss-far.png',
                 parallax: 0.08, dim: 0.20, anchor: 0.87, mist: '150,158,182', mistAmt: 1.2,
                 floor: 'rgb(12,12,16)', line: 'rgba(52,80,128,0.55)',
                 plat: 'rgba(22,22,28,0.96)', platEdge: 'rgba(52,80,128,0.45)',
@@ -21916,7 +21916,7 @@
                 // holds everywhere it applied).
                 id: 'grove', name: 'The Wild Grove',
                 ground: 'leaves', grit: '120,132,88',   // floor detail + what kicks up (THE GROUND)
-                img: 'assets/stages/shodo/bamboo-far.png',
+                img: 'assets/stages/blend/bamboo-far.png',
                 parallax: 0.22, dim: 0.13, anchor: 0.87, mist: '214,220,214', mistAmt: 1.0,
                 floor: 'rgb(20,24,18)', line: 'rgba(96,116,86,0.85)',
                 plat: 'rgba(30,38,26,0.96)', platEdge: 'rgba(120,146,104,0.6)',
@@ -21952,7 +21952,7 @@
                 // TORII PILLARS and the pagoda corner — the wall-jump furniture.
                 id: 'road', name: 'The Old Road',
                 ground: 'gravel', grit: '146,128,106',   // kicked-up stones (THE GROUND)
-                img: 'assets/stages/shodo/village-far.png',
+                img: 'assets/stages/blend/village-far.png',
                 parallax: 0.24, dim: 0.14, anchor: 0.87, mist: '220,208,196', mistAmt: 0.9,
                 floor: 'rgb(26,22,18)', line: 'rgba(193,77,22,0.85)',
                 plat: 'rgba(38,30,24,0.96)', platEdge: 'rgba(214,120,60,0.6)',
