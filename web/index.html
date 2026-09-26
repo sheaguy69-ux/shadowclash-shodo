@@ -5353,6 +5353,23 @@
                         }
                     } else this.creakT = 0;
                 }
+                // THE HEAD START: a body that went through a break ahead of its chaser lands
+                // unseen for as long as the chaser dithered up top (arriveHideT, set by the
+                // follow gate). Same tells as the dark; an attack or a hit ends it.
+                if (this.arriveHideT > 0) {
+                    this.arriveHideT -= dt;
+                    if (this.isAttackingState() || this.revealT > 0) this.arriveHideT = 0;
+                    else if (!this.hiddenInSmoke && !(opponent && opponent.spec.name === 'Mizu')) {
+                        this.inDark = true;
+                        this.alpha = 0;
+                        if (this.isGrounded && Math.abs(this.vx) > 60) {
+                            if ((this.creakT -= dt) <= 0) {
+                                this.creakT = 0.3; this.heardX = cx; sfx('creak');
+                                spawnFx('M05', cx, this.y + this.height, { mirror: Math.sign(this.vx) || 1 });
+                            }
+                        } else this.creakT = 0;
+                    }
+                }
                 if (!isHidden(this)) this.seenX = cx;
 
                 // Update Projectiles
@@ -6237,7 +6254,7 @@
                 else if (!this.wallStress && this.stunTimer > 0
                          && Math.sign(this.vx) === atWall && Math.abs(this.vx) > 240) {
                     this.wallStress = true;
-                    stageStress('wall', Math.abs(this.vx), atWall === 1 ? canvas.width - 12 : 12, this.y + this.height / 2);
+                    stageStress('wall', Math.abs(this.vx), atWall === 1 ? canvas.width - 12 : 12, this.y + this.height / 2, this);
                 }
 
                 // The catch band is one frame of fall — a body already DEEP below
@@ -6250,7 +6267,7 @@
                     // the SKY HARVEST detonation — the hardest floor impact in the game —
                     // counts too, instead of only ordinary knockdowns.
                     if (impactVy > 380 && this.stunTimer > 0)
-                        stageStress('floor', impactVy, this.x + this.width / 2, GROUND_Y);
+                        stageStress('floor', impactVy, this.x + this.width / 2, GROUND_Y, this);
                     // SKY HARVEST landing: the downward throw detonates on contact —
                     // bonus damage, a ground-bounce, dust and shake.
                     if (this.skySlam) {
@@ -9213,7 +9230,7 @@
                 else if (this.inDark && !opts.echo && (opts.tier || this.state) === STATE.ATTACK_HEAVY) {
                     const foes = gameMode === 'brawl' ? brawlFoes(this) : [this.opponent];
                     const myZone = hideZone(this);
-                    if (foes.some(f => f && hideZone(f) === myZone && f.roomT < KUBI_WIN && !(f.checkT > 0))) {
+                    if (myZone && foes.some(f => f && hideZone(f) === myZone && f.roomT < KUBI_WIN && !(f.checkT > 0))) {
                         dmg *= KUBIKIRI_DMG;
                         opts = { ...opts, unblockable: true, delay: Math.min(opts.delay ?? 0, 1 / 60) };
                         this.revealT = LIT_T;
@@ -18321,7 +18338,7 @@
             // step in blind, KUBIKIRI. If they come in having checked, it is an ordinary fight
             // and the rest of the brain takes over.
             if (me.inDark) {
-                if (canAct && hideZone(foe) === hideZone(me) && foe.roomT < KUBI_WIN && !(foe.checkT > 0)) {
+                if (canAct && hideZone(me) && hideZone(foe) === hideZone(me) && foe.roomT < KUBI_WIN && !(foe.checkT > 0)) {
                     me.facing = dx >= 0 ? 1 : -1;
                     me.executeAttack(STATE.ATTACK_HEAVY);
                     B.action = 'attack';
@@ -20433,8 +20450,8 @@
                 retargetBrawl();
                 for (const p of brawlAll) if (p.hp > 0 || p.state === STATE.STUNNED) p.update(dt, p.opponent);
             } else {
-                player1.update(dt, player2);
-                player2.update(dt, player1);
+                if (!player1.inGap) player1.update(dt, player2);
+                if (!player2.inGap) player2.update(dt, player1);
             }
 
             // STAGE SYSTEM: abyss slabs rise/carry, hazards push, kill lines fire.
@@ -20444,6 +20461,7 @@
             // break applied in place put the man who caused it straight onto the
             // new floor instead of dropping him through the old one (measured).
             if (pendingBreak) { const b = pendingBreak; pendingBreak = null; breakStage(b.kind, b.x, b.y, b.who); }
+            updateFollowGate(dt);
             updateAbyss(dt);
             updateStageWires(dt);
             // THE LIGHT: on The Last Door, holding the pool slowly refills you
@@ -20827,7 +20845,7 @@
                 p.hitboxes.length = 0; p.state = STATE.IDLE;
                 p.slamPhase = 0; p.slamRecover = 0; p.airFloatT = 0; p.airFloats = 0; p.groundBounce = false;
                 p.hitSquashT = 0; p.landSquash = 0; p.ambushT = 0; p.ambushName = '';
-                p.inDark = false; p.roomT = p.revealT = p.checkT = p.creakT = 0; p.heardX = p.seenX = undefined;
+                p.inDark = p.inGap = false; p.arriveHideT = 0; p.roomT = p.revealT = p.checkT = p.creakT = 0; p.heardX = p.seenX = undefined;
             }
             player1.facing = 1; player2.facing = -1;
             trainingStats.last = 0; trainingStats.combo = 0; trainingStats.total = 0;
@@ -22307,7 +22325,7 @@
         // ONE definition of "cannot be seen" for every system that must not look: the
         // parallax camera, the corner label, the wall-throw's aim and the CPU. Mizu's mist
         // leaked through all three before this — the room just made it impossible to miss.
-        function isHidden(p) { return !!p && (p.hiddenInSmoke || p.inDark); }
+        function isHidden(p) { return !!p && (p.hiddenInSmoke || p.inDark || p.inGap); }
         // ---- THE COVER (owner, Sep 26 2026: "add hiding spots ... behind the torii
         // pillars, in the bamboo, behind the houses") ----------------------------------
         // The dark room's hide-and-seek on boards that have no partition. A board's
@@ -22336,6 +22354,7 @@
             stageWear = { floor: 0, wall: 0, breach: 0 };
             pendingBreak = null;   // a break queued against the OLD board dies with it
             stageScars = [];       // holes belong to the board they were torn in
+            if (followGate) { followGate.victim.inGap = false; followGate = null; }
             seedAbyss();
         }
         function stageStress(kind, force, x, y, who) {
@@ -22372,6 +22391,11 @@
             } else {
                 const next = STAGES.find(st => st.id === (kind === 'floor' ? currentStage.below : currentStage.through));
                 if (!next) return;
+                // FOLLOW, NOT TELEPORT: a break with a known victim takes only the victim.
+                if (who && who.opponent && who.hp > 0 && gameMode !== 'brawl' && !followGate) {
+                    openFollowGate(kind, next, x, who);
+                    return;
+                }
                 setStage(next);
             }
             hitstopRemaining = Math.max(hitstopRemaining, 240);
@@ -22409,6 +22433,92 @@
             }
             stageToastT = 2.0;
             toastRoom = kind === 'breach' ? (currentStage.room || '') : '';
+        }
+
+        // ---- THE FOLLOW (owner, Sep 26 2026: "if a player goes through a wall or roof,
+        // the other player can follow ... the other player can hide"; "chaser: pulled in")
+        // A floor or wall break with a known victim no longer drags both fighters to the
+        // next board. The VICTIM alone goes through (off this board: inGap — not updated,
+        // not drawn, not hittable). The hole stays open here; the CHASER follows by
+        // standing in it (roof) or walking into the torn wall (wall). Waiting is not
+        // free: at FOLLOW_T the chaser is PULLED IN anyway. Either way, the victim reaches
+        // the new board first and gets a HEAD START: they land unseen (arriveHideT) — in
+        // a hiding spot if the board has one, else across the room from where the chaser
+        // comes in — for as long as the chaser dithered (at least FOLLOW_MIN_HIDE).
+        // Brawl keeps the old both-drop: four bodies cannot share a one-screen gate.
+        const FOLLOW_T = 4.0, FOLLOW_MIN_HIDE = 1.5;
+        let followGate = null;      // {kind, next, x, side, victim, chaser, t}
+        function openFollowGate(kind, next, x, victim) {
+            const side = kind === 'floor' ? 0 : (x > canvas.width / 2 ? 1 : -1);
+            followGate = { kind, next, x, side, victim, chaser: victim.opponent, t: 0 };
+            victim.inGap = true;
+            victim.hitboxes.length = 0; victim.projectiles.length = 0;
+            victim.vx = victim.vy = 0;
+            victim.invulnTimer = 99;                      // not on this board: nothing here can touch them
+            collapse(kind, x, { noScar: true, fromFloor: kind === 'floor' });   // the break bursts HERE
+            hitstopRemaining = Math.max(hitstopRemaining, 240);
+            screenShakeAmount = Math.max(screenShakeAmount, 26);
+            flashAmount = Math.max(flashAmount, 0.3);
+            sfx('bomb');
+        }
+        function updateFollowGate(dt) {
+            const g = followGate;
+            if (!g || !matchActive) return;
+            g.t += dt;
+            const c = g.chaser, cx = c.x + c.width / 2;
+            const followed = g.kind === 'floor'
+                ? c.isGrounded && Math.abs(cx - g.x) < 70
+                : (g.side > 0 ? c.x + c.width > canvas.width - 26 : c.x < 26);
+            if (followed || g.t >= FOLLOW_T) arriveThroughGate(g, followed);
+        }
+        function arriveThroughGate(g, followed) {
+            const v = g.victim, c = g.chaser;
+            setStage(g.next);                              // clears followGate + v.inGap
+            collapse(g.kind, g.x);                         // the hole, seen from below / beyond
+            // where the chaser comes in: under the roof hole, or through the near wall
+            const entryX = g.kind === 'floor' ? g.x : (g.side > 0 ? 40 : canvas.width - 40 - c.width);
+            c.x = clampLandX(entryX - (g.kind === 'floor' ? c.width / 2 : 0), c.width);
+            c.y = g.kind === 'floor' ? GROUND_Y - c.height - 170 : GROUND_Y - c.height;
+            c.vy = g.kind === 'floor' ? 90 : 0; c.vx = 0;
+            c.isGrounded = g.kind !== 'floor'; c.riding = null;
+            c.stunTimer = Math.max(c.stunTimer, followed ? 0.2 : 0.45);   // pulled in = a stumble
+            // the victim is already here: in cover if there is any, else across the room
+            const far = coverZones.slice().sort((a, b) => Math.abs(b.cx - entryX) - Math.abs(a.cx - entryX))[0];
+            const hx = far ? far.cx : (entryX < canvas.width / 2 ? canvas.width * 0.8 : canvas.width * 0.2);
+            v.x = clampLandX(hx - v.width / 2, v.width);
+            v.y = GROUND_Y - v.height; v.vx = v.vy = 0; v.isGrounded = true; v.riding = null;
+            v.state = STATE.IDLE; v.stunTimer = 0; v.recoveryTimer = 0;
+            v.invulnTimer = 0.3;
+            v.arriveHideT = Math.max(FOLLOW_MIN_HIDE, g.t);
+            v.seenX = undefined; c.lastSawFoe = undefined;
+            stageToastT = 2.0; toastRoom = followed ? '' : 'PULLED IN';
+        }
+        // The open hole on the board the victim left, and the chaser's cue to follow.
+        function drawFollowGate() {
+            const g = followGate;
+            if (!g) return;
+            const left = Math.max(0, FOLLOW_T - g.t), pulse = 0.5 + 0.5 * Math.sin(animClock * 8);
+            ctx.save();
+            ctx.fillStyle = 'rgb(8,6,10)'; ctx.strokeStyle = 'rgba(226,221,208,0.7)'; ctx.lineWidth = 2;
+            let ax, ay;
+            if (g.kind === 'floor') {
+                ctx.beginPath(); ctx.moveTo(g.x - 80, GROUND_Y);
+                for (let k = 0; k <= 8; k++) ctx.lineTo(g.x - 80 + k * 20, GROUND_Y + 10 + (k % 2 ? 22 : 6));
+                ctx.lineTo(g.x + 80, GROUND_Y); ctx.closePath(); ctx.fill(); ctx.stroke();
+                ax = g.x; ay = GROUND_Y - 150;
+            } else {
+                const x = g.side > 0 ? canvas.width - 10 : 10, y = GROUND_Y - 120;
+                ctx.beginPath(); ctx.moveTo(x, y - 110);
+                for (let k = 0; k <= 8; k++) ctx.lineTo(x - g.side * (26 + (k % 2 ? 20 : 0)), y - 110 + k * 27.5);
+                ctx.lineTo(x, y + 110); ctx.closePath(); ctx.fill(); ctx.stroke();
+                ax = x - g.side * 90; ay = y - 140;
+            }
+            ctx.globalAlpha = 0.55 + 0.45 * pulse;
+            ctx.fillStyle = 'rgb(175,41,30)'; ctx.font = 'bold 26px serif'; ctx.textAlign = 'center';
+            ctx.fillText(g.kind === 'floor' ? '▼' : (g.side > 0 ? '▶' : '◀'), ax, ay);
+            ctx.font = 'bold 15px monospace'; ctx.fillStyle = 'rgb(236,230,214)';
+            ctx.fillText(`FOLLOW  ${left.toFixed(1)}`, ax, ay - 26);
+            ctx.restore();
         }
 
         // --- STAGE SELECT STRIP (owner, Jul 28) ------------------------------
@@ -22780,16 +22890,17 @@
         // new board). Cosmetic, own pool (groundFx) — no hitboxes, no gameplay read.
         let stageScars = [];
         function collapse(kind, x, opts = {}) {
-            const fromTop = kind === 'floor';          // a roof came down onto this board
+            const fromTop = kind === 'floor' && !opts.fromFloor;   // a roof came down onto this board
+            const fromFloor = !!opts.fromFloor;        // ...or this board's floor gave way under someone
             const side = kind === 'floor' ? 0 : Math.sign(x - canvas.width / 2) || 1;
             const ox = opts.ox ?? (fromTop ? x : (side < 0 ? 14 : canvas.width - 14));
-            const oy = fromTop ? 0 : GROUND_Y * 0.55;
+            const oy = fromFloor ? GROUND_Y - 6 : fromTop ? 0 : GROUND_Y * 0.55;
             for (let k = 0; k < 16; k++) {
                 const beam = k < 4;
                 groundFx.push({ chunk: true, beam, x: ox + (Math.random() - 0.5) * (fromTop ? 220 : 40),
                     y: oy + (Math.random() - 0.5) * (fromTop ? 30 : 120),
-                    vx: fromTop ? (Math.random() - 0.5) * 220 : -side * (140 + Math.random() * 380),
-                    vy: fromTop ? 60 + Math.random() * 200 : -80 - Math.random() * 260,
+                    vx: fromFloor ? (Math.random() - 0.5) * 420 : fromTop ? (Math.random() - 0.5) * 220 : -side * (140 + Math.random() * 380),
+                    vy: fromFloor ? -220 - Math.random() * 360 : fromTop ? 60 + Math.random() * 200 : -80 - Math.random() * 260,
                     w: beam ? 70 + Math.random() * 50 : 10 + Math.random() * 16, h: beam ? 12 : 6 + Math.random() * 6,
                     rot: Math.random() * 6, spin: (Math.random() - 0.5) * 8, bounced: false,
                     life: 5 + Math.random() * 2, max: 7 });
@@ -23754,10 +23865,11 @@
             if (gameMode === 'brawl' && brawlAll.length) {
                 for (const p of brawlAll) if (p.hp > 0) p.draw(ctx);
             } else {
-                if (player1 && !player1.benchedOut) player1.draw(ctx);
-                if (player2 && !player2.benchedOut) player2.draw(ctx);
+                if (player1 && !player1.benchedOut && !player1.inGap) player1.draw(ctx);
+                if (player2 && !player2.benchedOut && !player2.inGap) player2.draw(ctx);
             }
             drawCover();        // hiding-spot props, IN FRONT of whoever is behind them
+            drawFollowGate();   // the hole a victim went through, and the chaser's cue
             drawGroundFx();     // splash droplets in front of the legs
             drawGroundMist();   // knee-deep mist the fighters wade in
             // World-space defense cue uses existing type and poses; no new character art.
