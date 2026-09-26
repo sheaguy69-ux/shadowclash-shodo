@@ -21748,6 +21748,7 @@
         const STAGES = [
             {
                 id: 'bamboo', name: 'Severed Bamboo Grove',
+                ground: 'leaves', grit: '120,132,88',   // floor detail + what kicks up (THE GROUND)
                 img: 'assets/stages/shodo/bamboo-far.png',
                 parallax: 0.14, dim: 0.12, anchor: 0.87, mist: '214,220,214', mistAmt: 1.05,
                 floor: 'rgb(22,26,20)', line: 'rgba(96,116,86,0.85)',
@@ -21755,6 +21756,7 @@
             },
             {
                 id: 'rooftops', name: 'Moonlit Edo',
+                ground: 'tile', grit: '110,106,112',   // floor detail + what kicks up (THE GROUND)
                 img: 'assets/stages/shodo/rooftops-far.png',
                 parallax: 0.11, dim: 0.13, anchor: 0.87, mist: '204,210,222', mistAmt: 1.0,
                 floor: 'rgb(24,22,24)', line: 'rgba(175,41,30,0.85)',
@@ -21767,6 +21769,7 @@
             // through into the Buddha courtyard, and out of that into the stone stair.
             {
                 id: 'roof', name: 'Temple Roofs',
+                ground: 'tile', grit: '96,104,124',   // floor detail + what kicks up (THE GROUND)
                 img: 'assets/stages/shodo/roof-far.png',
                 parallax: 0.12, dim: 0.13, anchor: 0.87, mist: '200,208,224', mistAmt: 1.15,
                 floor: 'rgb(20,22,28)', line: 'rgba(52,80,128,0.85)',
@@ -21775,6 +21778,7 @@
             },
             {
                 id: 'hall', name: 'The Broken Hall',
+                ground: 'stone', grit: '120,110,104',   // floor detail + what kicks up (THE GROUND)
                 img: 'assets/stages/shodo/hall-far.png',
                 parallax: 0.10, dim: 0.14, anchor: 0.87, mist: '224,204,190', mistAmt: 0.65,
                 floor: 'rgb(26,20,18)', line: 'rgba(175,41,30,0.85)',
@@ -21799,6 +21803,7 @@
             },
             {
                 id: 'village', name: 'Ash Village',
+                ground: 'ash', grit: '150,144,138',   // floor detail + what kicks up (THE GROUND)
                 img: 'assets/stages/shodo/village-far.png',
                 parallax: 0.13, dim: 0.15, anchor: 0.87, mist: '220,208,196', mistAmt: 0.9,
                 floor: 'rgb(26,22,18)', line: 'rgba(193,77,22,0.85)',
@@ -21808,6 +21813,7 @@
             },
             {
                 id: 'warrant', name: 'Warrant Yard',
+                ground: 'stone', grit: '128,124,118',   // floor detail + what kicks up (THE GROUND)
                 img: 'assets/stages/shodo/warrant-far.png',
                 parallax: 0.13, dim: 0.13, anchor: 0.87, mist: '214,214,210', mistAmt: 0.85,
                 floor: 'rgb(24,22,20)', line: 'rgba(175,41,30,0.80)',
@@ -21843,6 +21849,7 @@
             },
             {
                 id: 'keep', name: 'The Falling Keep',
+                ground: 'ash', grit: '150,140,132',   // floor detail + what kicks up (THE GROUND)
                 img: 'assets/stages/shodo/keep-far.png',
                 parallax: 0.12, dim: 0.15, anchor: 0.87, mist: '236,202,176', mistAmt: 0.6,
                 floor: 'rgb(26,20,16)', line: 'rgba(193,77,22,0.90)',
@@ -21861,6 +21868,7 @@
             },
             {
                 id: 'temple', name: 'The Second Door',
+                ground: 'stone', grit: '140,128,108',   // floor detail + what kicks up (THE GROUND)
                 img: 'assets/stages/shodo/temple-far.png',
                 parallax: 0.10, dim: 0.13, anchor: 0.87, mist: '226,210,182', mistAmt: 0.85,
                 floor: 'rgb(26,22,16)', line: 'rgba(146,105,33,0.85)',
@@ -21878,6 +21886,7 @@
             },
             {
                 id: 'lantern', name: 'The Lantern',
+                ground: 'stone', grit: '140,126,100',   // floor detail + what kicks up (THE GROUND)
                 img: 'assets/stages/shodo/lantern-far.png',
                 parallax: 0.10, dim: 0.13, anchor: 0.87, mist: '228,208,176', mistAmt: 0.7,
                 floor: 'rgb(24,20,14)', line: 'rgba(146,105,33,0.90)',
@@ -21906,6 +21915,7 @@
                 // TAG the platforms and width never seed (flat-battleground ruling
                 // holds everywhere it applied).
                 id: 'grove', name: 'The Wild Grove',
+                ground: 'leaves', grit: '120,132,88',   // floor detail + what kicks up (THE GROUND)
                 img: 'assets/stages/shodo/bamboo-far.png',
                 parallax: 0.22, dim: 0.13, anchor: 0.87, mist: '214,220,214', mistAmt: 1.0,
                 floor: 'rgb(20,24,18)', line: 'rgba(96,116,86,0.85)',
@@ -22423,6 +22433,10 @@
         //             the stone tint; the floor gets a scatter of resting pebbles.
         //   'snow'   — a white blanket over the floor with drifts along the lip;
         //             strides and landings throw powder that falls and melts away.
+        //   'leaves' — fallen leaves on the floor; strides flick a few that flutter down.
+        //   'ash'    — grey ash and char; strides raise ash puffs and drifting flakes.
+        //   'tile'   — roof tiles, seams along the lip; strides kick small grit.
+        //   'stone'  — flagstones with seams and cracks; strides raise a little dust.
         //   puddles — local water on a dry floor, same splashes when a fighter's
         //             feet land in one. `leak: true` drips into it from above.
         const groundFx = [];
@@ -22439,7 +22453,7 @@
         // What the fighter at world x is standing in: 'water', 'gravel' or null.
         function surfaceAt(s, x) {
             if (wetAt(s, x)) return 'water';
-            return s.ground === 'gravel' || s.ground === 'snow' ? s.ground : null;
+            return s.ground && s.ground !== 'water' ? s.ground : null;
         }
         // Powder snow: soft round flakes (no hard edges), slower, and a bigger puff.
         function snowKick(x, power, dir) {
@@ -22455,6 +22469,32 @@
                 groundFx.push({ dust: true, tint: '238,242,248', x: x + (Math.random() - 0.5) * 26, y: GROUND_Y - 6,
                                 vx: (Math.random() - 0.5) * 50, vy: -14, r: 10 + power * 18, grow: 30,
                                 life: 0.7 + power * 0.5, max: 0.7 + power * 0.5 });
+        }
+        // One call for the floors that are not water, gravel or snow.
+        function floorKick(kind, x, power, dir, tint) {
+            if (groundFx.length > GROUND_FX_MAX) return;
+            const puff = (n, a) => { for (let k = 0; k < n; k++)
+                groundFx.push({ dust: true, tint, x: x + (Math.random() - 0.5) * 22, y: GROUND_Y - 4,
+                                vx: (Math.random() - 0.5) * 40 + dir * 20, vy: -8 - Math.random() * 10,
+                                r: 7 + power * 14, grow: 24 * a, life: 0.5 + power * 0.5, max: 0.5 + power * 0.5 }); };
+            if (kind === 'tile') { gravelKick(x, power * 0.5, dir, tint); return; }
+            if (kind === 'stone') { puff(1 + power * 2, 1); return; }
+            if (kind === 'ash') {
+                puff(1 + power * 3, 1.4);
+                for (let k = 0; k < 2 + power * 8; k++)
+                    groundFx.push({ leaf: true, ash: true, tint, x: x + (Math.random() - 0.5) * 20, y: GROUND_Y - 3,
+                                    vx: (Math.random() - 0.5 + dir * 0.4) * 80, vy: -(40 + Math.random() * 120 * (0.5 + power)),
+                                    r: 1.2 + Math.random() * 1.4, rot: Math.random() * 6, seed: Math.random() * 6,
+                                    life: 1.2 + Math.random(), max: 2.2 });
+                return;
+            }
+            if (kind === 'leaves') {
+                for (let k = 0; k < 1 + power * 5; k++)
+                    groundFx.push({ leaf: true, tint, x: x + (Math.random() - 0.5) * 20, y: GROUND_Y - 3,
+                                    vx: (Math.random() - 0.5 + dir * 0.5) * 90, vy: -(60 + Math.random() * 140 * (0.5 + power)),
+                                    r: 3 + Math.random() * 2.5, rot: Math.random() * 6, seed: Math.random() * 6,
+                                    life: 1.4 + Math.random() * 0.8, max: 2.2 });
+            }
         }
         function gravelKick(x, power, dir, tint) {
             if (groundFx.length > GROUND_FX_MAX) return;
@@ -22498,6 +22538,13 @@
                 g.life -= dt;
                 if (g.ring) g.r += g.grow * dt;
                 else if (g.dust) { g.x += g.vx * dt; g.y += g.vy * dt; g.r += g.grow * dt; }
+                else if (g.leaf) {
+                    g.vy += 260 * dt; g.vy = Math.min(g.vy, g.ash ? 40 : 70);
+                    g.vx *= Math.max(0, 1 - 1.4 * dt);
+                    g.x += (g.vx + Math.sin(g.seed + g.life * 4) * 30) * dt; g.y += g.vy * dt;
+                    g.rot += Math.cos(g.seed + g.life * 3) * 4 * dt;
+                    if (g.y >= GROUND_Y - 1) { g.y = GROUND_Y - 1; g.vx = 0; g.vy = 0; }
+                }
                 else if (g.powder) {
                     g.x += g.vx * dt; g.y += g.vy * dt; g.vy += 520 * dt; g.vx *= Math.max(0, 1 - 1.5 * dt);
                     if (g.y >= GROUND_Y && g.vy > 0) g.life = Math.min(g.life, 0.15);
@@ -22561,6 +22608,7 @@
                     const pw = Math.min(1, Math.max(0.25, prev.vy / 900));
                     if (surf === 'gravel') { gravelKick(cx - p.width * 0.25, pw, -1, s.grit); gravelKick(cx + p.width * 0.25, pw, 1, s.grit); }
                     else if (surf === 'snow') { snowKick(cx - p.width * 0.25, pw, -1); snowKick(cx + p.width * 0.25, pw, 1); }
+                    else if (surf !== 'water') { floorKick(surf, cx - p.width * 0.25, pw, -1, s.grit); floorKick(surf, cx + p.width * 0.25, pw, 1, s.grit); }
                     else groundSplash(cx, pw);
                 } else if (onFloor) {
                     const speed = Math.abs(p.vx || 0);
@@ -22573,6 +22621,7 @@
                             // stones fly BACK from the stride, away from the direction of travel
                             if (surf === 'gravel') gravelKick(fx, pw, -Math.sign(p.vx), s.grit);
                             else if (surf === 'snow') snowKick(fx, pw, -Math.sign(p.vx));
+                            else if (surf !== 'water') floorKick(surf, fx, pw, -Math.sign(p.vx), s.grit);
                             else groundSplash(fx, pw);
                         }
                     }
@@ -22605,6 +22654,70 @@
             }
             ctx.restore();
         }
+        // FLOOR DETAIL for the dry floors. Everything is seeded by x (hash below) so
+        // it holds perfectly still frame to frame. Ink-wash marks, not texture.
+        const fhash = (x, k) => { const h = Math.sin(x * k) * 43758.5453; return h - Math.floor(h); };
+        const FLOOR_BEDS = {
+            leaves(s, x0, x1) {
+                for (let x = x0 + 8; x < x1 - 8; x += 11) {
+                    const r1 = fhash(x, 12.9898), r2 = fhash(x, 78.233);
+                    if (r1 > 0.45) continue;
+                    ctx.save();
+                    ctx.translate(x + r2 * 6, GROUND_Y + 3 + r2 * r2 * 26); ctx.rotate(r1 * 6);
+                    ctx.fillStyle = `rgba(${s.grit},${0.75 - r2 * 0.4})`;
+                    ctx.beginPath(); ctx.ellipse(0, 0, 3.5 + r1 * 4, 1.6 + r1, 0, 0, Math.PI * 2); ctx.fill();
+                    ctx.restore();
+                }
+            },
+            ash(s, x0, x1) {
+                for (let x = x0 + 6; x < x1 - 6; x += 5) {
+                    const r1 = fhash(x, 12.9898), r2 = fhash(x, 78.233);
+                    if (r1 > 0.6) continue;
+                    ctx.fillStyle = `rgba(${s.grit},${0.85 - r2 * 0.4})`;
+                    ctx.fillRect(x, GROUND_Y + 2 + r2 * r2 * 30, 1 + r1 * 3, 1 + r1 * 1.5);
+                }
+                // scorch patches
+                for (let x = x0 + 60; x < x1 - 60; x += 170) {
+                    const r1 = fhash(x, 3.7);
+                    ctx.fillStyle = 'rgba(0,0,0,0.5)';
+                    ctx.beginPath(); ctx.ellipse(x + r1 * 60, GROUND_Y + 8, 26 + r1 * 30, 5, 0, 0, Math.PI * 2); ctx.fill();
+                }
+            },
+            tile(s, x0, x1) {
+                ctx.strokeStyle = `rgba(${s.grit},0.55)`; ctx.lineWidth = 1.5;
+                for (let x = x0; x < x1; x += 46) {        // tile seams along the lip
+                    ctx.beginPath(); ctx.moveTo(x, GROUND_Y + 2); ctx.lineTo(x - 4, GROUND_Y + 16); ctx.stroke();
+                }
+                ctx.beginPath(); ctx.moveTo(x0, GROUND_Y + 16); ctx.lineTo(x1, GROUND_Y + 16); ctx.stroke();
+                for (let x = x0 + 23; x < x1; x += 46) {    // second, offset course
+                    ctx.beginPath(); ctx.moveTo(x, GROUND_Y + 16); ctx.lineTo(x - 5, GROUND_Y + 34); ctx.stroke();
+                }
+                FLOOR_BEDS.cracks(s, x0, x1, 0.25);
+            },
+            stone(s, x0, x1) {
+                ctx.strokeStyle = `rgba(${s.grit},0.45)`; ctx.lineWidth = 1.5;
+                for (let x = x0 + 40; x < x1; x += 124) {   // flagstone joints
+                    ctx.beginPath(); ctx.moveTo(x, GROUND_Y + 2); ctx.lineTo(x + 8, GROUND_Y + 40); ctx.stroke();
+                }
+                ctx.beginPath(); ctx.moveTo(x0, GROUND_Y + 22); ctx.lineTo(x1, GROUND_Y + 22); ctx.stroke();
+                FLOOR_BEDS.cracks(s, x0, x1, 0.5);
+            },
+            // hairline cracks, branching once — a stroke of the brush, not a mesh
+            cracks(s, x0, x1, odds) {
+                ctx.strokeStyle = 'rgba(0,0,0,0.55)'; ctx.lineWidth = 1.2;
+                for (let x = x0 + 70; x < x1 - 70; x += 150) {
+                    if (fhash(x, 9.1) > odds) continue;
+                    let px = x + fhash(x, 5.3) * 50, py = GROUND_Y + 2;
+                    ctx.beginPath(); ctx.moveTo(px, py);
+                    for (let k = 0; k < 4; k++) {
+                        px += (fhash(x + k, 2.2) - 0.3) * 22; py += 4 + fhash(x + k, 7.7) * 7;
+                        ctx.lineTo(px, py);
+                        if (k === 1) { ctx.moveTo(px, py); ctx.lineTo(px + 14, py + 6); ctx.moveTo(px, py); }
+                    }
+                    ctx.stroke();
+                }
+            },
+        };
         // THE SNOW BLANKET: a white cover on the floor band, a lumpy drift line
         // rising just above the lip (seeded, so it holds still), bluish shade at
         // the bottom and a few sparkles. Drawn under the fighters' feet.
@@ -22694,6 +22807,16 @@
                 if (d.dust) {
                     ctx.fillStyle = `rgba(${d.tint},${0.28 * Math.max(0, d.life / d.max)})`;
                     ctx.beginPath(); ctx.ellipse(d.x, d.y, d.r, d.r * 0.45, 0, 0, Math.PI * 2); ctx.fill();
+                    continue;
+                }
+                if (d.leaf) {
+                    ctx.save();
+                    ctx.globalAlpha = Math.min(1, d.life / 0.5);
+                    ctx.translate(d.x, d.y); ctx.rotate(d.rot);
+                    ctx.fillStyle = d.ash ? `rgba(${d.tint},0.9)` : `rgb(${d.tint})`;
+                    ctx.beginPath(); ctx.ellipse(0, 0, d.r, d.r * (d.ash ? 0.8 : 0.42), 0, 0, Math.PI * 2); ctx.fill();
+                    if (!d.ash) { ctx.strokeStyle = 'rgba(0,0,0,0.6)'; ctx.lineWidth = 0.8; ctx.stroke(); }
+                    ctx.restore();
                     continue;
                 }
                 if (d.powder) {
@@ -23268,6 +23391,7 @@
                     if (SK && SK.puddles) drawPuddles(SK);
                     if (SK && SK.ground === 'gravel') drawGravelBed(SK, floorL, floorR);
                     if (SK && SK.ground === 'snow') drawSnowBed(floorL, floorR);
+                    if (SK && FLOOR_BEDS[SK.ground]) FLOOR_BEDS[SK.ground](SK, floorL, floorR);
                 }
                 if (floorL > 0 || floorR < canvas.width) {
                     ctx.fillStyle = 'rgba(0,0,0,0.55)';
