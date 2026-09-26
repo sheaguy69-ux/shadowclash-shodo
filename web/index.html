@@ -5324,19 +5324,21 @@
                 // A SEPARATE flag, never hiddenInSmoke: the mist ambush's gate promises that
                 // flag is only ever set by a mist field, and it stays true. Mist wins a tie.
                 this.inDark = false;
-                const inRoom = inBreach(this);
+                const zone = hideZone(this), inRoom = !!zone;
                 this.roomT = inRoom ? this.roomT + dt : 0;
                 if (this.revealT > 0) this.revealT -= dt;
                 if (this.checkT > 0) this.checkT -= dt;
-                if (breach && breach.open) {
+                if (zone) {
                     // the room belongs to the one who went through; once they leave it, the
-                    // first fighter alone inside takes it — a room can change hands
-                    if (breach.owner && !inBreach(breach.owner)) breach.owner = null;
-                    if (!breach.owner && inRoom && !inBreach(opponent)) breach.owner = this;
+                    // first fighter alone inside takes it — a room (or a cover) can change hands
+                    if (zone.owner && hideZone(zone.owner) !== zone) zone.owner = null;
+                    if (!zone.owner && hideZone(opponent) !== zone) zone.owner = this;
                 }
+                for (const z of coverZones) if (z.owner === this && zone !== z) z.owner = null;
                 // MIZU IS IMMUNE (owner, Sep 23): she is blind in the story bible, so the dark
                 // conceals nothing from her — no hiding from her, so no Kubikiri on her either.
-                if (inRoom && breach.owner === this && !this.hiddenInSmoke && !(this.revealT > 0)
+                if (inRoom && zone.owner === this && !this.hiddenInSmoke && !(this.revealT > 0)
+                    && !(zone.cover && !this.isGrounded)
                     && !(opponent && opponent.spec.name === 'Mizu')) {
                     this.inDark = true;
                     this.alpha = 0;
@@ -9210,7 +9212,8 @@
                 // Echoes are excluded: KAGE's tape replays through here.
                 else if (this.inDark && !opts.echo && (opts.tier || this.state) === STATE.ATTACK_HEAVY) {
                     const foes = gameMode === 'brawl' ? brawlFoes(this) : [this.opponent];
-                    if (foes.some(f => f && inBreach(f) && f.roomT < KUBI_WIN && !(f.checkT > 0))) {
+                    const myZone = hideZone(this);
+                    if (foes.some(f => f && hideZone(f) === myZone && f.roomT < KUBI_WIN && !(f.checkT > 0))) {
                         dmg *= KUBIKIRI_DMG;
                         opts = { ...opts, unblockable: true, delay: Math.min(opts.delay ?? 0, 1 / 60) };
                         this.revealT = LIT_T;
@@ -18318,14 +18321,14 @@
             // step in blind, KUBIKIRI. If they come in having checked, it is an ordinary fight
             // and the rest of the brain takes over.
             if (me.inDark) {
-                if (canAct && inBreach(foe) && foe.roomT < KUBI_WIN && !(foe.checkT > 0)) {
+                if (canAct && hideZone(foe) === hideZone(me) && foe.roomT < KUBI_WIN && !(foe.checkT > 0)) {
                     me.facing = dx >= 0 ? 1 : -1;
                     me.executeAttack(STATE.ATTACK_HEAVY);
                     B.action = 'attack';
                     keys[B.keyBlock] = false;   // the bottom re-assert is skipped by this return
                     return;
                 }
-                if (!inBreach(foe)) {
+                if (hideZone(foe) !== hideZone(me)) {
                     B.action = 'idle';
                     keys[B.keyBlock] = false;
                     return;
@@ -21748,6 +21751,7 @@
         const STAGES = [
             {
                 id: 'bamboo', name: 'Severed Bamboo Grove',
+                cover: [ { x: 0.30, w: 70, kind: 'bamboo' }, { x: 0.72, w: 70, kind: 'bamboo' } ],   // HIDING SPOTS (see THE COVER)
                 ground: 'leaves', grit: '120,132,88',   // floor detail + what kicks up (THE GROUND)
                 img: 'assets/stages/blend/bamboo-far.png',
                 parallax: 0.14, dim: 0.12, anchor: 0.87, mist: '214,220,214', mistAmt: 1.05,
@@ -21794,6 +21798,7 @@
             },
             {
                 id: 'drowned', name: 'Drowned Shrine',
+                cover: [ { x: 0.21, w: 64, kind: 'pillar' }, { x: 0.79, w: 64, kind: 'pillar' } ],   // HIDING SPOTS (see THE COVER)
                 img: 'assets/stages/blend/drowned-far.png',
                 parallax: 0.12, dim: 0.12, anchor: 0.87, mist: '205,214,224', mistAmt: 1.35,
                 floor: 'rgb(20,24,26)', line: 'rgba(175,41,30,0.80)',
@@ -21803,6 +21808,7 @@
             },
             {
                 id: 'village', name: 'Ash Village',
+                cover: [ { x: 0.64, w: 90, kind: 'house' } ],   // HIDING SPOTS (see THE COVER)
                 ground: 'ash', grit: '150,144,138',   // floor detail + what kicks up (THE GROUND)
                 img: 'assets/stages/blend/village-far.png',
                 parallax: 0.13, dim: 0.15, anchor: 0.87, mist: '220,208,196', mistAmt: 0.9,
@@ -21813,6 +21819,7 @@
             },
             {
                 id: 'warrant', name: 'Warrant Yard',
+                cover: [ { x: 0.12, w: 64, kind: 'pillar' }, { x: 0.88, w: 64, kind: 'pillar' } ],   // HIDING SPOTS (see THE COVER)
                 ground: 'stone', grit: '128,124,118',   // floor detail + what kicks up (THE GROUND)
                 img: 'assets/stages/blend/warrant-far.png',
                 parallax: 0.13, dim: 0.13, anchor: 0.87, mist: '214,214,210', mistAmt: 0.85,
@@ -21841,6 +21848,7 @@
             },
             {
                 id: 'snow', name: 'Frozen Shrine',
+                cover: [ { x: 0.26, w: 70, kind: 'pine' } ],   // HIDING SPOTS (see THE COVER)
                 img: 'assets/stages/blend/snow-far.png',
                 parallax: 0.13, dim: 0.09, anchor: 0.87, mist: '226,230,238', mistAmt: 1.25,
                 floor: 'rgb(28,30,34)', line: 'rgba(175,41,30,0.80)',
@@ -22043,6 +22051,8 @@
                 breach = { side: d, x0: d < 0 ? 10 : px + PARTITION_W, x1: d < 0 ? px : canvas.width - 10,
                            open: false, owner: null };
             }
+            coverZones = (currentStage.cover || []).map(c => ({ cover: true, kind: c.kind, cx: c.x * canvas.width,
+                x0: c.x * canvas.width - c.w / 2, x1: c.x * canvas.width + c.w / 2, w: c.w, owner: null }));
             // resolve every board's ground-relative geometry against THIS floor
             for (const wl of currentStage.walls || []) {
                 wl.y0 = Math.round((wl.top ?? 0.15) * wantH);
@@ -22298,6 +22308,24 @@
         // parallax camera, the corner label, the wall-throw's aim and the CPU. Mizu's mist
         // leaked through all three before this — the room just made it impossible to miss.
         function isHidden(p) { return !!p && (p.hiddenInSmoke || p.inDark); }
+        // ---- THE COVER (owner, Sep 26 2026: "add hiding spots ... behind the torii
+        // pillars, in the bamboo, behind the houses") ----------------------------------
+        // The dark room's hide-and-seek on boards that have no partition. A board's
+        // `cover` lists spots (x as a fraction of the width, w in px); a foreground prop is
+        // drawn over each, and a fighter STANDING in one with the opponent outside it goes
+        // dark by exactly the dark room's rules: alpha 0, creaks-and-dust tells while
+        // moving, found by a hit, KUBIKIRI on a chaser who steps in blind, Mizu immune.
+        // Leaving the ground (a jump) breaks cover — you cannot hide mid-air.
+        // hideZone() is the ONE question "which hiding place is this body in", for the
+        // room and every cover alike, so ownership and the ambush treat them the same.
+        let coverZones = [];
+        function hideZone(p) {
+            if (!p) return null;
+            if (inBreach(p)) return breach;
+            const c = p.x + p.width / 2;
+            for (const z of coverZones) if (c > z.x0 && c < z.x1) return z;
+            return null;
+        }
         // ONE place that swaps boards, because three of them drifted apart before:
         // the ring-outs-off copy has to ride along or a pit closed in the menu
         // reopens the moment the stage changes under the fighters.
@@ -22307,6 +22335,7 @@
             toastRoom = '';
             stageWear = { floor: 0, wall: 0, breach: 0 };
             pendingBreak = null;   // a break queued against the OLD board dies with it
+            stageScars = [];       // holes belong to the board they were torn in
             seedAbyss();
         }
         function stageStress(kind, force, x, y, who) {
@@ -22349,6 +22378,13 @@
             screenShakeAmount = Math.max(screenShakeAmount, 26);
             flashAmount = Math.max(flashAmount, 0.3);
             sfx('bomb');
+            // THE COLLAPSE: a partition falls inward where it stood; a board break
+            // leaves the hole on the NEW board — the roof you came through, the wall
+            // you were driven through
+            // (the partition's own torn jamb already marks where it stood — no second scar)
+            if (kind === 'breach') collapse('wall', breach.side < 0 ? 10 : canvas.width - 10,
+                { ox: breach.side < 0 ? breach.x1 : breach.x0, noScar: true });
+            else collapse(kind, x);
             for (let k = 0; k < 28; k++) particles.push({ type: 'streak',
                 x: x + (Math.random() - 0.5) * 220, y: y + (Math.random() - 0.5) * 90,
                 vx: (Math.random() - 0.5) * 620, vy: (kind === 'floor' ? -140 : -40) - Math.random() * 300,
@@ -22538,6 +22574,16 @@
                 g.life -= dt;
                 if (g.ring) g.r += g.grow * dt;
                 else if (g.dust) { g.x += g.vx * dt; g.y += g.vy * dt; g.r += g.grow * dt; }
+                else if (g.chunk) {
+                    g.x += g.vx * dt; g.y += g.vy * dt; g.vy += 1300 * dt; g.rot += g.spin * dt;
+                    const rest = GROUND_Y - g.h / 2;
+                    if (g.y >= rest && g.vy > 0) {
+                        g.y = rest;
+                        if (!g.bounced && g.vy > 200) { g.vy *= -0.28; g.vx *= 0.45; g.spin *= 0.4; g.bounced = true; }
+                        else { g.vy = 0; g.vx *= 0.7; g.spin = 0; g.rot = Math.round(g.rot / Math.PI) * Math.PI; }
+                    }
+                    if (g.x < 12 || g.x > canvas.width - 12) g.vx = -g.vx * 0.3;
+                }
                 else if (g.leaf) {
                     g.vy += 260 * dt; g.vy = Math.min(g.vy, g.ash ? 40 : 70);
                     g.vx *= Math.max(0, 1 - 1.4 * dt);
@@ -22654,6 +22700,146 @@
             }
             ctx.restore();
         }
+        // THE COVER props: ink shapes in the blend backdrops' language (flat tone, black
+        // outline, the one red), full height so a body behind one reads as behind it.
+        function drawCover() {
+            if (!coverZones.length) return;
+            ctx.save();
+            ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(12,10,14,0.95)';
+            for (const z of coverZones) {
+                const x = z.cx, w = z.w, top = GROUND_Y * 0.08;
+                if (z.kind === 'pillar') {
+                    ctx.fillStyle = 'rgb(150,38,28)';
+                    ctx.beginPath(); ctx.rect(x - w / 2, top, w, GROUND_Y - top + 4); ctx.fill(); ctx.stroke();
+                    ctx.fillStyle = 'rgba(0,0,0,0.28)';   // shadow side
+                    ctx.fillRect(x + w * 0.12, top, w * 0.38, GROUND_Y - top + 4);
+                    ctx.fillStyle = 'rgb(28,24,28)';     // black foot band
+                    ctx.fillRect(x - w / 2 - 4, GROUND_Y - 38, w + 8, 38); ctx.strokeRect(x - w / 2 - 4, GROUND_Y - 38, w + 8, 38);
+                } else if (z.kind === 'bamboo') {
+                    for (let k = -1; k <= 1; k++) {
+                        const bx = x + k * w * 0.3, bw = 16 + (k === 0 ? 6 : 0);
+                        ctx.fillStyle = k === 0 ? 'rgb(58,64,52)' : 'rgb(78,86,70)';
+                        ctx.beginPath(); ctx.rect(bx - bw / 2, 0, bw, GROUND_Y + 4); ctx.fill(); ctx.stroke();
+                        for (let y = 60 + k * 23; y < GROUND_Y; y += 92) {   // nodes
+                            ctx.beginPath(); ctx.moveTo(bx - bw / 2 - 2, y); ctx.lineTo(bx + bw / 2 + 2, y); ctx.stroke();
+                        }
+                    }
+                    ctx.fillStyle = 'rgb(46,52,42)';     // leaf fan at knee height
+                    for (let k = 0; k < 5; k++) {
+                        ctx.beginPath(); ctx.ellipse(x - w * 0.5 + k * w * 0.25, GROUND_Y - 30 - (k % 2) * 16, 26, 6, (k - 2) * 0.35, 0, Math.PI * 2);
+                        ctx.fill(); ctx.stroke();
+                    }
+                } else if (z.kind === 'house') {
+                    // a burned machiya's end wall: timber frame, shoji, a sagging tiled eave
+                    const hw = w + 70, h = GROUND_Y * 0.5, top = GROUND_Y - h;
+                    ctx.fillStyle = 'rgb(70,64,60)';
+                    ctx.beginPath(); ctx.rect(x - hw / 2, top, hw, h + 4); ctx.fill(); ctx.stroke();
+                    ctx.fillStyle = 'rgb(26,22,22)';     // posts and rails
+                    for (const f of [0, 0.5, 1]) ctx.fillRect(x - hw / 2 + f * (hw - 10), top, 10, h);
+                    ctx.fillRect(x - hw / 2, top + h * 0.45, hw, 8);
+                    ctx.fillStyle = 'rgb(214,206,190)';  // shoji bays, one torn
+                    for (const [bx, by] of [[0.1, 0.12], [0.56, 0.12], [0.1, 0.56], [0.56, 0.56]]) {
+                        const sx = x - hw / 2 + bx * hw, sy = top + by * h, sw = hw * 0.34, sh = h * 0.3;
+                        ctx.fillRect(sx, sy, sw, sh);
+                        ctx.strokeStyle = 'rgba(40,34,32,0.8)'; ctx.lineWidth = 1.2;
+                        for (let k = 1; k < 3; k++) { ctx.beginPath(); ctx.moveTo(sx + k * sw / 3, sy); ctx.lineTo(sx + k * sw / 3, sy + sh); ctx.stroke(); }
+                    }
+                    ctx.fillStyle = 'rgba(175,41,30,0.9)';   // the lit one
+                    ctx.fillRect(x - hw / 2 + 0.56 * hw, top + 0.12 * h, hw * 0.34, h * 0.3);
+                    ctx.fillStyle = 'rgb(20,18,18)';        // the torn one, dark beyond
+                    ctx.beginPath(); ctx.moveTo(x - hw / 2 + 0.12 * hw, top + 0.58 * h); ctx.lineTo(x - hw / 2 + 0.4 * hw, top + 0.62 * h);
+                    ctx.lineTo(x - hw / 2 + 0.3 * hw, top + 0.8 * h); ctx.closePath(); ctx.fill();
+                    ctx.strokeStyle = 'rgba(12,10,14,0.95)'; ctx.lineWidth = 3;
+                    ctx.fillStyle = 'rgb(34,30,32)';        // curved tiled eave
+                    ctx.beginPath(); ctx.moveTo(x - hw / 2 - 36, top + 14);
+                    ctx.quadraticCurveTo(x - hw * 0.3, top - 10, x, top - 40);
+                    ctx.quadraticCurveTo(x + hw * 0.3, top - 10, x + hw / 2 + 36, top + 14);
+                    ctx.lineTo(x + hw / 2 + 28, top + 24); ctx.lineTo(x - hw / 2 - 28, top + 24); ctx.closePath(); ctx.fill(); ctx.stroke();
+                    ctx.strokeStyle = 'rgba(120,112,108,0.6)'; ctx.lineWidth = 1.5;   // tile courses
+                    for (let k = -3; k <= 3; k++) { ctx.beginPath(); ctx.moveTo(x + k * hw * 0.14, top - 30 + Math.abs(k) * 8); ctx.lineTo(x + k * hw * 0.18, top + 22); ctx.stroke(); }
+                } else if (z.kind === 'pine') {
+                    ctx.fillStyle = 'rgb(40,38,40)';
+                    ctx.beginPath(); ctx.rect(x - 9, GROUND_Y * 0.3, 18, GROUND_Y * 0.7 + 4); ctx.fill(); ctx.stroke();
+                    for (let k = 0; k < 4; k++) {
+                        const ty = GROUND_Y * (0.22 + k * 0.17), tw = w * (0.8 + k * 0.35);
+                        ctx.fillStyle = 'rgb(48,52,50)';
+                        ctx.beginPath(); ctx.moveTo(x - tw, ty + 70); ctx.lineTo(x, ty); ctx.lineTo(x + tw, ty + 70); ctx.closePath(); ctx.fill(); ctx.stroke();
+                        ctx.fillStyle = 'rgb(232,236,242)';   // snow on the bough
+                        ctx.beginPath(); ctx.moveTo(x - tw * 0.8, ty + 58); ctx.lineTo(x, ty + 4); ctx.lineTo(x + tw * 0.8, ty + 58);
+                        ctx.lineTo(x + tw * 0.5, ty + 50); ctx.lineTo(x, ty + 20); ctx.lineTo(x - tw * 0.5, ty + 50); ctx.closePath(); ctx.fill();
+                    }
+                }
+            }
+            ctx.restore();
+        }
+
+        // ==== THE COLLAPSE (owner, Sep 26 2026) ===============================
+        // When a roof or wall gives, it FALLS: beams and tile chunks drop from the break,
+        // bounce once and lie on the floor; a dust cloud rolls out along the ground; and
+        // the hole stays open for the rest of the match (stageScars, cleared only by a
+        // new board). Cosmetic, own pool (groundFx) — no hitboxes, no gameplay read.
+        let stageScars = [];
+        function collapse(kind, x, opts = {}) {
+            const fromTop = kind === 'floor';          // a roof came down onto this board
+            const side = kind === 'floor' ? 0 : Math.sign(x - canvas.width / 2) || 1;
+            const ox = opts.ox ?? (fromTop ? x : (side < 0 ? 14 : canvas.width - 14));
+            const oy = fromTop ? 0 : GROUND_Y * 0.55;
+            for (let k = 0; k < 16; k++) {
+                const beam = k < 4;
+                groundFx.push({ chunk: true, beam, x: ox + (Math.random() - 0.5) * (fromTop ? 220 : 40),
+                    y: oy + (Math.random() - 0.5) * (fromTop ? 30 : 120),
+                    vx: fromTop ? (Math.random() - 0.5) * 220 : -side * (140 + Math.random() * 380),
+                    vy: fromTop ? 60 + Math.random() * 200 : -80 - Math.random() * 260,
+                    w: beam ? 70 + Math.random() * 50 : 10 + Math.random() * 16, h: beam ? 12 : 6 + Math.random() * 6,
+                    rot: Math.random() * 6, spin: (Math.random() - 0.5) * 8, bounced: false,
+                    life: 5 + Math.random() * 2, max: 7 });
+            }
+            // the dust cloud: rolls out both ways along the floor from where it landed
+            for (let k = 0; k < 18; k++)
+                groundFx.push({ dust: true, tint: '200,194,184', x: (fromTop ? x : ox - side * 60) + (Math.random() - 0.5) * 120,
+                    y: GROUND_Y - 10 - Math.random() * 50, vx: (Math.random() - 0.5) * 260 - side * 120, vy: -10 - Math.random() * 30,
+                    r: 30 + Math.random() * 40, grow: 50, life: 1.6 + Math.random(), max: 2.6 });
+            if (!opts.noScar) stageScars.push(fromTop ? { roof: true, x, w: 260 } : { wall: true, side, y: GROUND_Y * 0.55 });
+        }
+        // The holes left behind: a ragged opening with light spilling through (roof), or
+        // a torn gap in the side wall showing dark beyond. Drawn over the backdrop.
+        function drawScars() {
+            for (const sc of stageScars) {
+                ctx.save();
+                if (sc.roof) {
+                    const g = ctx.createLinearGradient(0, 0, 0, GROUND_Y);
+                    g.addColorStop(0, 'rgba(236,230,214,0.35)'); g.addColorStop(1, 'rgba(236,230,214,0)');
+                    ctx.fillStyle = g;                      // the shaft of light through it
+                    ctx.beginPath(); ctx.moveTo(sc.x - sc.w * 0.4, 0); ctx.lineTo(sc.x + sc.w * 0.4, 0);
+                    ctx.lineTo(sc.x + sc.w * 0.8, GROUND_Y); ctx.lineTo(sc.x - sc.w * 0.8, GROUND_Y); ctx.closePath(); ctx.fill();
+                    ctx.fillStyle = 'rgb(226,221,208)';     // the sky through the hole
+                    ctx.strokeStyle = 'rgba(12,10,14,0.95)'; ctx.lineWidth = 3;
+                    ctx.beginPath(); ctx.moveTo(sc.x - sc.w / 2, 0);
+                    for (let k = 0; k <= 10; k++) {
+                        const t = k / 10, jag = (k % 2 ? 70 : 34) + fhash(sc.x + k, 3.3) * 30;
+                        ctx.lineTo(sc.x - sc.w / 2 + t * sc.w, jag);
+                    }
+                    ctx.lineTo(sc.x + sc.w / 2, 0); ctx.closePath(); ctx.fill(); ctx.stroke();
+                    // snapped rafter ends hanging from the edge
+                    ctx.fillStyle = 'rgb(40,32,28)';
+                    for (const e of [-0.42, 0.38]) {
+                        ctx.save(); ctx.translate(sc.x + e * sc.w, 50); ctx.rotate(e > 0 ? 0.5 : -0.5);
+                        ctx.fillRect(-7, 0, 14, 70); ctx.strokeRect(-7, 0, 14, 70); ctx.restore();
+                    }
+                } else {
+                    const x = sc.side < 0 ? 10 : canvas.width - 10, dir = -sc.side;
+                    ctx.fillStyle = 'rgb(14,12,16)'; ctx.strokeStyle = 'rgba(220,210,190,0.6)'; ctx.lineWidth = 2;
+                    ctx.beginPath(); ctx.moveTo(x, sc.y - 110);
+                    for (let k = 0; k <= 8; k++) {
+                        const t = k / 8, jut = 30 + (k % 2 ? 22 : 0) + fhash(k + 1, 4.4) * 16;
+                        ctx.lineTo(x + dir * jut, sc.y - 110 + t * 220);
+                    }
+                    ctx.lineTo(x, sc.y + 110); ctx.closePath(); ctx.fill(); ctx.stroke();
+                }
+                ctx.restore();
+            }
+        }
+
         // FLOOR DETAIL for the dry floors. Everything is seeded by x (hash below) so
         // it holds perfectly still frame to frame. Ink-wash marks, not texture.
         const fhash = (x, k) => { const h = Math.sin(x * k) * 43758.5453; return h - Math.floor(h); };
@@ -22807,6 +22993,17 @@
                 if (d.dust) {
                     ctx.fillStyle = `rgba(${d.tint},${0.28 * Math.max(0, d.life / d.max)})`;
                     ctx.beginPath(); ctx.ellipse(d.x, d.y, d.r, d.r * 0.45, 0, 0, Math.PI * 2); ctx.fill();
+                    continue;
+                }
+                if (d.chunk) {
+                    ctx.save();
+                    ctx.globalAlpha = Math.min(1, d.life / 0.8);
+                    ctx.translate(d.x, d.y); ctx.rotate(d.rot);
+                    ctx.fillStyle = d.beam ? 'rgb(64,48,40)' : 'rgb(58,58,64)';
+                    ctx.strokeStyle = 'rgba(8,6,10,0.95)'; ctx.lineWidth = 2;
+                    ctx.fillRect(-d.w / 2, -d.h / 2, d.w, d.h); ctx.strokeRect(-d.w / 2, -d.h / 2, d.w, d.h);
+                    if (d.beam) { ctx.fillStyle = 'rgba(175,41,30,0.7)'; ctx.fillRect(-d.w / 2, -d.h / 2, d.w * 0.18, d.h); }
+                    ctx.restore();
                     continue;
                 }
                 if (d.leaf) {
@@ -23168,6 +23365,7 @@
                 }
             }
             drawMist();                                // the realm breathes
+            drawScars();                               // holes a collapse left open
             const SK = staged ? currentStage : null;   // stage palette for floor/platforms
 
             // Apply Screenshake translation
@@ -23559,6 +23757,7 @@
                 if (player1 && !player1.benchedOut) player1.draw(ctx);
                 if (player2 && !player2.benchedOut) player2.draw(ctx);
             }
+            drawCover();        // hiding-spot props, IN FRONT of whoever is behind them
             drawGroundFx();     // splash droplets in front of the legs
             drawGroundMist();   // knee-deep mist the fighters wade in
             // World-space defense cue uses existing type and poses; no new character art.
