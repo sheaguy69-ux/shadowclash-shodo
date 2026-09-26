@@ -630,6 +630,56 @@
             font-family: 'Zen Kaku Gothic New', sans-serif !important; font-weight: 700;
         }
         #manual-aside details { border-color: rgba(21,19,15,.22) !important; }
+
+        /* CUTSCENES — the story told on the same paper: the line of dialogue is a
+           torn strip of kozo laid over the scene, the speaker's name a vermilion seal */
+        #cutscene-bg { filter: grayscale(.35) sepia(.2); }
+        #cutscene-portrait {
+            border: 0 !important; border-radius: 2px !important; background: var(--k-kinari);
+            box-shadow: 0 14px 40px rgba(0,0,0,.7) !important; padding: 6px;
+        }
+        #cutscene-name {
+            font-family: 'Shippori Mincho B1', serif !important; font-weight: 800; font-size: 15px !important;
+            color: var(--k-kinari) !important; letter-spacing: .4em !important; text-indent: .4em;
+            background: var(--k-shu); padding: .35rem 1rem; margin-top: -14px !important;
+            transform: rotate(-1.5deg); position: relative; box-shadow: 0 4px 12px rgba(0,0,0,.5);
+        }
+        #cutscene-title {
+            font-family: 'Shippori Mincho B1', serif !important; font-weight: 800;
+            color: var(--k-kinari) !important; letter-spacing: .32em !important;
+            text-shadow: 0 3px 18px rgba(0,0,0,.9) !important;
+        }
+        #cutscene-title::after {
+            content: ''; display: block; height: 10px; width: 80%; margin: .5rem auto 0;
+            background: var(--k-kinari); opacity: .85; filter: url(#k-brushfill);
+            clip-path: polygon(0 40%, 100% 0, 97% 72%, 2% 100%);
+        }
+        #cutscene-dialogue > div {
+            position: relative; isolation: isolate;
+            background: none !important; border: 0 !important; border-radius: 0 !important;
+            padding: 1.5rem 2rem !important;
+        }
+        #cutscene-dialogue > div::before {
+            content: ''; position: absolute; inset: 0; z-index: -1; opacity: .96;
+            background: var(--k-fibre), var(--k-grain), var(--k-kinari);
+            background-size: 100% 100%, 220px 220px, auto; background-blend-mode: multiply, multiply, normal;
+            filter: url(#k-deckle) drop-shadow(0 18px 30px rgba(0,0,0,.6));
+        }
+        #cutscene-text {
+            color: var(--k-sumi) !important; font-family: 'Shippori Mincho B1', serif !important;
+            font-size: 17px !important; font-weight: 500; line-height: 1.7 !important; letter-spacing: .02em;
+        }
+        #cutscene-hint { color: rgba(239,230,210,.5) !important; font-family: 'Zen Kaku Gothic New', sans-serif !important; }
+        #btn-cutscene-skip {
+            position: relative; isolation: isolate; background: none !important; border: 0 !important;
+            color: var(--k-kinari) !important; font-family: 'Shippori Mincho B1', serif !important; letter-spacing: .25em !important;
+            padding: .35rem .8rem !important;
+        }
+        #btn-cutscene-skip::before {
+            content: ''; position: absolute; inset: 0; z-index: -1; border: 1.5px solid rgba(239,230,210,.6);
+            border-radius: 3px; filter: url(#k-brush);
+        }
+        #btn-cutscene-skip:hover::before { background: rgba(239,230,210,.1); }
     </style>
 </head>
 <body class="flex flex-col items-center min-h-screen text-white p-2">
