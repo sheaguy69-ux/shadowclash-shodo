@@ -363,6 +363,7 @@
             font: 700 10px 'Zen Kaku Gothic New', sans-serif; padding: 0 5px; border: 1px solid var(--k-sumi);
             border-bottom-width: 2px; border-radius: 2px; background: rgba(255,255,255,.25);
         }
+        #move-lab .lab-moves button.setup kbd { border-color: var(--k-shu); color: var(--k-shu); }
         #move-lab.folded .lab-moves { display: none; }
         #move-lab.folded #lab-fold { transform: rotate(180deg); }
         /* ===== SELECT SCREEN, TITLE, HEADER, SIDEBAR — KOZO PAPER AND BRUSH INK =====
@@ -17745,43 +17746,104 @@
         }
         let labRepeat = false, labCmd = null, labPlan = null, labLoopT = 0, labFor = null;
         const labKey = (type, code) => window.dispatchEvent(new KeyboardEvent(type, { code, bubbles: true }));
-        function labPlay(cmd) {
-            if (!player2 || gameMode !== 'training') return;
-            const dirKey = d => ({
-                Up: 'ArrowUp', Down: 'ArrowDown',
-                Fwd:  player2.facing > 0 ? 'ArrowRight' : 'ArrowLeft',
-                Back: player2.facing > 0 ? 'ArrowLeft' : 'ArrowRight',
-            })[d];
-            const ev = [];                      // [time, type, code]
-            let t = 0;
-            if (cmd.air) { ev.push([0, 'keydown', 'ArrowUp'], [0.08, 'keyup', 'ArrowUp']); t = 0.3; }
-            const dirs = cmd.dirs.map(dirKey);
+        // A plan is a list of steps run in order on game time:
+        //   { down: code } / { up: code }   a real P2 key event
+        //   { wait: s }                     hold still for s seconds
+        //   { until: fn, max: s }           wait for a game state (gives up after max)
+        //   { fn }                          set the stage up (fill a meter, ...)
+        const labDir = d => ({
+            Up: 'ArrowUp', Down: 'ArrowDown',
+            Fwd:  player2.facing > 0 ? 'ArrowRight' : 'ArrowLeft',
+            Back: player2.facing > 0 ? 'ArrowLeft' : 'ArrowRight',
+        })[d];
+        const labTap = code => [{ down: code }, { wait: 0.085 }, { up: code }];
+        function labSteps(cmd) {
+            const s = [];
+            if (cmd.air) s.push(...labTap('ArrowUp'), { wait: 0.22 });
+            const dirs = cmd.dirs.map(labDir);
             const btns = cmd.btns.map(b => LAB_BTN[b]);
             // C+G style: the first button is HELD, the attack lands under it
             const held = btns.length > 1 && btns[0] === 'KeyM' ? [btns.shift()] : [];
-            dirs.concat(held).forEach(k => ev.push([t, 'keydown', k]));
-            btns.forEach(k => ev.push([t + 0.035, 'keydown', k], [t + 0.12, 'keyup', k]));
-            dirs.concat(held).forEach(k => ev.push([t + 0.18, 'keyup', k]));
-            labPlan = { t: 0, ev: ev.sort((a, b) => a[0] - b[0]) };
+            dirs.concat(held).forEach(k => s.push({ down: k }));
+            s.push({ wait: 0.035 });
+            btns.forEach(k => s.push({ down: k }));
+            s.push({ wait: 0.085 });
+            btns.forEach(k => s.push({ up: k }));
+            s.push({ wait: 0.06 });
+            dirs.concat(held).forEach(k => s.push({ up: k }));
+            return s;
+        }
+        // Walk to the nearer side wall, jump into it and cling — then the move.
+        function labWall(btn) {
+            let toward;
+            return [
+                { fn: () => { toward = player2.x + player2.width / 2 < canvas.width / 2 ? 'ArrowLeft' : 'ArrowRight'; } },
+                { fn: () => labKey('keydown', toward) },
+                { until: () => player2.x < 60 || player2.x + player2.width > canvas.width - 60, max: 4 },
+                ...labTap('ArrowUp'),
+                { until: () => player2.wallDir !== 0, max: 1.2 },
+                { wait: 0.1 },
+                ...labTap(LAB_BTN[btn]),
+                { wait: 0.1 },
+                { fn: () => labKey('keyup', toward) },
+            ];
+        }
+        // Moves that need the stage set first. Read off each fighter's MOVES_LIST
+        // lines the plain parser has to skip (walls, meters, "right after a block").
+        const LAB_SETUPS = {
+            'Executioner': [
+                { label: 'block, then G · IRON GUARD REPRISAL', note: 'hit him: he guards, then answers',
+                  steps: () => [{ down: 'KeyM' }, { until: () => animClock - player2.blockedAt < 0.12, max: 8 },
+                                { up: 'KeyM' }, ...labTap('KeyO')] },
+            ],
+            'Shin':    [{ label: 'wall + F · SHURIKEN (x3)', steps: () => labWall('F') }],
+            'Ember':   [{ label: 'wall + H · pounce dive',   steps: () => labWall('H') }],
+            'Exile':   [
+                { label: 'wall + F · KUNAI (x3)', steps: () => labWall('F') },
+                { label: 'full CHAIN + V · CHAMPION MODE',
+                  steps: () => [{ fn: () => { player2.champion = CHAMPION_MAX; } }, { wait: 0.1 }, ...labTap('KeyK')] },
+            ],
+            'Mokurai': [
+                { label: 'air Up+H · SKY CATCH',  cmd: { air: true, dirs: ['Up'],   btns: ['H'] } },
+                { label: 'air Down+H · BELL TOLL', cmd: { air: true, dirs: ['Down'], btns: ['H'] } },
+                { label: 'short karma, hold Down+C · ENLIGHTENMENT',
+                  steps: () => [{ fn: () => { player2.karma = 5; player2.enlightenUsed = false; } },
+                                { down: 'ArrowDown' }, { down: 'KeyM' }, { wait: 2.25 }, { up: 'KeyM' }, { up: 'ArrowDown' }] },
+                { label: 'full karma, hold Down+C · THE CRACK',
+                  steps: () => [{ fn: () => { player2.karma = KARMA_MAX; } },
+                                { down: 'ArrowDown' }, { down: 'KeyM' }, { wait: 2.25 }, { up: 'KeyM' }, { up: 'ArrowDown' }] },
+            ],
+        };
+        function labPlay(cmd) {
+            if (!player2 || gameMode !== 'training') return;
+            labPlan = { steps: cmd.steps ? cmd.steps() : labSteps(cmd), wait: 0, held: new Set() };
         }
         function labRun(dt) {
             if (gameMode !== 'training' || !player2) return;
             if (labFor !== player2) buildMoveLab();   // a new match seats a new dummy
-            if (labPlan) {
-                labPlan.t += dt;
-                while (labPlan.ev.length && labPlan.ev[0][0] <= labPlan.t) {
-                    const [, type, code] = labPlan.ev.shift();
-                    labKey(type, code);
-                }
-                if (!labPlan.ev.length) labPlan = null;
+            while (labPlan) {
+                const st = labPlan.steps[0];
+                if (!st) { labPlan = null; break; }
+                if (st.wait !== undefined) {
+                    labPlan.wait += dt; dt = 0;
+                    if (labPlan.wait < st.wait) break;
+                    labPlan.wait = 0;
+                } else if (st.until) {
+                    labPlan.wait += dt; dt = 0;
+                    if (!st.until() && labPlan.wait < st.max) break;
+                    labPlan.wait = 0;
+                } else if (st.down) { labKey('keydown', st.down); labPlan.held.add(st.down); }
+                else if (st.up) { labKey('keyup', st.up); labPlan.held.delete(st.up); }
+                else if (st.fn) st.fn();
+                labPlan.steps.shift();
             }
             if (labRepeat && labCmd && !labPlan) {
-                labLoopT += dt;
+                labLoopT += dt || 1 / 60;
                 if (labLoopT >= 1.4 && player2.stunTimer <= 0) { labLoopT = 0; labPlay(labCmd); }
             }
         }
         function labStop() {
-            if (labPlan) labPlan.ev.filter(e => e[1] === 'keyup').forEach(e => labKey('keyup', e[2]));
+            if (labPlan) labPlan.held.forEach(k => labKey('keyup', k));
             labPlan = null; labCmd = null; labLoopT = 0;
             document.querySelectorAll('#move-lab .lab-moves button').forEach(b => b.classList.remove('on'));
         }
@@ -17794,11 +17856,13 @@
             if (!show) return;
             document.getElementById('lab-who').textContent = player2.spec.name.toUpperCase();
             const box = lab.querySelector('.lab-moves');
-            box.replaceChildren(...labCommands(player2.spec.name).map(cmd => {
+            const setups = (LAB_SETUPS[player2.spec.name] || []).map(x => ({ ...(x.cmd || {}), steps: x.steps, label: x.label, note: x.note, setup: true }));
+            box.replaceChildren(...labCommands(player2.spec.name).concat(setups).map(cmd => {
                 const b = document.createElement('button');
                 const [keys, name] = cmd.label.split(' · ');
                 const k = document.createElement('kbd'); k.textContent = keys;
                 b.append(k, name);
+                if (cmd.setup) { b.classList.add('setup'); if (cmd.note) b.title = cmd.note; }
                 b.addEventListener('click', () => {
                     b.blur();                   // keep Space/Enter for the fight
                     labStop();
