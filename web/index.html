@@ -5378,7 +5378,7 @@
                     proj.x += proj.vx * dt;
                     proj.y += proj.vy * dt;
                     // THE BLIND CHECK, thrown: a blade into the dark tells you what is in there.
-                    if (breach && breach.open && proj.x > breach.x0 && proj.x < breach.x1) this.checkT = CHECK_T;
+                    if (hideSpanAt(proj.x, proj.x)) this.checkT = CHECK_T;
                     // palm blast sheds fire on the way through
                     if (proj.kind === 'palm' && Math.random() < 0.5 * dt * 60)
                         particles.push({ type: 'streak', x: proj.x - proj.vx * 0.04, y: proj.y + (Math.random() - 0.5) * 18,
@@ -9262,10 +9262,7 @@
                 if (opts.low) { oy = this.height - sh - 2; }                  // sweep skims the floor
                 // THE BLIND CHECK, swung: a low into the dark tells you what is in there, and
                 // switches KUBIKIRI off against you for CHECK_T.
-                if (opts.low && breach && breach.open) {
-                    const bx0 = this.x + ox;
-                    if (bx0 + sw > breach.x0 && bx0 < breach.x1) this.checkT = CHECK_T;
-                }
+                if (opts.low && hideSpanAt(this.x + ox, this.x + ox + sw)) this.checkT = CHECK_T;
                 // METEOR PLUNGE: the box rides under the feet. It CENTRES the caller's
                 // width rather than replacing it — `sh = h` already honoured the caller's
                 // height on this same line, while `sw = this.width` silently threw the
@@ -18337,6 +18334,65 @@
             // opponent is still outside the brain holds dead still and waits. The moment they
             // step in blind, KUBIKIRI. If they come in having checked, it is an ordinary fight
             // and the rest of the brain takes over.
+            // ---- THE CPU KNOWS THE NEW BOARDS (owner, Sep 26 2026: "the CPU are not
+            // conscious of the new changes"). Four habits, each the counterplay a person
+            // would find:
+            //  1. FOLLOW: chasing through a break, it goes for the hole at once rather
+            //     than stand there and be pulled in, handing the hider a head start.
+            //  2. HEAD START: landed first and unseen with no cover, it holds still (the
+            //     creak would give it away) and only swings once the chaser is on it.
+            //  3. TAKE COVER: hurt, with a hiding spot nearer than the foe, it breaks off
+            //     and slips behind it — then the dark-room branch below keeps it still.
+            //  4. CHECK THE SPOTS: when the foe vanishes near a hiding spot it never walks
+            //     in blind — it sweeps low into the spot first (a CHECK: no Kubikiri).
+            const G = followGate;
+            if (G && G.chaser === me) {
+                const tx = G.kind === 'floor' ? G.x : (G.side > 0 ? canvas.width : 0);
+                const d = tx - (me.x + me.width / 2);
+                keys[d > 0 ? B.keyR : B.keyL] = Math.abs(d) > 20 || G.kind !== 'floor';
+                B.action = 'follow';
+                return;
+            }
+            if (me.arriveHideT > 0 && me.inDark && !hideZone(me)) {
+                if (canAct && dist < 70) {
+                    me.facing = dx >= 0 ? 1 : -1;
+                    me.executeAttack(STATE.ATTACK_HEAVY);
+                    B.action = 'attack';
+                } else B.action = 'idle';
+                keys[B.keyBlock] = false;
+                return;
+            }
+            if (!isHidden(me) && coverZones.length && canAct && me.isGrounded
+                && me.hp < me.maxHp * 0.35 && dist > 140) {
+                const myCx = me.x + me.width / 2, foeX = foe.x + foe.width / 2;
+                const spot = coverZones
+                    .filter(z => !(foeX > z.x0 && foeX < z.x1) && Math.abs(z.cx - myCx) < Math.abs(z.cx - foeX))
+                    .sort((a, b) => Math.abs(a.cx - myCx) - Math.abs(b.cx - myCx))[0];
+                if (spot) {
+                    const d = spot.cx - myCx;
+                    if (Math.abs(d) > 8) keys[d > 0 ? B.keyR : B.keyL] = true;
+                    B.action = 'hide';
+                    keys[B.keyBlock] = false;
+                    return;
+                }
+            }
+            if (foe.inDark && canAct && me.isGrounded && !(me.checkCd > 0)) {
+                const spot = hideSpanAt(foeCx - 1, foeCx + 1);
+                const myCx = me.x + me.width / 2;
+                if (spot && hideZone(me) !== spot) {
+                    const edge = foeCx > myCx ? spot.x0 : spot.x1;
+                    if (Math.abs(edge - myCx) < 58) {   // the sweep's reach: ~52px past the body
+                        me.facing = foeCx > myCx ? 1 : -1;
+                        hold(B.keyDown, () => me.executeAttack(STATE.ATTACK_LIGHT));   // low = a CHECK
+                        me.checkCd = 0.9;
+                        B.action = 'attack';
+                        keys[B.keyBlock] = false;
+                        return;
+                    }
+                }
+            }
+            if (me.checkCd > 0) me.checkCd -= dt;
+
             if (me.inDark) {
                 if (canAct && hideZone(me) && hideZone(foe) === hideZone(me) && foe.roomT < KUBI_WIN && !(foe.checkT > 0)) {
                     me.facing = dx >= 0 ? 1 : -1;
@@ -22337,6 +22393,11 @@
         // hideZone() is the ONE question "which hiding place is this body in", for the
         // room and every cover alike, so ownership and the ambush treat them the same.
         let coverZones = [];
+        // Any hiding place (open room or cover) overlapping [x0,x1] — for the blind checks.
+        function hideSpanAt(x0, x1) {
+            if (breach && breach.open && x1 > breach.x0 && x0 < breach.x1) return breach;
+            return coverZones.find(z => x1 > z.x0 && x0 < z.x1) || null;
+        }
         function hideZone(p) {
             if (!p) return null;
             if (inBreach(p)) return breach;
