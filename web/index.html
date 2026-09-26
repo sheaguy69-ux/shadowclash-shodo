@@ -363,6 +363,7 @@
             font: 700 10px 'Zen Kaku Gothic New', sans-serif; padding: 0 5px; border: 1px solid var(--k-sumi);
             border-bottom-width: 2px; border-radius: 2px; background: rgba(255,255,255,.25);
         }
+        #move-lab .lab-moves button.setup kbd { border-color: var(--k-shu); color: var(--k-shu); }
         #move-lab.folded .lab-moves { display: none; }
         #move-lab.folded #lab-fold { transform: rotate(180deg); }
         /* ===== SELECT SCREEN, TITLE, HEADER, SIDEBAR — KOZO PAPER AND BRUSH INK =====
@@ -629,6 +630,56 @@
             font-family: 'Zen Kaku Gothic New', sans-serif !important; font-weight: 700;
         }
         #manual-aside details { border-color: rgba(21,19,15,.22) !important; }
+
+        /* CUTSCENES — the story told on the same paper: the line of dialogue is a
+           torn strip of kozo laid over the scene, the speaker's name a vermilion seal */
+        #cutscene-bg { filter: grayscale(.35) sepia(.2); }
+        #cutscene-portrait {
+            border: 0 !important; border-radius: 2px !important; background: var(--k-kinari);
+            box-shadow: 0 14px 40px rgba(0,0,0,.7) !important; padding: 6px;
+        }
+        #cutscene-name {
+            font-family: 'Shippori Mincho B1', serif !important; font-weight: 800; font-size: 15px !important;
+            color: var(--k-kinari) !important; letter-spacing: .4em !important; text-indent: .4em;
+            background: var(--k-shu); padding: .35rem 1rem; margin-top: -14px !important;
+            transform: rotate(-1.5deg); position: relative; box-shadow: 0 4px 12px rgba(0,0,0,.5);
+        }
+        #cutscene-title {
+            font-family: 'Shippori Mincho B1', serif !important; font-weight: 800;
+            color: var(--k-kinari) !important; letter-spacing: .32em !important;
+            text-shadow: 0 3px 18px rgba(0,0,0,.9) !important;
+        }
+        #cutscene-title::after {
+            content: ''; display: block; height: 10px; width: 80%; margin: .5rem auto 0;
+            background: var(--k-kinari); opacity: .85; filter: url(#k-brushfill);
+            clip-path: polygon(0 40%, 100% 0, 97% 72%, 2% 100%);
+        }
+        #cutscene-dialogue > div {
+            position: relative; isolation: isolate;
+            background: none !important; border: 0 !important; border-radius: 0 !important;
+            padding: 1.5rem 2rem !important;
+        }
+        #cutscene-dialogue > div::before {
+            content: ''; position: absolute; inset: 0; z-index: -1; opacity: .96;
+            background: var(--k-fibre), var(--k-grain), var(--k-kinari);
+            background-size: 100% 100%, 220px 220px, auto; background-blend-mode: multiply, multiply, normal;
+            filter: url(#k-deckle) drop-shadow(0 18px 30px rgba(0,0,0,.6));
+        }
+        #cutscene-text {
+            color: var(--k-sumi) !important; font-family: 'Shippori Mincho B1', serif !important;
+            font-size: 17px !important; font-weight: 500; line-height: 1.7 !important; letter-spacing: .02em;
+        }
+        #cutscene-hint { color: rgba(239,230,210,.5) !important; font-family: 'Zen Kaku Gothic New', sans-serif !important; }
+        #btn-cutscene-skip {
+            position: relative; isolation: isolate; background: none !important; border: 0 !important;
+            color: var(--k-kinari) !important; font-family: 'Shippori Mincho B1', serif !important; letter-spacing: .25em !important;
+            padding: .35rem .8rem !important;
+        }
+        #btn-cutscene-skip::before {
+            content: ''; position: absolute; inset: 0; z-index: -1; border: 1.5px solid rgba(239,230,210,.6);
+            border-radius: 3px; filter: url(#k-brush);
+        }
+        #btn-cutscene-skip:hover::before { background: rgba(239,230,210,.1); }
     </style>
 </head>
 <body class="flex flex-col items-center min-h-screen text-white p-2">
@@ -17745,43 +17796,104 @@
         }
         let labRepeat = false, labCmd = null, labPlan = null, labLoopT = 0, labFor = null;
         const labKey = (type, code) => window.dispatchEvent(new KeyboardEvent(type, { code, bubbles: true }));
-        function labPlay(cmd) {
-            if (!player2 || gameMode !== 'training') return;
-            const dirKey = d => ({
-                Up: 'ArrowUp', Down: 'ArrowDown',
-                Fwd:  player2.facing > 0 ? 'ArrowRight' : 'ArrowLeft',
-                Back: player2.facing > 0 ? 'ArrowLeft' : 'ArrowRight',
-            })[d];
-            const ev = [];                      // [time, type, code]
-            let t = 0;
-            if (cmd.air) { ev.push([0, 'keydown', 'ArrowUp'], [0.08, 'keyup', 'ArrowUp']); t = 0.3; }
-            const dirs = cmd.dirs.map(dirKey);
+        // A plan is a list of steps run in order on game time:
+        //   { down: code } / { up: code }   a real P2 key event
+        //   { wait: s }                     hold still for s seconds
+        //   { until: fn, max: s }           wait for a game state (gives up after max)
+        //   { fn }                          set the stage up (fill a meter, ...)
+        const labDir = d => ({
+            Up: 'ArrowUp', Down: 'ArrowDown',
+            Fwd:  player2.facing > 0 ? 'ArrowRight' : 'ArrowLeft',
+            Back: player2.facing > 0 ? 'ArrowLeft' : 'ArrowRight',
+        })[d];
+        const labTap = code => [{ down: code }, { wait: 0.085 }, { up: code }];
+        function labSteps(cmd) {
+            const s = [];
+            if (cmd.air) s.push(...labTap('ArrowUp'), { wait: 0.22 });
+            const dirs = cmd.dirs.map(labDir);
             const btns = cmd.btns.map(b => LAB_BTN[b]);
             // C+G style: the first button is HELD, the attack lands under it
             const held = btns.length > 1 && btns[0] === 'KeyM' ? [btns.shift()] : [];
-            dirs.concat(held).forEach(k => ev.push([t, 'keydown', k]));
-            btns.forEach(k => ev.push([t + 0.035, 'keydown', k], [t + 0.12, 'keyup', k]));
-            dirs.concat(held).forEach(k => ev.push([t + 0.18, 'keyup', k]));
-            labPlan = { t: 0, ev: ev.sort((a, b) => a[0] - b[0]) };
+            dirs.concat(held).forEach(k => s.push({ down: k }));
+            s.push({ wait: 0.035 });
+            btns.forEach(k => s.push({ down: k }));
+            s.push({ wait: 0.085 });
+            btns.forEach(k => s.push({ up: k }));
+            s.push({ wait: 0.06 });
+            dirs.concat(held).forEach(k => s.push({ up: k }));
+            return s;
+        }
+        // Walk to the nearer side wall, jump into it and cling — then the move.
+        function labWall(btn) {
+            let toward;
+            return [
+                { fn: () => { toward = player2.x + player2.width / 2 < canvas.width / 2 ? 'ArrowLeft' : 'ArrowRight'; } },
+                { fn: () => labKey('keydown', toward) },
+                { until: () => player2.x < 60 || player2.x + player2.width > canvas.width - 60, max: 4 },
+                ...labTap('ArrowUp'),
+                { until: () => player2.wallDir !== 0, max: 1.2 },
+                { wait: 0.1 },
+                ...labTap(LAB_BTN[btn]),
+                { wait: 0.1 },
+                { fn: () => labKey('keyup', toward) },
+            ];
+        }
+        // Moves that need the stage set first. Read off each fighter's MOVES_LIST
+        // lines the plain parser has to skip (walls, meters, "right after a block").
+        const LAB_SETUPS = {
+            'Executioner': [
+                { label: 'block, then G · IRON GUARD REPRISAL', note: 'hit him: he guards, then answers',
+                  steps: () => [{ down: 'KeyM' }, { until: () => animClock - player2.blockedAt < 0.12, max: 8 },
+                                { up: 'KeyM' }, ...labTap('KeyO')] },
+            ],
+            'Shin':    [{ label: 'wall + F · SHURIKEN (x3)', steps: () => labWall('F') }],
+            'Ember':   [{ label: 'wall + H · pounce dive',   steps: () => labWall('H') }],
+            'Exile':   [
+                { label: 'wall + F · KUNAI (x3)', steps: () => labWall('F') },
+                { label: 'full CHAIN + V · CHAMPION MODE',
+                  steps: () => [{ fn: () => { player2.champion = CHAMPION_MAX; } }, { wait: 0.1 }, ...labTap('KeyK')] },
+            ],
+            'Mokurai': [
+                { label: 'air Up+H · SKY CATCH',  cmd: { air: true, dirs: ['Up'],   btns: ['H'] } },
+                { label: 'air Down+H · BELL TOLL', cmd: { air: true, dirs: ['Down'], btns: ['H'] } },
+                { label: 'short karma, hold Down+C · ENLIGHTENMENT',
+                  steps: () => [{ fn: () => { player2.karma = 5; player2.enlightenUsed = false; } },
+                                { down: 'ArrowDown' }, { down: 'KeyM' }, { wait: 2.25 }, { up: 'KeyM' }, { up: 'ArrowDown' }] },
+                { label: 'full karma, hold Down+C · THE CRACK',
+                  steps: () => [{ fn: () => { player2.karma = KARMA_MAX; } },
+                                { down: 'ArrowDown' }, { down: 'KeyM' }, { wait: 2.25 }, { up: 'KeyM' }, { up: 'ArrowDown' }] },
+            ],
+        };
+        function labPlay(cmd) {
+            if (!player2 || gameMode !== 'training') return;
+            labPlan = { steps: cmd.steps ? cmd.steps() : labSteps(cmd), wait: 0, held: new Set() };
         }
         function labRun(dt) {
             if (gameMode !== 'training' || !player2) return;
             if (labFor !== player2) buildMoveLab();   // a new match seats a new dummy
-            if (labPlan) {
-                labPlan.t += dt;
-                while (labPlan.ev.length && labPlan.ev[0][0] <= labPlan.t) {
-                    const [, type, code] = labPlan.ev.shift();
-                    labKey(type, code);
-                }
-                if (!labPlan.ev.length) labPlan = null;
+            while (labPlan) {
+                const st = labPlan.steps[0];
+                if (!st) { labPlan = null; break; }
+                if (st.wait !== undefined) {
+                    labPlan.wait += dt; dt = 0;
+                    if (labPlan.wait < st.wait) break;
+                    labPlan.wait = 0;
+                } else if (st.until) {
+                    labPlan.wait += dt; dt = 0;
+                    if (!st.until() && labPlan.wait < st.max) break;
+                    labPlan.wait = 0;
+                } else if (st.down) { labKey('keydown', st.down); labPlan.held.add(st.down); }
+                else if (st.up) { labKey('keyup', st.up); labPlan.held.delete(st.up); }
+                else if (st.fn) st.fn();
+                labPlan.steps.shift();
             }
             if (labRepeat && labCmd && !labPlan) {
-                labLoopT += dt;
+                labLoopT += dt || 1 / 60;
                 if (labLoopT >= 1.4 && player2.stunTimer <= 0) { labLoopT = 0; labPlay(labCmd); }
             }
         }
         function labStop() {
-            if (labPlan) labPlan.ev.filter(e => e[1] === 'keyup').forEach(e => labKey('keyup', e[2]));
+            if (labPlan) labPlan.held.forEach(k => labKey('keyup', k));
             labPlan = null; labCmd = null; labLoopT = 0;
             document.querySelectorAll('#move-lab .lab-moves button').forEach(b => b.classList.remove('on'));
         }
@@ -17794,11 +17906,13 @@
             if (!show) return;
             document.getElementById('lab-who').textContent = player2.spec.name.toUpperCase();
             const box = lab.querySelector('.lab-moves');
-            box.replaceChildren(...labCommands(player2.spec.name).map(cmd => {
+            const setups = (LAB_SETUPS[player2.spec.name] || []).map(x => ({ ...(x.cmd || {}), steps: x.steps, label: x.label, note: x.note, setup: true }));
+            box.replaceChildren(...labCommands(player2.spec.name).concat(setups).map(cmd => {
                 const b = document.createElement('button');
                 const [keys, name] = cmd.label.split(' · ');
                 const k = document.createElement('kbd'); k.textContent = keys;
                 b.append(k, name);
+                if (cmd.setup) { b.classList.add('setup'); if (cmd.note) b.title = cmd.note; }
                 b.addEventListener('click', () => {
                     b.blur();                   // keep Space/Enter for the fight
                     labStop();
@@ -20613,27 +20727,36 @@
                 // shrinks its type to fit instead. Monospace advance is linear, so
                 // one pass lands exactly.
                 const cap = canvas.width / 2 - 24;
-                ctx.font = '10px monospace';
+                const face = 'px "Zen Kaku Gothic New", sans-serif';
+                ctx.font = '11' + face;
                 const want = Math.max(...lines.map(l => ctx.measureText(l).width));
-                const fs = Math.min(10, 10 * cap / want);
-                if (fs < 10) ctx.font = fs.toFixed(2) + 'px monospace';
-                const lh = Math.max(9, fs * 1.3);
-                const w = Math.min(want, cap) + 16;
-                const h = 28 + lines.length * lh;
+                const fs = Math.min(11, 11 * cap / want);
+                if (fs < 11) ctx.font = fs.toFixed(2) + face;
+                const lh = Math.max(10, fs * 1.45);
+                const w = Math.min(want, cap) + 24;
+                const h = 36 + lines.length * lh;
                 const x0 = side < 0 ? 10 : canvas.width - 10 - w;
-                ctx.globalAlpha = 0.82;
-                ctx.fillStyle = '#0b0d12';
-                ctx.fillRect(x0, 106, w, h);
+                const y0 = 168;
+                // a sheet of kozo paper with a sumi edge — the pause menu's hand
+                ctx.globalAlpha = 0.93;
+                ctx.fillStyle = '#efe6d2';
+                ctx.fillRect(x0, y0, w, h);
                 ctx.globalAlpha = 1;
-                ctx.strokeStyle = '#2a3040';
-                ctx.strokeRect(x0, 106, w, h);
+                ctx.strokeStyle = 'rgba(21,19,15,.8)';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(x0 + 1, y0 + 1, w - 2, h - 2);
+                ctx.fillStyle = '#b3261e';
+                ctx.fillRect(x0 + 10, y0 + 11, 7, 7);
                 ctx.textAlign = 'left';
-                ctx.font = 'bold 12px monospace';
-                ctx.fillStyle = '#facc15';
-                ctx.fillText(p.spec.name.toUpperCase() + ' — MOVES', x0 + 8, 122);
-                ctx.font = fs.toFixed(2) + 'px monospace';
-                ctx.fillStyle = '#d1d5db';
-                lines.forEach((l, i) => ctx.fillText(l, x0 + 8, 138 + i * lh));
+                ctx.font = '800 13px "Shippori Mincho B1", serif';
+                ctx.letterSpacing = '3px';
+                ctx.fillStyle = '#15130f';
+                ctx.fillText(p.spec.name.toUpperCase() + '  —  MOVES', x0 + 24, y0 + 19);
+                ctx.fillRect(x0 + 10, y0 + 25, Math.min(w - 20, 200), 2);
+                ctx.letterSpacing = '0px';
+                ctx.font = fs.toFixed(2) + face;
+                ctx.fillStyle = '#2a2620';
+                lines.forEach((l, i) => ctx.fillText(l, x0 + 12, y0 + 42 + i * lh));
                 ctx.restore();
             };
             col(player1, -1);
@@ -23292,21 +23415,37 @@
             // clock hidden entirely when the timer is off; "∞" marks the mode
             if (gameMode === 'training') {
                 // readout sits BELOW the VS badge (badge owns y<70)
-                ctx.font = "bold 13px monospace";
-                ctx.fillStyle = "#facc15";
-                ctx.fillText(`LAST ${trainingStats.last.toFixed(1)}  ·  COMBO ${trainingStats.combo}  ·  TOTAL ${trainingStats.total.toFixed(0)}`, hudW/2, 84);
-                ctx.fillStyle = "#9ca3af";
-                ctx.font = "10px monospace";
-                ctx.fillText(`🥋 TRAINING — R reset · T dummy block ${trainingDummyBlock ? 'ON' : 'off'} · L moves ${moveListOpen ? 'ON' : 'off'} · B drill`, hudW/2, 99);
+                // an ink band, same hand as the camera notice: the numbers in the
+                // brush serif on sumi, the key hints quiet underneath
+                const stats = `LAST ${trainingStats.last.toFixed(1)}   ·   COMBO ${trainingStats.combo}   ·   TOTAL ${trainingStats.total.toFixed(0)}`;
+                ctx.save();
+                ctx.font = '700 14px "Shippori Mincho B1", serif';
+                ctx.letterSpacing = '2px';
+                const bw = ctx.measureText(stats).width + 60;
+                ctx.fillStyle = 'rgba(21,19,15,.84)';
+                ctx.beginPath();
+                ctx.moveTo(hudW/2 - bw/2, 111); ctx.lineTo(hudW/2 + bw/2 + 5, 109);
+                ctx.lineTo(hudW/2 + bw/2, 143); ctx.lineTo(hudW/2 - bw/2 - 4, 145);
+                ctx.closePath(); ctx.fill();
+                ctx.fillStyle = '#b3261e';
+                ctx.fillRect(hudW/2 - bw/2 + 12, 118, 7, 7);
+                ctx.fillStyle = '#efe6d2';
+                ctx.fillText(stats, hudW/2 + 6, 126);
+                ctx.font = '10px "Zen Kaku Gothic New", sans-serif';
+                ctx.letterSpacing = '1px';
+                ctx.fillStyle = 'rgba(239,230,210,.62)';
+                ctx.fillText(`TRAINING  —  R reset  ·  T dummy block ${trainingDummyBlock ? 'ON' : 'off'}  ·  L moves ${moveListOpen ? 'ON' : 'off'}  ·  B drill`, hudW/2, 139);
+                ctx.restore();
                 // The running drill is named on screen, and it says so LOUDLY when the
                 // dummy is the wrong fighter for it — a drill that silently does nothing
                 // because Oni is not on the CPU side is worse than no drill at all.
                 if (drillIdx) {
                     const d = DRILLS[drillIdx];
                     const wrong = d.want && player2 && player2.spec.name !== d.want;
-                    ctx.fillStyle = wrong ? "#ef4444" : "#22d3ee";
+                    ctx.font = '700 11px "Shippori Mincho B1", serif';
+                    ctx.fillStyle = wrong ? "#e0584a" : "#efe6d2";
                     ctx.fillText(wrong ? `DRILL: ${d.name} — needs ${d.want} as the dummy`
-                                       : `DRILL: ${d.name}`, hudW / 2, 112);
+                                       : `DRILL: ${d.name}`, hudW / 2, 160);
                 }
                 if (moveListOpen) drawMoveList(ctx);
             } else if (gameMode === 'tag') {
