@@ -218,7 +218,8 @@ Known engine issue to check first: Tsubasa's sakate is still hijacked by the kic
 | Back+H | **Nagare Gaeshi** — slips aside, cracks the bo on them | **COUNTER**; struck = evade + knockdown |
 | Down+H | **Ashi-garami** — hooks the ankle with the bo | trip |
 | Air H | **Taki Otoshi** — waterfall slam | **Spike**; crush |
-| Special | **Sōjō Hanbō** — split into twin-hanbō flurry | chakra, fast close combo |
+| Special | **Mist Drop (Kirigakure)** — her invisible mist | **KEEP AS SHIPPED — owner rule.** Engine MIST DROP unchanged: radius 260, 7.0s, she vanishes (alpha 0), everyone else inside is only obscured, no hitbox, recast replaces the field. Do not retune it |
+| Down+S | **Sōjō Hanbō** — split into twin-hanbō flurry | chakra, fast close combo |
 | Fwd+S | **Bo Kakeru** — vaults on the bo, kicks | clears lows |
 | Throw | **Bo Garami** — bo behind neck, hip throw | |
 | Guard | standard kawarimi | no parry |
