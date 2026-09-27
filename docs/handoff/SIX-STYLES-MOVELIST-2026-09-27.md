@@ -120,8 +120,8 @@ other fighter's melee boxes stay shorter than theirs.
 | 1 — longest (tied) | **Executioner** | long sword + his height; the tip is the sweetspot |
 | 1 — longest (tied) | **Mizu** | the full-length bo; tip is the sweetspot. Split hanbō moves are short on purpose |
 | 2 — mid | **Kael** | long sword pokes; short-sword moves are close |
-| 3 — short | **Ember** | claws |
-| 3 — short | **Tsubasa** | tantō; his kicks reach slightly further than his blades |
+| 2 — mid | **Ember** | claws with a long lunging reach |
+| 2 — mid | **Tsubasa** | kicks extend the tantō; blades alone are close |
 | 3 — short | **Shin** | fists — his range is the wire and shuriken (projectiles, not melee reach) |
 
 Exceptions allowed: the Executioner's headbutt and shoulder bump are deliberately close-range,
