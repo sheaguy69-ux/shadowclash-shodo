@@ -1,0 +1,64 @@
+{
+  "gameplay": {
+    "cases": 108,
+    "matchedIDs": 108,
+    "geometryDifferences": [],
+    "errors": []
+  },
+  "renderer": {
+    "sheetVersion": 874,
+    "runtime": true,
+    "runtimePages": 2,
+    "cols": 351,
+    "scale": 0.6514450867052023,
+    "panel": {
+      "width": 160,
+      "height": 144,
+      "floor": 136,
+      "origin": "one common translation to player center at80 and physical footbaseline136; actual drawSprite scale/mirror/footAdj/outline; no resize, per-frame bbox or normalization",
+      "background": "flat QA parchment + floor guide, not game stage"
+    },
+    "method": "Actual live game :9101 verified before/after. Still keys: controlled exact selector phases through drawSprite. Loop PNGs: actual unpaused gameLoop/requestAnimationFrame at normal combat tempo1.2. Native panel PNGs are direct renderer captures with QA background, full scene PNGs are actual drawScene game canvas.",
+    "errors": []
+  },
+  "played_order": {
+    "right": [
+      345,
+      346,
+      347,
+      348,
+      349,
+      350,
+      349,
+      348,
+      347,
+      346,
+      345
+    ],
+    "left": [
+      345,
+      346,
+      347,
+      348,
+      349,
+      350,
+      349,
+      348,
+      347,
+      346,
+      345
+    ]
+  },
+  "served_files": {
+    "index.html": "23a3ae188bc360ccf3e73c5330721c07d3338b5b8ea6878321b9fd3ffcb8a12f",
+    "assets/sprites/kael.json": "2b644c82b0241444edf9f639d5b735edd24c72fdb99549028eac97adc6dc2b7f",
+    "assets/runtime-sprites/kael.json": "c544b1525395212928b9ac700323a47e20255d30cbb7cf89a199395689aee55a",
+    "assets/runtime-sprites/index.json": "deb5515bbf6f3e7d2234aed08e8d286da6a4ff2561160c384b0cffef89c1fccb"
+  },
+  "edges_report": "browser-qa-installed-edges.json;24cases,no pixels beyond viewport",
+  "static_review": "independent review passes old345cells, six sources, uniform pack, metadata, otherfighter assets/index and art-only JS",
+  "syntax_check": "inline classic game script parsed by Node vm.Script",
+  "source_and_runtime_check": "check_install.py passes; runtime351cells have identical visible pixels",
+  "fragment_check": "no new-cell flags; pre-existing unreferenced cell38 left unchanged",
+  "evidence_directory": "/Users/anthonyguy/.codex/visualizations/2026/09/26/01a0dc98-158b-77e3-aa00-fafcbf5922cb/sprite-production/01-kael/idle/installation"
+}
