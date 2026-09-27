@@ -5378,7 +5378,7 @@
                     proj.x += proj.vx * dt;
                     proj.y += proj.vy * dt;
                     // THE BLIND CHECK, thrown: a blade into the dark tells you what is in there.
-                    if (breach && breach.open && proj.x > breach.x0 && proj.x < breach.x1) this.checkT = CHECK_T;
+                    if (hideSpanAt(proj.x, proj.x)) this.checkT = CHECK_T;
                     // palm blast sheds fire on the way through
                     if (proj.kind === 'palm' && Math.random() < 0.5 * dt * 60)
                         particles.push({ type: 'streak', x: proj.x - proj.vx * 0.04, y: proj.y + (Math.random() - 0.5) * 18,
@@ -6267,7 +6267,10 @@
                     // the SKY HARVEST detonation — the hardest floor impact in the game —
                     // counts too, instead of only ordinary knockdowns.
                     if (impactVy > 380 && this.stunTimer > 0)
-                        stageStress('floor', impactVy, this.x + this.width / 2, GROUND_Y, this);
+                        // a real SPIKE driven in hard goes straight through (owner, Sep 27:
+                        // "a spike attack that makes them shoot to the ground heavy and hard")
+                        stageStress('floor', this.spikedFall && impactVy > SPIKE_BREAK_VY ? BREAK_AT : impactVy,
+                                    this.x + this.width / 2, GROUND_Y, this);
                     // SKY HARVEST landing: the downward throw detonates on contact —
                     // bonus damage, a ground-bounce, dust and shake.
                     if (this.skySlam) {
@@ -6486,6 +6489,7 @@
                 // Landing impact: a fall that lands hard fires a brief squash-and-
                 // stretch (anticipation/weight — brain note). Scaled by impact speed,
                 // capped, decays fast. Zero art: it's a transform on the feet anchor.
+                if (wasAirborne && this.isGrounded && this.crashLand && impactVy <= 250) spikeImpact(this, 400);
                 if (wasAirborne && this.isGrounded && impactVy > 250) {
                     this.landSquash = Math.min(1, impactVy / 700);
                     // the arc was half-voiced: takeoff had a sound, impact had none.
@@ -6501,6 +6505,7 @@
                     // Widths carry the same 0.493 re-baseline as FX_DEF — these are
                     // explicit `w:` overrides, so they bypass it and had to be redone here.
                     const _footY = this.y + this.height;
+                    if (this.spikedFall || this.crashLand) spikeImpact(this, impactVy);
                     if (this.spikedFall) {
                         spawnFx('H08', this.x + this.width / 2, _footY,
                                 { w: 35 + 20 * this.landSquash });
@@ -9262,10 +9267,7 @@
                 if (opts.low) { oy = this.height - sh - 2; }                  // sweep skims the floor
                 // THE BLIND CHECK, swung: a low into the dark tells you what is in there, and
                 // switches KUBIKIRI off against you for CHECK_T.
-                if (opts.low && breach && breach.open) {
-                    const bx0 = this.x + ox;
-                    if (bx0 + sw > breach.x0 && bx0 < breach.x1) this.checkT = CHECK_T;
-                }
+                if (opts.low && hideSpanAt(this.x + ox, this.x + ox + sw)) this.checkT = CHECK_T;
                 // METEOR PLUNGE: the box rides under the feet. It CENTRES the caller's
                 // width rather than replacing it — `sh = h` already honoured the caller's
                 // height on this same line, while `sw = this.width` silently threw the
@@ -18339,6 +18341,67 @@
             // opponent is still outside the brain holds dead still and waits. The moment they
             // step in blind, KUBIKIRI. If they come in having checked, it is an ordinary fight
             // and the rest of the brain takes over.
+            // ---- THE CPU KNOWS THE NEW BOARDS (owner, Sep 26 2026: "the CPU are not
+            // conscious of the new changes"). Four habits, each the counterplay a person
+            // would find:
+            //  1. FOLLOW: chasing through a break, it goes for the hole at once rather
+            //     than stand there and be pulled in, handing the hider a head start.
+            //  2. HEAD START: landed first and unseen with no cover, it holds still (the
+            //     creak would give it away) and only swings once the chaser is on it.
+            //  3. TAKE COVER: hurt, with a hiding spot nearer than the foe, it breaks off
+            //     and slips behind it — then the dark-room branch below keeps it still.
+            //  4. CHECK THE SPOTS: when the foe vanishes near a hiding spot it never walks
+            //     in blind — it sweeps low into the spot first (a CHECK: no Kubikiri).
+            const G = followGate;
+            if (G && G.chaser === me) {
+                // up top while the victim falls: drop in as soon as the new room is showing
+                if (G.phase === 'wait') {
+                    keys[B.keyDown] = true;
+                    if (G.kind !== 'floor') keys[G.side > 0 ? B.keyR : B.keyL] = true;
+                }
+                B.action = 'follow';
+                return;
+            }
+            if (me.arriveHideT > 0 && me.inDark && !hideZone(me)) {
+                if (canAct && dist < 70) {
+                    me.facing = dx >= 0 ? 1 : -1;
+                    me.executeAttack(STATE.ATTACK_HEAVY);
+                    B.action = 'attack';
+                } else B.action = 'idle';
+                keys[B.keyBlock] = false;
+                return;
+            }
+            if (!isHidden(me) && coverZones.length && canAct && me.isGrounded
+                && me.hp < me.maxHp * 0.35 && dist > 140) {
+                const myCx = me.x + me.width / 2, foeX = foe.x + foe.width / 2;
+                const spot = coverZones
+                    .filter(z => !(foeX > z.x0 && foeX < z.x1) && Math.abs(z.cx - myCx) < Math.abs(z.cx - foeX))
+                    .sort((a, b) => Math.abs(a.cx - myCx) - Math.abs(b.cx - myCx))[0];
+                if (spot) {
+                    const d = spot.cx - myCx;
+                    if (Math.abs(d) > 8) keys[d > 0 ? B.keyR : B.keyL] = true;
+                    B.action = 'hide';
+                    keys[B.keyBlock] = false;
+                    return;
+                }
+            }
+            if (foe.inDark && canAct && me.isGrounded && !(me.checkCd > 0)) {
+                const spot = hideSpanAt(foeCx - 1, foeCx + 1);
+                const myCx = me.x + me.width / 2;
+                if (spot && hideZone(me) !== spot) {
+                    const edge = foeCx > myCx ? spot.x0 : spot.x1;
+                    if (Math.abs(edge - myCx) < 58) {   // the sweep's reach: ~52px past the body
+                        me.facing = foeCx > myCx ? 1 : -1;
+                        hold(B.keyDown, () => me.executeAttack(STATE.ATTACK_LIGHT));   // low = a CHECK
+                        me.checkCd = 0.9;
+                        B.action = 'attack';
+                        keys[B.keyBlock] = false;
+                        return;
+                    }
+                }
+            }
+            if (me.checkCd > 0) me.checkCd -= dt;
+
             if (me.inDark) {
                 if (canAct && hideZone(me) && hideZone(foe) === hideZone(me) && foe.roomT < KUBI_WIN && !(foe.checkT > 0)) {
                     me.facing = dx >= 0 ? 1 : -1;
@@ -22339,6 +22402,11 @@
         // hideZone() is the ONE question "which hiding place is this body in", for the
         // room and every cover alike, so ownership and the ambush treat them the same.
         let coverZones = [];
+        // Any hiding place (open room or cover) overlapping [x0,x1] — for the blind checks.
+        function hideSpanAt(x0, x1) {
+            if (breach && breach.open && x1 > breach.x0 && x0 < breach.x1) return breach;
+            return coverZones.find(z => x1 > z.x0 && x0 < z.x1) || null;
+        }
         function hideZone(p) {
             if (!p) return null;
             if (inBreach(p)) return breach;
@@ -22437,28 +22505,37 @@
             toastRoom = kind === 'breach' ? (currentStage.room || '') : '';
         }
 
-        // ---- THE FOLLOW (owner, Sep 26 2026: "if a player goes through a wall or roof,
-        // the other player can follow ... the other player can hide"; "chaser: pulled in")
-        // A floor or wall break with a known victim no longer drags both fighters to the
-        // next board. The VICTIM alone goes through (off this board: inGap — not updated,
-        // not drawn, not hittable). The hole stays open here; the CHASER follows by
-        // standing in it (roof) or walking into the torn wall (wall). Waiting is not
-        // free: at FOLLOW_T the chaser is PULLED IN anyway. Either way, the victim reaches
-        // the new board first and gets a HEAD START: they land unseen (arriveHideT) — in
-        // a hiding spot if the board has one, else across the room from where the chaser
-        // comes in — for as long as the chaser dithered (at least FOLLOW_MIN_HIDE).
-        // Brawl keeps the old both-drop: four bodies cannot share a one-screen gate.
+        // ---- THE FALL (owner, Sep 26-27 2026: "if a player goes through a wall or roof,
+        // the other player can follow"; "chaser: pulled in"; "I want to show the epic of
+        // the fall. I don't like the teleport. I want the fall to have impact.")
+        // A floor or wall break with a known victim is SHOWN, not cut:
+        //   drop  — the victim keeps falling through the hole (or flying through the wall)
+        //           on the old board while the debris goes with them;
+        //   dive  — the camera dives after them: an ink wipe of speed lines and tumbling
+        //           debris, the victim tumbling through the middle of it;
+        //   wait  — the NEW board. The victim comes in through the ceiling hole (or the
+        //           torn wall) at full speed and lands with a SPIKE IMPACT (crater, dust
+        //           ring, shake, hitstop, bounce, FALL_DMG). The chaser is still up top:
+        //           they drop in by holding DOWN (roof) or pushing into the wall (wall),
+        //           or are PULLED IN at FOLLOW_T. Either way they come through the same
+        //           hole with their own landing. The victim meanwhile has a HEAD START:
+        //           unseen (arriveHideT) for as long as the chaser took.
+        // Brawl keeps the old both-drop: four bodies cannot share one hole on one screen.
         const FOLLOW_T = 4.0, FOLLOW_MIN_HIDE = 1.5;
-        let followGate = null;      // {kind, next, x, side, victim, chaser, t}
+        const FALL_DROP_T = 0.4, FALL_DIVE_T = 0.55;
+        const SPIKE_BREAK_VY = 520;      // a spiked body landing faster than this breaks a `below` floor outright
+        const FALL_DMG = 0.08;           // of max HP, to the body that went through (its own commit: balance)
+        let followGate = null;      // {kind, next, x, side, victim, chaser, phase, t, gx, gy, gvx, gvy}
         function openFollowGate(kind, next, x, victim) {
             const side = kind === 'floor' ? 0 : (x > canvas.width / 2 ? 1 : -1);
-            followGate = { kind, next, x, side, victim, chaser: victim.opponent, t: 0 };
+            followGate = { kind, next, x, side, victim, chaser: victim.opponent, phase: 'drop', t: 0,
+                           gx: victim.x, gy: victim.y, gvx: side * 520, gvy: kind === 'floor' ? 380 : -120 };
             victim.inGap = true;
             victim.hitboxes.length = 0; victim.projectiles.length = 0;
             victim.vx = victim.vy = 0;
-            victim.invulnTimer = 99;                      // not on this board: nothing here can touch them
-            collapse(kind, x, { noScar: true, fromFloor: kind === 'floor' });   // the break bursts HERE
-            hitstopRemaining = Math.max(hitstopRemaining, 240);
+            victim.invulnTimer = 99;                      // off the board: nothing here can touch them
+            collapse(kind, x, { noScar: true, fromFloor: kind === 'floor' });
+            hitstopRemaining = Math.max(hitstopRemaining, 200);
             screenShakeAmount = Math.max(screenShakeAmount, 26);
             flashAmount = Math.max(flashAmount, 0.3);
             sfx('bomb');
@@ -22467,59 +22544,157 @@
             const g = followGate;
             if (!g || !matchActive) return;
             g.t += dt;
-            const c = g.chaser, cx = c.x + c.width / 2;
-            const followed = g.kind === 'floor'
-                ? c.isGrounded && Math.abs(cx - g.x) < 70
-                : (g.side > 0 ? c.x + c.width > canvas.width - 26 : c.x < 26);
-            if (followed || g.t >= FOLLOW_T) arriveThroughGate(g, followed);
+            if (g.phase === 'drop') {
+                g.gvy += 1400 * dt; g.gx += g.gvx * dt; g.gy += g.gvy * dt;
+                if (g.t >= FALL_DROP_T) { g.phase = 'dive'; g.t = 0; }
+                return;
+            }
+            if (g.phase === 'dive') {
+                if (g.t >= FALL_DIVE_T) landVictim(g);
+                return;
+            }
+            // wait: the chaser is up top, looking down the hole
+            const c = g.chaser;
+            const wants = g.kind === 'floor' ? c.isDownPressed()
+                                             : c.getInputAxis() === g.side || c.isDownPressed();
+            if (wants || g.t >= FOLLOW_T) dropChaser(g, wants);
         }
-        function arriveThroughGate(g, followed) {
+        function landVictim(g) {
             const v = g.victim, c = g.chaser;
-            setStage(g.next);                              // clears followGate + v.inGap
+            setStage(g.next);                              // clears followGate + inGap
+            followGate = g; g.phase = 'wait'; g.t = 0;
             collapse(g.kind, g.x);                         // the hole, seen from below / beyond
-            // where the chaser comes in: under the roof hole, or through the near wall
-            const entryX = g.kind === 'floor' ? g.x : (g.side > 0 ? 40 : canvas.width - 40 - c.width);
-            c.x = clampLandX(entryX - (g.kind === 'floor' ? c.width / 2 : 0), c.width);
-            c.y = g.kind === 'floor' ? GROUND_Y - c.height - 170 : GROUND_Y - c.height;
-            c.vy = g.kind === 'floor' ? 90 : 0; c.vx = 0;
-            c.isGrounded = g.kind !== 'floor'; c.riding = null;
-            c.stunTimer = Math.max(c.stunTimer, followed ? 0.2 : 0.45);   // pulled in = a stumble
-            // the victim is already here: in cover if there is any, else across the room
-            const far = coverZones.slice().sort((a, b) => Math.abs(b.cx - entryX) - Math.abs(a.cx - entryX))[0];
-            const hx = far ? far.cx : (entryX < canvas.width / 2 ? canvas.width * 0.8 : canvas.width * 0.2);
-            v.x = clampLandX(hx - v.width / 2, v.width);
-            v.y = GROUND_Y - v.height; v.vx = v.vy = 0; v.isGrounded = true; v.riding = null;
-            v.state = STATE.IDLE; v.stunTimer = 0; v.recoveryTimer = 0;
-            v.invulnTimer = 0.3;
+            v.inGap = false; v.invulnTimer = 0.2;
+            v.state = STATE.STUNNED; v.stunTimer = Math.max(v.stunTimer, 0.7); v.recoveryTimer = 0;
+            v.riding = null; v.isGrounded = false;
+            v.fallDamage = true; v.crashLand = true; v.spikedFall = g.kind === 'floor';
+            if (g.kind === 'floor') {
+                v.x = clampLandX(g.x - v.width / 2, v.width);
+                v.y = -v.height - 10; v.vx = 0; v.vy = 1250;
+            } else {
+                v.x = g.side > 0 ? 12 : canvas.width - 12 - v.width;
+                v.y = GROUND_Y - v.height - 150; v.vx = g.side * 620; v.vy = -60;
+            }
+            v.arriveHideT = 0;                             // set on the chaser's arrival, below
+            c.inGap = true; c.invulnTimer = 99; c.hitboxes.length = 0; c.projectiles.length = 0;
+            c.vx = c.vy = 0;
+            stageToastT = 2.0; toastRoom = '';
+        }
+        function dropChaser(g, followed) {
+            const v = g.victim, c = g.chaser;
+            followGate = null;
+            c.inGap = false; c.invulnTimer = 0.3; c.riding = null; c.isGrounded = false;
+            c.state = STATE.IDLE; c.stunTimer = followed ? 0 : 0.45; c.recoveryTimer = 0;
+            c.crashLand = true;                            // the landing is felt, no damage
+            if (g.kind === 'floor') {
+                c.x = clampLandX(g.x - c.width / 2 + (v.x < g.x ? 40 : -40), c.width);
+                c.y = -c.height - 10; c.vx = 0; c.vy = followed ? 1000 : 1150;
+            } else {
+                c.x = g.side > 0 ? 12 : canvas.width - 12 - c.width;
+                c.y = GROUND_Y - c.height - 120; c.vx = g.side * 480; c.vy = -40;
+            }
+            // THE HEAD START: whatever the chaser spent up top, the victim spent getting away
             v.arriveHideT = Math.max(FOLLOW_MIN_HIDE, g.t);
             v.seenX = undefined; c.lastSawFoe = undefined;
             stageToastT = 2.0; toastRoom = followed ? '' : 'PULLED IN';
         }
-        // The open hole on the board the victim left, and the chaser's cue to follow.
+        // A spiked or crash landing, felt: freeze, shake, a crater in the floor, a ring of
+        // dust blown out along the ground, floor chips kicked up, a bounce. FALL_DMG only
+        // for the body that went through a break.
+        function spikeImpact(p, vy) {
+            const cx = p.x + p.width / 2, pow = Math.min(1, Math.max(0.4, vy / 1100));
+            p.crashLand = false;
+            hitstopRemaining = Math.max(hitstopRemaining, 90 + 110 * pow);
+            screenShakeAmount = Math.max(screenShakeAmount, 14 + 16 * pow);
+            screenShakeDX = 0; screenShakeDY = 1;          // a vertical jolt: it came from above
+            flashAmount = Math.max(flashAmount, 0.12 * pow);
+            sfx('hit_heavy');
+            if (p.y + p.height >= GROUND_Y - 2) {
+                stageScars.push({ crater: true, x: cx, w: 60 + 70 * pow });
+                if (stageScars.length > 10) stageScars.splice(stageScars.findIndex(sc => sc.crater), 1);
+            }
+            for (let k = 0; k < 16; k++) {                 // the ring of dust, both ways, low
+                const dir = k % 2 ? 1 : -1;
+                groundFx.push({ dust: true, tint: currentStage.mist || '210,204,194', x: cx + dir * Math.random() * 20,
+                    y: GROUND_Y - 6 - Math.random() * 18, vx: dir * (160 + Math.random() * 360 * pow), vy: -10 - Math.random() * 40,
+                    r: 12 + Math.random() * 20 * pow, grow: 60, life: 0.7 + Math.random() * 0.5, max: 1.2 });
+            }
+            for (let k = 0; k < 4 + 6 * pow; k++)          // floor chips
+                groundFx.push({ chunk: true, beam: false, x: cx + (Math.random() - 0.5) * 50, y: GROUND_Y - 4,
+                    vx: (Math.random() - 0.5) * 420, vy: -160 - Math.random() * 320 * pow,
+                    w: 6 + Math.random() * 10, h: 4 + Math.random() * 5, rot: Math.random() * 6,
+                    spin: (Math.random() - 0.5) * 14, bounced: false, life: 2 + Math.random(), max: 3 });
+            if (p.fallDamage) {
+                p.fallDamage = false;
+                p.hp = Math.max(1, p.hp - p.maxHp * FALL_DMG);
+            }
+            if (vy > 500) { p.vy = -Math.min(300, vy * 0.25); p.isGrounded = false; }   // the bounce
+        }
+        // Old board: the hole and the body still falling through it. Dive: the ink wipe.
+        // New board, wait: the ceiling hole and the chaser's cue.
         function drawFollowGate() {
             const g = followGate;
             if (!g) return;
-            const left = Math.max(0, FOLLOW_T - g.t), pulse = 0.5 + 0.5 * Math.sin(animClock * 8);
             ctx.save();
-            ctx.fillStyle = 'rgb(8,6,10)'; ctx.strokeStyle = 'rgba(226,221,208,0.7)'; ctx.lineWidth = 2;
-            let ax, ay;
-            if (g.kind === 'floor') {
-                ctx.beginPath(); ctx.moveTo(g.x - 80, GROUND_Y);
-                for (let k = 0; k <= 8; k++) ctx.lineTo(g.x - 80 + k * 20, GROUND_Y + 10 + (k % 2 ? 22 : 6));
-                ctx.lineTo(g.x + 80, GROUND_Y); ctx.closePath(); ctx.fill(); ctx.stroke();
-                ax = g.x; ay = GROUND_Y - 150;
-            } else {
-                const x = g.side > 0 ? canvas.width - 10 : 10, y = GROUND_Y - 120;
-                ctx.beginPath(); ctx.moveTo(x, y - 110);
-                for (let k = 0; k <= 8; k++) ctx.lineTo(x - g.side * (26 + (k % 2 ? 20 : 0)), y - 110 + k * 27.5);
-                ctx.lineTo(x, y + 110); ctx.closePath(); ctx.fill(); ctx.stroke();
-                ax = x - g.side * 90; ay = y - 140;
+            if (g.phase === 'drop' || g.phase === 'wait') {
+                ctx.fillStyle = 'rgb(8,6,10)'; ctx.strokeStyle = 'rgba(226,221,208,0.7)'; ctx.lineWidth = 2;
+                if (g.phase === 'drop' && g.kind === 'floor') {
+                    ctx.beginPath(); ctx.moveTo(g.x - 80, GROUND_Y);
+                    for (let k = 0; k <= 8; k++) ctx.lineTo(g.x - 80 + k * 20, GROUND_Y + 10 + (k % 2 ? 22 : 6));
+                    ctx.lineTo(g.x + 80, GROUND_Y); ctx.closePath(); ctx.fill(); ctx.stroke();
+                }
+                if (g.phase === 'drop') {
+                    // the victim, still falling — through the floor, clipped at the lip
+                    const v = g.victim, ox = v.x, oy = v.y;
+                    ctx.save();
+                    if (g.kind === 'floor') { ctx.beginPath(); ctx.rect(0, 0, canvas.width, GROUND_Y + 30); ctx.clip(); }
+                    v.x = g.gx; v.y = g.gy; v.draw(ctx); v.x = ox; v.y = oy;
+                    ctx.restore();
+                }
             }
-            ctx.globalAlpha = 0.55 + 0.45 * pulse;
-            ctx.fillStyle = 'rgb(175,41,30)'; ctx.font = 'bold 26px serif'; ctx.textAlign = 'center';
-            ctx.fillText(g.kind === 'floor' ? '▼' : (g.side > 0 ? '▶' : '◀'), ax, ay);
-            ctx.font = 'bold 15px monospace'; ctx.fillStyle = 'rgb(236,230,214)';
-            ctx.fillText(`FOLLOW  ${left.toFixed(1)}`, ax, ay - 26);
+            if (g.phase === 'dive') {
+                // THE DIVE: ink closes over the board, speed lines race past, debris
+                // tumbles alongside and the victim falls through the middle of it
+                const k = g.t / FALL_DIVE_T, vert = g.kind === 'floor';
+                ctx.fillStyle = `rgba(14,12,16,${Math.min(1, k * 4) * 0.94})`;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.strokeStyle = 'rgba(226,221,208,0.5)'; ctx.lineWidth = 2;
+                for (let i = 0; i < 26; i++) {
+                    const a = fhash(i, 3.1), b = fhash(i, 7.9), sp = 2200 + 1800 * b;
+                    const len = 60 + 140 * a;
+                    if (vert) {
+                        const x = a * canvas.width, y = ((b * canvas.height - g.t * sp) % canvas.height + canvas.height) % canvas.height;
+                        ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, y + len); ctx.stroke();
+                    } else {
+                        const y = a * canvas.height, x = ((b * canvas.width - g.side * g.t * sp) % canvas.width + canvas.width) % canvas.width;
+                        ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + len, y); ctx.stroke();
+                    }
+                }
+                for (let i = 0; i < 9; i++) {              // debris keeping pace with the body
+                    const a = fhash(i, 5.5), b = fhash(i, 2.7);
+                    ctx.save();
+                    ctx.translate(canvas.width * (0.25 + 0.5 * a), canvas.height * (0.2 + 0.6 * b) - (vert ? 40 * Math.sin(g.t * 9 + i) : 0));
+                    ctx.rotate(g.t * (4 + 6 * a) * (i % 2 ? 1 : -1));
+                    ctx.fillStyle = i < 3 ? 'rgb(64,48,40)' : 'rgb(58,58,64)'; ctx.strokeStyle = 'rgba(0,0,0,0.9)';
+                    const w = i < 3 ? 70 : 16, h = i < 3 ? 12 : 8;
+                    ctx.fillRect(-w / 2, -h / 2, w, h); ctx.strokeRect(-w / 2, -h / 2, w, h);
+                    ctx.restore();
+                }
+                const v = g.victim, ox = v.x, oy = v.y;
+                v.x = canvas.width / 2 - v.width / 2 + (vert ? 0 : g.side * (k - 0.5) * 200);
+                v.y = canvas.height * 0.45 - v.height / 2 + (vert ? (k - 0.5) * 120 : 0);
+                v.draw(ctx); v.x = ox; v.y = oy;
+            }
+            if (g.phase === 'wait') {
+                const left = Math.max(0, FOLLOW_T - g.t), pulse = 0.5 + 0.5 * Math.sin(animClock * 8);
+                const ax = g.kind === 'floor' ? g.x : (g.side > 0 ? 90 : canvas.width - 90);
+                const ay = g.kind === 'floor' ? 150 : GROUND_Y - 260;
+                ctx.globalAlpha = 0.55 + 0.45 * pulse;
+                ctx.fillStyle = 'rgb(175,41,30)'; ctx.font = 'bold 26px serif'; ctx.textAlign = 'center';
+                ctx.fillText(g.kind === 'floor' ? '▼' : (g.side > 0 ? '▶' : '◀'), ax, ay);
+                ctx.font = 'bold 15px monospace'; ctx.fillStyle = 'rgb(236,230,214)';
+                ctx.fillText(`${g.kind === 'floor' ? 'DROP IN — hold DOWN' : 'FOLLOW — push through'}  ${left.toFixed(1)}`, ax, ay - 26);
+            }
             ctx.restore();
         }
 
@@ -22919,6 +23094,21 @@
         function drawScars() {
             for (const sc of stageScars) {
                 ctx.save();
+                if (sc.crater) {
+                    // a spike crater: a dark dished ellipse with cracks running out of it
+                    ctx.fillStyle = 'rgba(0,0,0,0.5)';
+                    ctx.beginPath(); ctx.ellipse(sc.x, GROUND_Y + 5, sc.w / 2, 8, 0, 0, Math.PI * 2); ctx.fill();
+                    ctx.strokeStyle = 'rgba(0,0,0,0.7)'; ctx.lineWidth = 1.5;
+                    for (let k = 0; k < 7; k++) {
+                        const a = (k / 7) * Math.PI, len = sc.w * (0.45 + 0.4 * fhash(sc.x + k, 6.1));
+                        ctx.beginPath(); ctx.moveTo(sc.x, GROUND_Y + 5);
+                        ctx.lineTo(sc.x + Math.cos(a) * len * 0.6, GROUND_Y + 5 + Math.sin(a) * 6 + 4);
+                        ctx.lineTo(sc.x + Math.cos(a) * len, GROUND_Y + 5 + Math.sin(a) * 14 + 6);
+                        ctx.stroke();
+                    }
+                    ctx.restore();
+                    continue;
+                }
                 if (sc.roof) {
                     const g = ctx.createLinearGradient(0, 0, 0, GROUND_Y);
                     g.addColorStop(0, 'rgba(236,230,214,0.35)'); g.addColorStop(1, 'rgba(236,230,214,0)');
