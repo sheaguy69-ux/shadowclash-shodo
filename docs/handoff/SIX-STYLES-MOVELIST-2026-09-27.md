@@ -143,7 +143,7 @@ claimed history in shipped text.
 
 ---
 
-## KAEL — Niten Ichi-ryū
+## KAEL — Niten Ichi-ryū · Reach: mid + short
 
 | Input | Move | Notes |
 |---|---|---|
@@ -159,10 +159,11 @@ claimed history in shipped text.
 | Air H | **Otoshi Nitō** — both swords chop down | **Spike**; crush |
 | Special | **Itsutsu no Kata** — five-cut sequence | chakra; last cut Breaks |
 | Fwd+S | **Iai Ryūsen** — dash-through cut | switches sides |
+| Guard+S | **Kage Nitō** (shadow) — clone dashes in from the far side and cuts | Strike → Push toward Kael |
 | Throw | **Kodachi Osae** — pins arm with short, slashes with long | wallsplat near wall |
 | Kawarimi | log swap, reappears behind with a short-sword stab | |
 
-## TSUBASA — Tantōjutsu, parries, kicks
+## TSUBASA — Tantōjutsu, parries, kicks · Reach: mid
 
 | Input | Move | Notes |
 |---|---|---|
@@ -178,13 +179,14 @@ claimed history in shipped text.
 | Air H | **Kakato Otoshi** — heel drop | **Spike**; overhead, crush |
 | Special | **Kaeshi-waza** — counter stance | **PARRY-stance**; struck = twin-blade counter-cut, big stagger |
 | Fwd+S | **Tsubame Gaeshi** — spinning blade run | chakra; ends in a kick that Breaks |
+| Guard+S | **Kage Uke** (shadow) — clone parries the next attack aimed at him | Parry box → Disarm; Tsubasa takes the free cut |
 | Throw | **Kote Kiri Nage** — disarm cut, kick away | |
 | Guard | signature: fresh-block riposte (`executeReprisal`) is strongest on him | best parry reward on roster |
 
 Known engine issue to check first: Tsubasa's sakate is still hijacked by the kick map
 (missing `gl*` rows) — see MOVE-LISTS "directional-light law".
 
-## EXECUTIONER — Kashima Shintō-ryū
+## EXECUTIONER — Kashima Shintō-ryū · Reach: longest (tied)
 
 | Input | Move | Notes |
 |---|---|---|
@@ -198,13 +200,14 @@ Known engine issue to check first: Tsubasa's sakate is still hijacked by the kic
 | Fwd+H | **Kesa-giri** — stepping armor-cleaving diagonal | wallsplat |
 | Back+H | **Kiri-otoshi** — his cut strikes down theirs and hits in one motion | **PARRY**; small window, biggest single parry reward |
 | Down+H | **Nagi-harai** — wide low sweep | low, trip, long reach |
-| Air H | **Kabuto-wari** — helmet-splitter drop | **Spike**; crush, Break |
+| Air H | **Kabuto-wari** — helmet-splitter drop | **Spike**; crush; always Breaks a breakable floor |
 | Special | **Shinbu no Tachi** — gathers, then cuts | chakra, armor; unblockable at full charge |
 | Fwd+S | **Ittō Ryōdan** — charging cut | breaks walls |
+| Guard+S | **Kage Kubikiri** (shadow) — clone appears behind, slow overhead cut | Overhead → Stun; sets up Hitotsu-tachi |
 | Throw | **Kubi Nage** — grabs the collar, throws over the hip | Knockdown; sets up okizeme |
 | Guard | slow kawarimi; guard takes much less stagger | |
 
-## MIZU — Kukishin-ryū Bōjutsu
+## MIZU — Kukishin-ryū Bōjutsu · Reach: longest (tied)
 
 | Input | Move | Notes |
 |---|---|---|
@@ -221,10 +224,11 @@ Known engine issue to check first: Tsubasa's sakate is still hijacked by the kic
 | Special | **Mist Drop (Kirigakure)** — her invisible mist | **KEEP AS SHIPPED — owner rule.** Engine MIST DROP unchanged: radius 260, 7.0s, she vanishes (alpha 0), everyone else inside is only obscured, no hitbox, recast replaces the field. Do not retune it |
 | Down+S | **Sōjō Hanbō** — split into twin-hanbō flurry | chakra, fast close combo |
 | Fwd+S | **Bo Kakeru** — vaults on the bo, kicks | clears lows |
+| Guard+S | **Kage Mizu** (shadow) — clone sweeps low, then pops into Water Slick | Low → Trip; Water Slick kept as shipped |
 | Throw | **Bo Garami** — bo behind neck, hip throw | |
 | Guard | standard kawarimi | no parry |
 
-## SHIN — Taijutsu, wire, shuriken, spy tricks
+## SHIN — Taijutsu, wire, shuriken, spy tricks · Reach: short + mid + long
 
 | Input | Move | Notes |
 |---|---|---|
@@ -241,10 +245,11 @@ Known engine issue to check first: Tsubasa's sakate is still hijacked by the kic
 | Special | **Metsubushi** — blinding powder | chakra; brief no-block; works from hiding spots |
 | Fwd+S | **Ito Shibari** — wire pins to wall | ranged wallsplat |
 | Down+S | **Makibishi** — scatter caltrops | floor zone, hurts on step |
+| Guard+S | **Kage Nawa** (shadow) — clone throws its wire from the other side | Ranged grab → Pull toward Shin |
 | Throw | **Oni Kudaki** — arm lock into slam | big damage, Break |
 | Kawarimi | can end inside a hiding spot | |
 
-## EMBER — Togakure-ryū Shukō, orthodox form
+## EMBER — Togakure-ryū Shukō, orthodox form · Reach: mid
 
 | Input | Move | Notes |
 |---|---|---|
@@ -260,6 +265,7 @@ Known engine issue to check first: Tsubasa's sakate is still hijacked by the kic
 | Air H | **Tsume Otoshi** — both claws drive down | **Spike**; crush |
 | Special | **Senkō Tsume** — dashing claw strike | chakra, brief armor (near current `espec`) |
 | Fwd+S | **Kabe Nobori** — climbs the wall, dives | crush |
+| Guard+S | **Kage Tora** (shadow) — clone pounces and rakes low | Low → Trip; sets up Tora Tsume Tensho |
 | Throw | **Tsume Kake Nage** — collar hook throw | |
 | Guard | claw-catch parry is his reliable disarm | |
 
