@@ -122,7 +122,7 @@ other fighter's melee boxes stay shorter than theirs.
 | 2 — mid + short | **Kael** | both ranges on purpose: long sword owns mid-range, short sword owns close range |
 | 2 — mid | **Ember** | claws with a long lunging reach |
 | 2 — mid | **Tsubasa** | kicks extend the tantō; blades alone are close |
-| 3 — short | **Shin** | fists — his range is the wire and shuriken (projectiles, not melee reach) |
+| short + mid + long | **Shin** | short: fists (taijutsu) · mid: the wire · long: shuriken (projectiles) — the only fighter who covers every range |
 
 Exceptions allowed: the Executioner's headbutt and shoulder bump are deliberately close-range,
 and projectiles/wire are measured separately from melee reach.
