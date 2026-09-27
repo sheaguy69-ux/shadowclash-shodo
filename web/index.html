@@ -22522,7 +22522,7 @@
         const FOLLOW_T = 4.0, FOLLOW_MIN_HIDE = 1.5;
         const FALL_DROP_T = 0.4, FALL_DIVE_T = 0.55;
         const SPIKE_BREAK_VY = 520;      // a spiked body landing faster than this breaks a `below` floor outright
-        const FALL_DMG = 0;              // of max HP, to the body that went through (its own commit: balance)
+        const FALL_DMG = 0.08;           // of max HP, to the body that went through (its own commit: balance)
         let followGate = null;      // {kind, next, x, side, victim, chaser, phase, t, gx, gy, gvx, gvy}
         function openFollowGate(kind, next, x, victim) {
             const side = kind === 'floor' ? 0 : (x > canvas.width / 2 ? 1 : -1);
