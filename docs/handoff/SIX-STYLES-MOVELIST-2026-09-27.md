@@ -125,7 +125,7 @@ other fighter's melee boxes stay shorter than theirs.
 | short + mid + long | **Shin** | short: fists (taijutsu) · mid: the wire · long: shuriken (projectiles) — the only fighter who covers every range |
 
 Exceptions allowed: the Executioner's headbutt and shoulder bump are deliberately close-range,
-and projectiles/wire are measured separately from melee reach.
+and Shin's wire (mid) and shuriken (long) do not count against the "longest melee reach" rule — Executioner and Mizu still have the longest weapon swings.
 
 ## The six styles
 
