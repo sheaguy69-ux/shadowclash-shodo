@@ -276,7 +276,26 @@ Known engine issue to check first: Tsubasa's sakate is still hijacked by the kic
 - Engine: Up+Light is free (`glup`, not in the kick map) and the Executioner already has
   `glup` 8 cells; check whether they can read as a headbutt before calling it art owed.
 
+## Shadow clone attacks (owner rule: every fighter's shadow gets a special attack)
+
+Input stays the shipped Bunshin: **Guard held + Special, 30 chakra.** The clone now performs
+one signature attack before it pops. Shared rules: one clone at a time; the clone's hit
+does reduced damage (it sets up, the fighter finishes); hitting the clone pops it.
+Map each onto the fighter's existing Bunshin variant (see `RECOVERY/MOVE-LISTS.md`) rather
+than adding a second clone system.
+
+| Fighter | Shadow attack | Type → effect | Sets up |
+|---|---|---|---|
+| Kael | **Kage Nitō** — the shadow dashes in from the far side and cuts | Strike → **Push** toward Kael | a pincer: they are knocked into his long sword |
+| Tsubasa | **Kage Uke** — the shadow stands guard and parries the next attack aimed at him | Parry box → **Disarm** | his free cut on the opened attacker |
+| Executioner | **Kage Kubikiri** — the shadow appears behind them with a slow overhead cut | Overhead → **Stun** | Hitotsu-tachi from the front |
+| Mizu | **Kage Mizu** — the shadow sweeps the bo low, then pops into her shipped **Water Slick** | Low → **Trip**, slick stays | pressure on the slick. Water Slick is kept as shipped |
+| Shin | **Kage Nawa** — the shadow throws its wire from the other side | Grab (ranged) → **Pull** toward Shin | his taijutsu combo |
+| Ember | **Kage Tora** — the shadow pounces and rakes low | Low → **Trip** | his down-heavy tiger rake |
+
 ## Likely new engine work (confirm before building)
+
+- Shadow clone attacks (above) on top of the existing `castBunshin()` path.
 
 - Hitbox type + effect tags on every move (one type, one primary effect) — check what the
   engine already carries (`low`, `trip`, `wallsplat`, `behind` exist on kick boxes).
