@@ -95,7 +95,7 @@ Spike moves:
 | Kael | Otoshi Nitō (Air H) | spike |
 | Tsubasa | Kakato Otoshi (Air H) | overhead; spike |
 | Executioner | Kabuto-wari (Air H) | spike; always Breaks a breakable floor |
-| Mizu | Taki Otoshi (Air H) | spike; longest reach |
+| Mizu | Taki Otoshi (Air H) | spike; longest reach of the spikes (tied with Executioner) |
 | Shin | Hiji Otoshi (Air H) | spike |
 | Ember | Tsume Otoshi (Air H) | spike |
 
@@ -109,6 +109,23 @@ Spike moves:
 **Defensive rule (owner):** Kael, Tsubasa, Executioner, Ember have **parries**.
 Shin and Mizu have **counterattacks** (no parries). Tsubasa is the parry expert (widest
 window, best reward); Executioner's single parry hits hardest.
+
+## Reach (owner rule)
+
+**The Executioner and Mizu have the longest attack range on the roster, tied.** Every
+other fighter's melee boxes stay shorter than theirs.
+
+| Tier | Fighter | Reach comes from |
+|---|---|---|
+| 1 — longest (tied) | **Executioner** | long sword + his height; the tip is the sweetspot |
+| 1 — longest (tied) | **Mizu** | the full-length bo; tip is the sweetspot. Split hanbō moves are short on purpose |
+| 2 — mid | **Kael** | long sword pokes; short-sword moves are close |
+| 3 — short | **Ember** | claws |
+| 3 — short | **Tsubasa** | tantō; his kicks reach slightly further than his blades |
+| 3 — short | **Shin** | fists — his range is the wire and shuriken (projectiles, not melee reach) |
+
+Exceptions allowed: the Executioner's headbutt and shoulder bump are deliberately close-range,
+and projectiles/wire are measured separately from melee reach.
 
 ## The six styles
 
