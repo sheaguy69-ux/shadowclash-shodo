@@ -93,7 +93,7 @@ Spike moves:
 | Fighter | Spike | Notes |
 |---|---|---|
 | Kael | Otoshi Nitō (Air H) | spike |
-| Tsubasa | Kakato Otoshi (Air H) | overhead; spike |
+| Tsubasa | Kabuto Wari (Air H) | spike |
 | Executioner | Kabuto-wari (Air H) | spike; always Breaks a breakable floor |
 | Mizu | Taki Otoshi (Air H) | spike; longest reach of the spikes (tied with Executioner) |
 | Shin | Hiji Otoshi (Air H) | spike |
@@ -179,23 +179,29 @@ cancelled · Shukuchi-giri → Light on hit.
 
 ## TSUBASA — Tantōjutsu, parries, kicks · Reach: mid
 
-| Input | Move | Notes |
-|---|---|---|
-| Light | **Sōtō Kiri** — fast twin-tantō slashes | chains |
-| Fwd+L | **Sokutō Geri** — edge-of-foot side kick | pushes into blade range |
-| Back+L | **Uke-nagashi** — turns the attack aside | **PARRY**; success sets up next attack |
-| Down+L | **Ashi Kiri** — low tantō slash | low |
-| Air L | **Tobi Geri** — flying kick | jump-in, light knockback |
-| Heavy | **Jūji-dome** — catches the blade between crossed tantō | **PARRY**; success = free cut |
-| Fwd+H | **Mae Geri → Tsuki** — front kick then stab | 2 hits, wallsplat |
-| Back+H | **Ushiro Mawashi** — spinning back kick | beats a chaser |
-| Down+H | **Kaiten Ashi Barai** — sweep kick then tantō cut | low, trip |
-| Air H | **Kakato Otoshi** — heel drop | **Spike**; overhead, crush |
-| Special | **Kaeshi-waza** — counter stance | **PARRY-stance**; struck = twin-blade counter-cut, big stagger |
-| Fwd+S | **Tsubame Gaeshi** — spinning blade run | chakra; ends in a kick that Breaks |
-| Guard+S | **Kage Uke** (shadow) — clone parries the next attack aimed at him | Parry box → Disarm; Tsubasa takes the free cut |
-| Throw | **Kote Kiri Nage** — disarm cut, kick away | |
-| Guard | signature: fresh-block riposte (`executeReprisal`) is strongest on him | best parry reward on roster |
+Owner revision, 2026-09-28: **Tsubasa is the parry master — his whole neutral game, defense
+and counters revolve around trapping, deflecting, redirecting and using the opponent's
+momentum.** Real dual-tantō work (ryōtōjutsu): **uke-nagashi** (flowing deflection) and
+**jūji** (cross-blade) traps — one blade controls or redirects the incoming weapon, the other
+blade or an open-hand **teishō** (heel-palm) counters instantly.
+
+| Input | Move | Deflection & parry mechanics | Notes |
+|---|---|---|---|
+| Light | **Uke-Kiri** (Deflect & Slash) | off-hand tantō redirects the attack upward while the dominant blade slashes the chest | **auto-parries non-heavy high attacks on startup**; fast combo starter |
+| Fwd+L | **Sokutō Geri** (Blade-Foot Thrust) | outer edge of the foot driven into the knee joint | low-profile poke; holds optimal short-blade range |
+| Back+L | **Uke-Nagashi Teishō** (Flowing Deflect & Palm) | slips the stance, slides their blow along the blade spine, heel-palm to the jaw | **PARRY**; fast startup; frame-advantage generator that resets neutral |
+| Down+L | **Ashi Kiri** (Ankle Cut) | low crouching slash at the Achilles / inner shin | low; forces crouching guard |
+| Air L | **Tobi Hiji Tsuki** (Leaping Elbow Drive) | descending lead elbow into the shoulder/clavicle, blades held ready | **Overhead**; keeps pressure on landing |
+| Heavy | **Jūji-Dome** (Cross-Blade Catch) | both tantō crossed in an X to lock down heavy attacks | **PARRY**; on catch, guaranteed heavy throat stab |
+| Fwd+H | **Mae Geri → Nodo Tsuki** (Front Kick → Throat Piercer) | mid snap kick opens the guard, then a lunging throat stab | 2 hits; severe wallsplat near walls/edges |
+| Back+H | **Omote Gyaku Boshi-ken** (Wrist Twist & Thumb Drive) | steps around the attack, twists the wrist, thumb-joint drive into nerve points | **anti-flank**; punishes aggressive forward dashes |
+| Down+H | **Harai Ashi → Kote Kiri** (Leg Hook → Wrist Cut) | foot-hook sweeps the front leg while slicing the wrist/forearm | low multi-hit; hard knockdown / trip |
+| Air H | **Kabuto Wari** (Helmet Breaker Drop) | double-blade downward thrust with full body mass | **Spike**; ground bounce on airborne targets (one per combo) |
+| Special | **Kaeshi-Waza** (Omni-Counter Stance) | fluid dual-blade stance; any physical attack that strikes it is redirected, leaving them fully open | **PARRY STANCE**; severe stagger → full-combo punish |
+| Fwd+S | **Renzen Kiri** (Continuous Trapping Flurry) | advances with alternating check-parries and short cuts, ends in a guard-breaking palm thrust | advancing string; **auto-reflects light projectiles**; last hit **Guard-break** |
+| Guard+S | **Kage Uke** (Decoy Parrying Trap) | shadow clone takes the hit and pins their weapon between its blades | Tsubasa gets a guaranteed **unblockable** free counter-cut |
+| Throw | **Kote Hineri Nage** (Wrist Lock & Disarm Throw) | traps the limb, snaps the wrist outward (omote gyaku), slashes the forearm, throws | command throw; beats block; high damage; resets position |
+| Guard | **Sekitō Riposte** (Flash Block Counter) | striking immediately off a fresh block fires a lightning cross-cut | passive; **highest-damage riposte on the roster** (`executeReprisal`) |
 
 Known engine issue to check first: Tsubasa's sakate is still hijacked by the kick map
 (missing `gl*` rows) — see MOVE-LISTS "directional-light law".
@@ -311,7 +317,7 @@ than adding a second clone system.
 | Fighter | Shadow attack | Type → effect | Sets up |
 |---|---|---|---|
 | Kael | **Kage Nitō** — the shadow dashes in from the far side and cuts | Strike → **Push** toward Kael | a pincer: they are knocked into his long sword |
-| Tsubasa | **Kage Uke** — the shadow stands guard and parries the next attack aimed at him | Parry box → **Disarm** | his free cut on the opened attacker |
+| Tsubasa | **Kage Uke** — the shadow takes the hit and pins their weapon between its blades | Parry box → weapon pinned | a guaranteed unblockable counter-cut from Tsubasa |
 | Executioner | **Kage Kubikiri** — the shadow appears behind them with a slow overhead cut | Overhead → **Stun** | Hitotsu-tachi from the front |
 | Mizu | **Kage Mizu** — the shadow sweeps the bo low, then pops into her shipped **Water Slick** | Low → **Trip**, slick stays | pressure on the slick. Water Slick is kept as shipped |
 | Shin | **Kage Nawa** — the shadow throws its wire from the other side | Grab (ranged) → **Pull** toward Shin | his taijutsu combo |
