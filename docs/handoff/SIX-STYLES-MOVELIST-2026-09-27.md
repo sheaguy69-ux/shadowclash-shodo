@@ -93,7 +93,7 @@ Spike moves:
 | Fighter | Spike | Notes |
 |---|---|---|
 | Kael | Otoshi Nitō (Air H) | spike |
-| Tsubasa | Kabuto Wari (Air H) | spike |
+| Tsubasa | Ryōtō Otoshi (Air H) | spike |
 | Executioner | Kabuto-wari (Air H) | spike; always Breaks a breakable floor |
 | Mizu | Taki Otoshi (Air H) | spike; longest reach of the spikes (tied with Executioner) |
 | Shin | Hiji Otoshi (Air H) | spike |
@@ -196,7 +196,7 @@ blade or an open-hand **teishō** (heel-palm) counters instantly.
 | Fwd+H | **Mae Geri → Nodo Tsuki** (Front Kick → Throat Piercer) | mid snap kick opens the guard, then a lunging throat stab | 2 hits; severe wallsplat near walls/edges |
 | Back+H | **Omote Gyaku Boshi-ken** (Wrist Twist & Thumb Drive) | steps around the attack, twists the wrist, thumb-joint drive into nerve points | **anti-flank**; punishes aggressive forward dashes |
 | Down+H | **Harai Ashi → Kote Kiri** (Leg Hook → Wrist Cut) | foot-hook sweeps the front leg while slicing the wrist/forearm | low multi-hit; hard knockdown / trip |
-| Air H | **Kabuto Wari** (Helmet Breaker Drop) | double-blade downward thrust with full body mass | **Spike**; ground bounce on airborne targets (one per combo) |
+| Air H | **Ryōtō Otoshi** (Twin-Blade Drop) | double-blade downward thrust with full body mass | **Spike**; ground bounce on airborne targets (one per combo) |
 | Special | **Kaeshi-Waza** (Omni-Counter Stance) | fluid dual-blade stance; any physical attack that strikes it is redirected, leaving them fully open | **PARRY STANCE**; severe stagger → full-combo punish |
 | Fwd+S | **Renzen Kiri** (Continuous Trapping Flurry) | advances with alternating check-parries and short cuts, ends in a guard-breaking palm thrust | advancing string; **auto-reflects light projectiles**; last hit **Guard-break** |
 | Guard+S | **Kage Uke** (Decoy Parrying Trap) | shadow clone takes the hit and pins their weapon between its blades | Tsubasa gets a guaranteed **unblockable** free counter-cut |
