@@ -143,25 +143,39 @@ claimed history in shipped text.
 
 ---
 
-## KAEL — Niten Ichi-ryū · Reach: mid + short
+## KAEL — Niten Ichi-ryū, "the Twin Shadow" · Reach: mid + short
+
+Owner-approved rebuild, 2026-09-28. His game revolves around ONE parrying attack; the rest
+of the kit feeds it or cashes it in. **He keeps his guard, but blocking costs him bigger
+stagger than anyone else** — the parry is always the better answer, never the only one.
+
+**Dash (new input, Kael):** double-tap forward.
 
 | Input | Move | Notes |
 |---|---|---|
-| Light | **Kodachi Tsuki** — short-sword jab | fastest poke, chains |
-| Fwd+L | **Sasoi** — long sword slides in to draw a reaction | mid-range, safe on block |
-| Back+L | **Ushiro Harai** — short-sword backhand, stepping back | whiff punish |
+| Light, Light | **Sōrai** "Twin Lightning" — short sword then long sword | fast, low recovery; **cancels into Kage-uke at any point** |
+| Light, Light, Heavy | **Tsuki-no-Bori** "Rising Moon" — crescent upward cut | **Launch**; follow with jump + Otoshi Nitō (spike) |
 | Down+L | **Ashi Barai-giri** — long-sword ankle cut | low |
+| Back+L | **Ushiro Harai** — short-sword backhand, stepping back | whiff punish |
 | Air L | **Tobi Kodachi** — jumping short-sword slash | jump-in |
-| Heavy | **Nitō Kesa** — both blades, diagonal, one after the other | 2 hits, big stagger |
-| Fwd+H | **Chūdan Tsuki** — lunging long-sword thrust | wallsplat |
-| Back+H | **Jūji-uke** — catches the attack on crossed swords | **PARRY**; success = free short-sword finisher |
+| Heavy | **Kiri-tōshi** "Piercing Needle" — long-sword thrust | long reach, heavy guard/stagger damage; slow startup; **no cancel** |
+| Fwd+H | **Nitō Kesa** — both blades, diagonal, one after the other | 2 hits, big stagger, wallsplat |
+| **Back+H** | **Kage-uke** "Shadow Cross" — THE PARRYING ATTACK | crossed swords, body smokes. **Parry frames 2–8** (~33–133ms). **Success:** absorbs the hit, no hitstun, he smoke-flickers and an **automatic unblockable counter-cut** fires → **Knockdown** (bosses: **Stun**). **Whiff:** smoke puff gives him away, long recovery, fully punishable |
+| Kage-uke (success) → Heavy | **Kage Kubi-kiri** "Shadow Execution" | freeze-frame + ink splash, both swords in a full circle, **AoE**, huge damage; high recovery, **ends the combo** |
+| Kage-uke (success) → Dash | **Utsusemi** "Cicada Shell" | leaves a hollow husk (kawarimi-style) and reappears **behind** them for a backstab; combo continues |
+| Dash + Heavy | **Shukuchi-giri** "Earth-Shrinking Cut" — low blurring lunge | gap-closer; **slides under high attacks**; on hit **cancels into Light** |
 | Down+H | **Gedan Nitō** — both blades sweep low | low, trip |
 | Air H | **Otoshi Nitō** — both swords chop down | **Spike**; crush |
 | Special | **Itsutsu no Kata** — five-cut sequence | chakra; last cut Breaks |
 | Fwd+S | **Iai Ryūsen** — dash-through cut | switches sides |
 | Guard+S | **Kage Nitō** (shadow) — clone dashes in from the far side and cuts | Strike → Push toward Kael |
 | Throw | **Kodachi Osae** — pins arm with short, slashes with long | wallsplat near wall |
+| Guard | **kept**, with **increased block stagger** (Kael only) | balance change → its own commit |
 | Kawarimi | log swap, reappears behind with a short-sword stab | |
+
+Cancel rules: Sōrai → Kage-uke any time · Kage-uke absorbs on frames 2–8 and cancels only
+into Kage Kubi-kiri or Utsusemi · Kage Kubi-kiri ends the string · Kiri-tōshi cannot be
+cancelled · Shukuchi-giri → Light on hit.
 
 ## TSUBASA — Tantōjutsu, parries, kicks · Reach: mid
 
@@ -302,6 +316,7 @@ than adding a second clone system.
 ## Likely new engine work (confirm before building)
 
 - Shadow clone attacks (above) on top of the existing `castBunshin()` path.
+- Kael: double-tap-forward dash, the Kage-uke parry with post-parry branches (Heavy / Dash), and his larger block stagger (balance commit).
 
 - Hitbox type + effect tags on every move (one type, one primary effect) — check what the
   engine already carries (`low`, `trip`, `wallsplat`, `behind` exist on kick boxes).
