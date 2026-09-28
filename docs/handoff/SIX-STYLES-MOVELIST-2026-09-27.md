@@ -194,13 +194,13 @@ blade or an open-hand **teishō** (heel-palm) counters instantly.
 | Air L | **Tobi Hiji Tsuki** (Leaping Elbow Drive) | descending lead elbow into the shoulder/clavicle, blades held ready | **Overhead**; keeps pressure on landing |
 | Heavy | **Jūji-Dome** (Cross-Blade Catch) | both tantō crossed in an X to lock down heavy attacks | **PARRY**; on catch, guaranteed heavy throat stab |
 | Fwd+H | **Mae Geri → Nodo Tsuki** (Front Kick → Throat Piercer) | mid snap kick opens the guard, then a lunging throat stab | 2 hits; severe wallsplat near walls/edges |
-| Back+H | **Omote Gyaku Boshi-ken** (Wrist Twist & Thumb Drive) | steps around the attack, twists the wrist, thumb-joint drive into nerve points | **anti-flank**; punishes aggressive forward dashes |
+| Back+H | **Ura Gyaku Tsuka-uchi** (Inner Wrist Twist & Pommel Strike) | steps around the attack, turns the wrist inward, drives the tantō pommel into nerve points | **anti-flank**; punishes aggressive forward dashes |
 | Down+H | **Harai Ashi → Kote Kiri** (Leg Hook → Wrist Cut) | foot-hook sweeps the front leg while slicing the wrist/forearm | low multi-hit; hard knockdown / trip |
 | Air H | **Ryōtō Otoshi** (Twin-Blade Drop) | double-blade downward thrust with full body mass | **Spike**; ground bounce on airborne targets (one per combo) |
 | Special | **Kaeshi-Waza** (Omni-Counter Stance) | fluid dual-blade stance; any physical attack that strikes it is redirected, leaving them fully open | **PARRY STANCE**; severe stagger → full-combo punish |
 | Fwd+S | **Renzen Kiri** (Continuous Trapping Flurry) | advances with alternating check-parries and short cuts, ends in a guard-breaking palm thrust | advancing string; **auto-reflects light projectiles**; last hit **Guard-break** |
 | Guard+S | **Kage Uke** (Decoy Parrying Trap) | shadow clone takes the hit and pins their weapon between its blades | Tsubasa gets a guaranteed **unblockable** free counter-cut |
-| Throw | **Kote Hineri Nage** (Wrist Lock & Disarm Throw) | traps the limb, snaps the wrist outward (omote gyaku), slashes the forearm, throws | command throw; beats block; high damage; resets position |
+| Throw | **Kote Hineri Nage** (Wrist Lock & Disarm Throw) | traps the limb, twists the wrist (kote hineri), slashes the forearm, throws | command throw; beats block; high damage; resets position |
 | Guard | **Sekitō Riposte** (Flash Block Counter) | striking immediately off a fresh block fires a lightning cross-cut | passive; **highest-damage riposte on the roster** (`executeReprisal`) |
 
 Known engine issue to check first: Tsubasa's sakate is still hijacked by the kick map
