@@ -244,24 +244,28 @@ Known engine issue to check first: Tsubasa's sakate is still hijacked by the kic
 
 ## SHIN — Taijutsu, wire, shuriken, spy tricks · Reach: short + mid + long
 
-| Input | Move | Notes |
-|---|---|---|
-| Light | **Shikan-ken** — fast knuckle jabs | chains |
-| Fwd+L | **Shuriken Uchi** — thrown shuriken | range |
-| Back+L | **Nagare Kōtei** — slips, palm-strike return | **COUNTER**; fast, small reward |
-| Down+L | **Ashi Kudaki** — ankle stomp | low |
-| Air L | **Tobi Shuriken** — downward shuriken | air |
-| Heavy | **Kosshi Tsuki** — thumb strike to a nerve point | big stagger |
-| Fwd+H | **Kaginawa Hiki** — wire throw, pull in | ranged grab into combo |
-| Back+H | **Omote Gyaku** — catches the arm, wrist lock, throw | **COUNTER** stance |
-| Down+H | **Ashi Garami Nawa** — wire around the ankle | low, trip |
-| Air H | **Hiji Otoshi** — elbow drop | **Spike**; crush |
-| Special | **Metsubushi** — blinding powder | chakra; brief no-block; works from hiding spots |
-| Fwd+S | **Ito Shibari** — wire pins to wall | ranged wallsplat |
-| Down+S | **Makibishi** — scatter caltrops | floor zone, hurts on step |
-| Guard+S | **Kage Nawa** (shadow) — clone throws its wire from the other side | Ranged grab → Pull toward Shin |
-| Throw | **Oni Kudaki** — arm lock into slam | big damage, Break |
-| Kawarimi | can end inside a hiding spot | |
+Owner revision, 2026-09-28: real taijutsu, koppōjutsu (bone-striking) and dakentaijutsu —
+open palms, blade-hand chops and specialised hand formations (knife-hand, heel-palm, thumb
+drive). **No boxing-style punches.**
+
+| Input | Move | Attack & mechanics | Notes |
+|---|---|---|---|
+| Light | **Shutō Uchi** (Knife-Hand Chop) | swift diagonal blade-hand chop to the side of the neck | fast startup; chains into light follow-ups |
+| Fwd+L | **Shuriken Uchi** (Shuriken Throw) | low-profile concealed shuriken from the hip/sleeve | fast projectile, mid-range check |
+| Back+L | **Sokugyaku / Boshi-ken** (Heel-Palm Counter) | slips inward under the blow, strikes forward with an open **Teishō** (heel-palm) to the jaw | **COUNTER**; fast startup; resets neutral with mild pushback |
+| Down+L | **Ashi Kudaki** (Ankle Smash) | low heel-stamp into the ankle or shin joint | low; disrupts standing guard |
+| Air L | **Tobi Shuriken** (Air Shuriken) | angled downward shuriken while airborne | aerial zoning; keeps them grounded |
+| Heavy | **Boshi-ken Tsuki** (Thumb-Drive Strike) | reinforced thumb-joint drive into rib/nerve points | high hit-stop; heavy stagger |
+| Fwd+H | **Kaginawa Hiki** (Grapple Wire Hook) | weighted grapple line snags the target and reels them in | mid-range command hook → free combo |
+| Back+H | **Omote Gyaku** (Outer Wrist Twist Throw) | catches the striking wrist, outward joint lock, drives them into the ground | **COUNTER** stance; long recovery on whiff |
+| Down+H | **Ashi Garami Nawa** (Ankle Trap Wire) | weighted line swept across the floor entangles the legs | low sweep; hard knockdown |
+| Air H | **Hiji Otoshi** (Descending Elbow Drop) | drops straight down, lead elbow through airborne opponents | **Spike**; ground bounce on air-hit (one per combo) |
+| Special | **Metsubushi** (Blinding Powder) | flash of ash/metal dust into the face | unblockable flash; temporarily disables their block |
+| Fwd+S | **Ito Shibari** (Wire Pin) | taut line binds them and hitches them to the wall | ranged wallsplat; sets up extended juggles |
+| Down+S | **Makibishi** (Caltrop Scatter) | iron caltrops across the nearby ground | hazard zone; passive damage + hitstun when stepped on |
+| Guard+S | **Kage Nawa** (Shadow Wire Trap) | shadow clone appears behind the target and lines them back into Shin's strike zone | reverses position; pulls them toward Shin |
+| Throw | **Oni Kudaki** (Demon Breaker) | arm over the shoulder, elbow-joint snap, shoulder throw | command throw; high damage; breaks guard |
+| Kawarimi | **Doton Kakure** (Earth-Hiding Evasion) | substitution that exits straight into an active stealth/hiding spot | defensive escape |
 
 ## EMBER — Togakure-ryū Shukō, orthodox form · Reach: mid
 
