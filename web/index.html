@@ -3943,6 +3943,7 @@
         // --- 2. THE NINJA CONTROLLER CLASS ---
         class Player {
             constructor(id, x, y, spec, isP1) {
+                requireSprite(spec.name);   // demo build: pages load on demand (no-op otherwise)
                 this.id = id;
                 this.spec = spec;
                 this.isP1 = isP1;
@@ -12749,7 +12750,35 @@
             return { src, currentSrc: src, width: man.frameW * man.cols, height: man.frameH,
                 shodoRuntime: packed, shodoPages: pages, shodoRawImage };
         }
-        NINJA_ROSTER.forEach(n => {
+        // DEMO BUILD loads a fighter's sprite pages only when a match needs them (a few MB per
+        // fighter instead of every sheet at boot). The local build still preloads everything.
+        const LAZY_SPRITES = DEMO_BUILD;
+        const spriteLoads = {}, spriteWanted = new Set();
+        let spriteWaitSince = 0;
+        function ensureSprite(name) {
+            const key = name.toLowerCase();
+            if (!LAZY_SPRITES || spriteLoads[key]) return;
+            const n = NINJA_ROSTER.find(f => f.name === name && !f.benched);
+            if (!n) return;
+            spriteLoads[key] = true;
+            startSpriteLoad(n);
+        }
+        function requireSprite(name) {
+            if (!LAZY_SPRITES) return;
+            ensureSprite(name);
+            spriteWanted.add(name.toLowerCase());
+        }
+        // True while a fighter in play has no sheet yet. Gives up after 60s so a failed
+        // download falls back to the old placeholder instead of freezing the match.
+        function spritesPending() {
+            if (!LAZY_SPRITES) return false;
+            let waiting = false;
+            for (const k of spriteWanted) if (!SPRITES[k]) waiting = true;
+            if (!waiting) { spriteWaitSince = 0; return false; }
+            if (!spriteWaitSince) spriteWaitSince = performance.now();
+            return performance.now() - spriteWaitSince < 60000;
+        }
+        function startSpriteLoad(n) {
             // PUBLIC BATTLE BUILD: benched fighters are not preloaded. Benching them was a
             // UI gate only — this loop walked the RAW roster, so every visitor downloaded
             // megabytes of benched-fighter sheets for characters the build gives them no
@@ -12787,7 +12816,8 @@
                     .catch(() => {});   // no sheet -> procedural doll stays
             };
             load(false);
-        });
+        }
+        NINJA_ROSTER.forEach(n => { if (!n.benched && !LAZY_SPRITES) startSpriteLoad(n); });
 
         // Strike cells play fast (that's the snap of a real cut). The tail used to
         // FREEZE the last cell for the whole recovery — up to ~1.0s of statue after
@@ -16875,6 +16905,8 @@
         function updateSelectionHUD() {
             sfx('select');
             stampPicks();
+            // demo: start downloading the picked fighters' sprites while the player browses
+            [p1Pick, p2Pick].forEach(i => { if (i != null && NINJA_ROSTER[i]) ensureSprite(NINJA_ROSTER[i].name); });
             syncBarToggles();
             const p1Card = document.getElementById('p1-choice-card');
             const p1Name = document.getElementById('p1-choice-name');
@@ -20377,6 +20409,16 @@
                 if (screenShakeAmount <= 0) { screenShakeAmount = 0; screenShakeDX = screenShakeDY = 0; }
             }
 
+            // DEMO: hold the match until the fighters' sprite pages have arrived
+            if (spritesPending()) {
+                drawScene();
+                ctx.save();
+                ctx.fillStyle = '#0b0b0f'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = '#e8dcc0'; ctx.font = 'bold 26px serif'; ctx.textAlign = 'center';
+                ctx.fillText('LOADING FIGHTERS…', canvas.width / 2, canvas.height / 2);
+                ctx.restore();
+                return;
+            }
             // Paused: keep rendering the frozen scene, run nothing else
             if (paused) {
                 flashOverlay.classList.remove('flash-active');
