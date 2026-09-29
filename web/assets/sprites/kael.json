@@ -2,7 +2,7 @@
   "name": "kael",
   "frameW": 300,
   "frameH": 320,
-  "cols": 351,
+  "cols": 345,
   "footY": 312,
   "scale": 0.4046242774566474,
   "frames": {
@@ -57,12 +57,12 @@
     "kfang4": 240,
     "kfang5": 241,
     "kfang6": 242,
-    "xidle1": 345,
-    "xidle2": 346,
-    "xidle3": 347,
-    "xidle4": 348,
-    "xidle5": 349,
-    "xidle6": 350,
+    "xidle1": 103,
+    "xidle2": 104,
+    "xidle3": 105,
+    "xidle4": 106,
+    "xidle5": 107,
+    "xidle6": 108,
     "run_clean1": 6,
     "run_clean2": 7,
     "run_clean3": 8,
@@ -112,8 +112,8 @@
     "kscis8": 82,
     "kfang7": 243,
     "kfang8": 244,
-    "idle": 345,
-    "idle2": 345,
+    "idle": 109,
+    "idle2": 110,
     "getup3": 129,
     "getup4": 130,
     "getup5": 131,
@@ -225,7 +225,7 @@
     "jsquat1": 299,
     "land1": 304,
     "land2": 300,
-    "land3": 345,
+    "land3": 103,
     "skid1": 21,
     "skid2": 20
   },
@@ -396,13 +396,7 @@
     "297": true,
     "298": true,
     "344": true,
-    "343": true,
-    "345": true,
-    "346": true,
-    "347": true,
-    "348": true,
-    "349": true,
-    "350": true
+    "343": true
   },
   "frameClear": {
     "16": [
@@ -7167,25 +7161,5 @@
   "frameOffsetX": {
     "344": -4,
     "343": -4
-  },
-  "footAdj": {
-    "345": 1,
-    "346": 1,
-    "347": 1,
-    "348": 1,
-    "349": 1,
-    "350": 1
-  },
-  "combatReferenceIdle": 109,
-  "combatFrames": {
-    "xidle1": 103,
-    "xidle2": 104,
-    "xidle3": 105,
-    "xidle4": 106,
-    "xidle5": 107,
-    "xidle6": 108,
-    "idle": 109,
-    "idle2": 110,
-    "land3": 103
   }
 }
