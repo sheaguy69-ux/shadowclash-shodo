@@ -1925,6 +1925,14 @@
             { slot: 'III', shape: 'beads' },   // bare-handed monk, no staff — see NINJA_ROSTER id 6
         ];
 
+        // DEMO BUILD: tools/build_demo.py flips this to true. Locked fighters are benched (no
+        // pick, no ladder slot, no sprite preload) and shown as black silhouettes only.
+        const DEMO_BUILD = false;
+        const DEMO_LOCKED = ['Exile', 'Mokurai'];
+        if (DEMO_BUILD) NINJA_ROSTER.forEach(n => {
+            if (DEMO_LOCKED.includes(n.name)) { n.benched = true; n.demoLocked = true; }
+        });
+
         // --- 1b. SAVE DATA — one localStorage blob; the game finally remembers you ---
         const SAVE_KEY = 'shadowclash_save_v1';
         const save = {
@@ -16680,7 +16688,7 @@
         // THE BOSS TAIL (owner ruling): every ladder ends Exile -> Mokurai —
         // the first door and the second. Declared here (not at the
         // arcade block) because the roster grid reads it for story-mode door cards.
-        const BOSS_TAIL = [7, 6];   // the climb order: Exile -> Mokurai
+        const BOSS_TAIL = [7, 6].filter(id => !NINJA_ROSTER[id].benched);   // the climb order: Exile -> Mokurai
         function arcadeClears() {
             // a STORY climb walks both doors, so it counts toward the seals too
             return Object.values(save.arcade).concat(Object.values(save.story))
@@ -16704,6 +16712,26 @@
         function buildRosterGrid() {
         grid.innerHTML = '';
         NINJA_ROSTER.forEach(ninja => {
+            if (ninja.demoLocked) {      // DEMO: a black shape and a padlock, nothing else
+                const card = document.createElement('div');
+                card.className = "sc-card cursor-not-allowed flex flex-col justify-between h-48 select-none";
+                card.style.setProperty('--fc', '#3f3f46');
+                card.setAttribute('aria-disabled', 'true');
+                card.innerHTML = `
+                    <div class="arch">LOCKED</div>
+                    <div class="sc-plaque">
+                        <img src="${lockedPortraitSrc(ninja.name)}" alt="Locked fighter" draggable="false">
+                    </div>
+                    <div class="nm">???</div>
+                    <div class="wp">not in this demo</div>
+                    <div class="text-[9px] font-mono text-gray-600">🔒</div>`;
+                card.addEventListener('click', () => {
+                    sfx('block');
+                    document.getElementById('select-hint').innerText = 'This fighter is locked in the demo.';
+                });
+                grid.appendChild(card);
+                return;
+            }
             if (ninja.benched) return;   // BENCHED: no card, no pick, no door
             const card = document.createElement('div');
             card.dataset.nid = ninja.id;      // so stampPicks() can find it
