@@ -153,8 +153,10 @@ stagger than anyone else** — the parry is always the better answer, never the 
 
 | Input | Move | Notes |
 |---|---|---|
+| Light | **Kodachi Tsuki** — fast short-sword jab; first hit of Sōrai | fastest poke; chains into the second Light |
 | Light, Light | **Sōrai** "Twin Lightning" — short sword then long sword | fast, low recovery; **cancels into Kage-uke at any point** |
 | Light, Light, Heavy | **Tsuki-no-Bori** "Rising Moon" — crescent upward cut | **Launch**; follow with jump + Otoshi Nitō (spike) |
+| Fwd+L | **Sasoi** — long sword slides in to draw a reaction | mid-range; safe on block |
 | Down+L | **Ashi Barai-giri** — long-sword ankle cut | low |
 | Back+L | **Ushiro Harai** — short-sword backhand, stepping back | whiff punish |
 | Air L | **Tobi Kodachi** — jumping short-sword slash | jump-in |
