@@ -117,7 +117,7 @@ other fighter's melee boxes stay shorter than theirs.
 
 | Tier | Fighter | Reach comes from |
 |---|---|---|
-| 1 — longest (tied) | **Executioner** | long sword + his height; the tip is the sweetspot |
+| 1 — longest (tied) | **Executioner** | long sword + his height; the tip is the sweetspot; iai draws reach far |
 | 1 — longest (tied) | **Mizu** | the full-length bo; tip is the sweetspot. Split hanbō moves are short on purpose |
 | 2 — mid + short | **Kael** | both ranges on purpose: long sword owns mid-range, short sword owns close range |
 | 2 — mid | **Ember** | claws with a long lunging reach |
@@ -133,7 +133,7 @@ and Shin's wire (mid) and shuriken (long) do not count against the "longest mele
 |---|---|---|
 | Kael | **Niten Ichi-ryū** (daishō, long + short) | long blade controls distance, short blade guards and finishes |
 | Tsubasa | **Tantōjutsu + parries + keri-waza (kicks)** | blade user and parry expert; kicks set up the cut |
-| Executioner | **Kashima Shintō-ryū** | master swordsman; armor-cutting, one decisive stroke |
+| Executioner | **Kashima Shintō-ryū + iaijutsu** | tank and heavy bruiser: slowest mover, fast quick-draw sword, armor-cutting decisive strike |
 | Mizu | **Kukishin-ryū Bōjutsu** | reach and flow; bo splits to hanbō up close |
 | Shin | **Taijutsu (Gyokko-ryū Kosshijutsu, jūtaijutsu) + wire + shuriken + Gyokushin-ryū spy tricks** | hand-to-hand specialist; the wire/shuriken/tricks are core kit |
 | Ember | **Togakure-ryū Shukō, orthodox form** | traditional, textbook claw strikes — trained, not feral |
@@ -153,8 +153,10 @@ stagger than anyone else** — the parry is always the better answer, never the 
 
 | Input | Move | Notes |
 |---|---|---|
+| Light | **Kodachi Tsuki** — fast short-sword jab; first hit of Sōrai | fastest poke; chains into the second Light |
 | Light, Light | **Sōrai** "Twin Lightning" — short sword then long sword | fast, low recovery; **cancels into Kage-uke at any point** |
 | Light, Light, Heavy | **Tsuki-no-Bori** "Rising Moon" — crescent upward cut | **Launch**; follow with jump + Otoshi Nitō (spike) |
+| Fwd+L | **Sasoi** — long sword slides in to draw a reaction | mid-range; safe on block |
 | Down+L | **Ashi Barai-giri** — long-sword ankle cut | low |
 | Back+L | **Ushiro Harai** — short-sword backhand, stepping back | whiff punish |
 | Air L | **Tobi Kodachi** — jumping short-sword slash | jump-in |
@@ -206,24 +208,32 @@ blade or an open-hand **teishō** (heel-palm) counters instantly.
 Known engine issue to check first: Tsubasa's sakate is still hijacked by the kick map
 (missing `gl*` rows) — see MOVE-LISTS "directional-light law".
 
-## EXECUTIONER — Kashima Shintō-ryū · Reach: longest (tied)
+## EXECUTIONER — Kashima Shintō-ryū + iaijutsu · Reach: longest (tied)
+
+Owner revision, 2026-09-29. **Tank and heavy bruiser:** slowest walk, dash and jump on the
+roster, the most health, and a guard that takes the least stagger. **The sword itself is
+fast** — short-startup quick draws (iai/battōjutsu) with long reach — so he is hard to
+walk away from even though he is the slowest to walk. Movement speed, health and block
+stagger are balance changes → their own commit; sword frames stay fast, and Nukitsuke /
+Iai-giri get short whiff recovery so a long-range draw is not punished.
 
 | Input | Move | Notes |
 |---|---|---|
-| Light | **Kote-uchi** — short wrist cut | his only fast poke |
-| Fwd+L | **Tai-atari** — armored shoulder bump | **Guard-break** strike, **Push** a short distance; on hit leaves them **Stun**ned in sword range. **Setup:** links into Kesa-giri (Fwd+H) or Hitotsu-tachi (H) |
-| Up+L | **Zutsuki** — helmeted headbutt | close **Strike**, beats throws on startup; on hit **Stun** ~0.4s. **Setup:** the only reliable way to land Hitotsu-tachi or a charged Shinbu no Tachi |
-| Back+L | **Hiki-giri** — drawing slice while retreating | |
-| Down+L | **Sune-giri** — shin cut | low |
-| Air L | **Tobi Kiri** — short jumping chop | |
-| Heavy | **Hitotsu-tachi** — one decisive overhead cut | very slow, huge damage, armor on startup |
-| Fwd+H | **Kesa-giri** — stepping armor-cleaving diagonal | wallsplat |
-| Back+H | **Kiri-otoshi** — his cut strikes down theirs and hits in one motion | **PARRY**; small window, biggest single parry reward |
-| Down+H | **Nagi-harai** — wide low sweep | low, trip, long reach |
+| Light | **Nukitsuke** — quick draw, cut in one motion | fastest startup in his kit; long reach for a Light; chains |
+| Fwd+L | **Tai-atari** — armored shoulder bump | **Guard-break** strike, **Push** a short distance; on hit leaves them **Stun**ned in sword range. **Setup:** links into Kesa-giri (Fwd+H) or Hitotsu-no-Tachi (H) |
+| Up+L | **Zutsuki** — helmeted headbutt | close **Strike**, beats throws on startup; on hit **Stun** ~0.4s. **Setup:** the reliable way to land Hitotsu-no-Tachi or a charged Shinbu no Tachi |
+| Back+L | **Saya-uchi** — scabbard strike while stepping back, then sheathes | close-range escape; mild push |
+| Down+L | **Sune-nuki** — low quick draw at the shin | low |
+| Air L | **Tobi Kiri-oroshi** — short jumping downcut | jump-in |
+| Heavy | **Hitotsu-no-Tachi** — one decisive overhead cut down the centerline | biggest hit in the kit; faster startup than before; armor on startup |
+| Fwd+H | **Kesa-giri** — stepping shoulder-to-hip diagonal that cuts through armor | wallsplat |
+| Back+H | **Kiri-otoshi** — his cut lands on theirs, knocks it aside and hits in one motion | **PARRY**; small window, biggest single parry reward |
+| Down+H | **Nuki-dō** — steps past them low, cutting across the torso | low, trip, long reach |
 | Air H | **Kabuto-wari** — helmet-splitter drop | **Spike**; crush; always Breaks a breakable floor |
-| Special | **Shinbu no Tachi** — gathers, then cuts | chakra, armor; unblockable at full charge |
-| Fwd+S | **Ittō Ryōdan** — charging cut | breaks walls |
-| Guard+S | **Kage Kubikiri** (shadow) — clone appears behind, slow overhead cut | Overhead → Stun; sets up Hitotsu-tachi |
+| Special | **Shinbu no Tachi** — gathers strength in a low stance, then cuts up and down | chakra, armor; unblockable at full charge |
+| Fwd+S | **Iai-giri** — long draw, slides forward with the cut | his long-distance strike; beats weapon pokes; breaks walls; short whiff recovery |
+| Down+S | **Maki-otoshi** — winds his blade around theirs and wrenches it down | **Disarm**: their next weapon attack is slower |
+| Guard+S | **Kage Kubikiri** (shadow) — clone appears behind, slow overhead cut | Overhead → Stun; sets up Hitotsu-no-Tachi |
 | Throw | **Kubi Nage** — grabs the collar, throws over the hip | Knockdown; sets up okizeme |
 | Guard | slow kawarimi; guard takes much less stagger | |
 
@@ -298,10 +308,12 @@ drive). **No boxing-style punches.**
 ## Executioner setup chains (owner intent: headbutt and shoulder bump exist to set up his other attacks)
 
 - **Tai-atari → Kesa-giri**: shoulder breaks the guard, the diagonal cut wallsplats.
-- **Tai-atari → Hitotsu-tachi**: shoulder stun covers the big cut's slow startup.
-- **Zutsuki → Hitotsu-tachi / Shinbu no Tachi**: headbutt stun is the window for his slowest,
+- **Tai-atari → Hitotsu-no-Tachi**: shoulder stun covers the big cut's slow startup.
+- **Zutsuki → Hitotsu-no-Tachi / Shinbu no Tachi**: headbutt stun is the window for his slowest,
   biggest hits.
 - **Zutsuki → Tai-atari**: headbutt, then shoulder into the wall for a wallsplat.
+- **Maki-otoshi → Kesa-giri**: their weapon attacks are slowed, so the diagonal lands.
+- **Nukitsuke / Iai-giri from range → Tai-atari**: the draw keeps them off, the shoulder bump takes over as they close.
 - Neither setup deals much damage alone; their value is what follows.
 - Engine: Up+Light is free (`glup`, not in the kick map) and the Executioner already has
   `glup` 8 cells; check whether they can read as a headbutt before calling it art owed.
@@ -318,7 +330,7 @@ than adding a second clone system.
 |---|---|---|---|
 | Kael | **Kage Nitō** — the shadow dashes in from the far side and cuts | Strike → **Push** toward Kael | a pincer: they are knocked into his long sword |
 | Tsubasa | **Kage Uke** — the shadow takes the hit and pins their weapon between its blades | Parry box → weapon pinned | a guaranteed unblockable counter-cut from Tsubasa |
-| Executioner | **Kage Kubikiri** — the shadow appears behind them with a slow overhead cut | Overhead → **Stun** | Hitotsu-tachi from the front |
+| Executioner | **Kage Kubikiri** — the shadow appears behind them with a slow overhead cut | Overhead → **Stun** | Hitotsu-no-Tachi from the front |
 | Mizu | **Kage Mizu** — the shadow sweeps the bo low, then pops into her shipped **Water Slick** | Low → **Trip**, slick stays | pressure on the slick. Water Slick is kept as shipped |
 | Shin | **Kage Nawa** — the shadow throws its wire from the other side | Grab (ranged) → **Pull** toward Shin | his taijutsu combo |
 | Ember | **Kage Tora** — the shadow pounces and rakes low | Low → **Trip** | his down-heavy tiger rake |
